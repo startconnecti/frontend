@@ -1,0 +1,16 @@
+<svg width="512" height="512" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Connecti full logo favicon">
+  <rect width="512" height="512" rx="96" fill="#F5F0E8"/>
+  <g transform="translate(132 70) scale(1.05)">
+    <path d="M105 52C72.4 52 46 78.4 46 111C46 143.6 72.4 170 105 170" stroke="#FF2B2B" stroke-width="38" stroke-linecap="butt"/>
+    <circle cx="151" cy="118" r="57" fill="#FF2B2B"/>
+    <path d="M194 143L226 175H180L194 143Z" fill="#FF2B2B"/>
+    <circle cx="155" cy="37" r="24" fill="#FF2B2B"/>
+  </g>
+  <g transform="translate(80 315) scale(0.42)">
+    <path d="M105 52C72.4 52 46 78.4 46 111C46 143.6 72.4 170 105 170" stroke="#FF2B2B" stroke-width="38" stroke-linecap="butt"/>
+    <circle cx="151" cy="118" r="57" fill="#FF2B2B"/>
+    <path d="M194 143L226 175H180L194 143Z" fill="#FF2B2B"/>
+    <circle cx="155" cy="37" r="24" fill="#FF2B2B"/>
+  </g>
+  <text x="190" y="385" fill="#3B0F08" font-size="58" font-family="Arial Black, Impact, sans-serif" font-weight="900" letter-spacing="1">CONNECTI</text>
+</svg>

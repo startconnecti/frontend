@@ -11,7 +11,7 @@ export const metadata: Metadata = {
   description: 'Connect with experienced mentors to accelerate your growth. Premium mentorship marketplace for professionals.',
   generator: 'v0.app',
   icons: {
-    icon: '/logo.png',
+    icon: '/connecti-favicon.svg',
   },
 }
 
