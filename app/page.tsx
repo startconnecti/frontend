@@ -1,6 +1,6 @@
 import { Navbar } from '@/components/navbar';
 import { Hero } from '@/components/hero';
-import { MentorSection } from '@/components/mentor-section';
+import { DiscoverSection } from '@/components/discover-section';
 import { HowItWorks } from '@/components/how-it-works';
 import { Testimonials } from '@/components/testimonials';
 import { FinalCTA } from '@/components/final-cta';
@@ -11,7 +11,7 @@ export default function Home() {
     <main className="w-full">
       <Navbar />
       <Hero />
-      <MentorSection />
+      <DiscoverSection />
       <HowItWorks />
       <Testimonials />
       <FinalCTA />

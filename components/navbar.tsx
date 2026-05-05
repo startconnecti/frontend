@@ -5,17 +5,9 @@ export function Navbar() {
         <div className="text-2xl font-bold text-foreground">
           Connecti
         </div>
-        <div className="flex items-center gap-6">
-          <a href="#" className="text-sm text-foreground hover:text-primary transition-colors">
-            Explore
-          </a>
-          <a href="#" className="text-sm text-foreground hover:text-primary transition-colors">
-            For Mentors
-          </a>
-          <button className="px-4 py-2 rounded-lg bg-primary text-primary-foreground hover:opacity-90 transition-opacity text-sm font-medium">
-            Get Started
-          </button>
-        </div>
+        <button className="px-4 py-2 rounded-lg border border-primary text-primary hover:bg-primary hover:text-primary-foreground transition-colors text-sm font-medium">
+          Find a Mentor
+        </button>
       </div>
     </nav>
   );
