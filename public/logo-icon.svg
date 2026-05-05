@@ -1,0 +1,14 @@
+<svg viewBox="0 0 800 800" xmlns="http://www.w3.org/2000/svg">
+  <!-- Head circle -->
+  <circle cx="600" cy="200" r="80" fill="#FF4444"/>
+  
+  <!-- Speech bubble with C shape -->
+  <!-- Outer circle -->
+  <circle cx="350" cy="400" r="180" fill="none" stroke="#FF4444" stroke-width="90"/>
+  
+  <!-- Inner white space (C cutout) -->
+  <path d="M 350 220 A 180 180 0 0 0 350 580" fill="white" stroke="none"/>
+  
+  <!-- Speech bubble pointer -->
+  <path d="M 500 520 L 620 650 L 580 540 Z" fill="#FF4444"/>
+</svg>
