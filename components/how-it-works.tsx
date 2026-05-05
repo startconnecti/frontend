@@ -12,7 +12,7 @@ export function HowItWorks() {
       icon: MessageCircle,
       number: '2',
       title: 'Connect & Chat',
-      description: 'Send a message to mentors you&apos;re interested in and schedule your first session.',
+      description: "Send a message to mentors you're interested in and schedule your first session.",
     },
     {
       icon: TrendingUp,
