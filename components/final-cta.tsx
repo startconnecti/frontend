@@ -1,27 +1,32 @@
 export function FinalCTA() {
   return (
-    <section className="py-20 bg-background">
-      <div className="mx-auto max-w-4xl px-6">
-        <div className="text-center">
-          <h2 className="text-4xl font-bold text-foreground mb-4">
-            Ready to Transform Your Career?
-          </h2>
-          <p className="text-lg text-muted-foreground mb-8 max-w-2xl mx-auto">
-            Join thousands of professionals who are achieving their goals with the right mentor. Start your journey today.
-          </p>
-          
-          <div className="flex flex-col sm:flex-row gap-4 justify-center mb-8">
-            <button className="px-8 py-3.5 rounded-lg bg-primary text-primary-foreground hover:opacity-90 transition-opacity font-semibold text-lg">
-              Get Started Free
-            </button>
-            <button className="px-8 py-3.5 rounded-lg border border-primary text-primary hover:bg-primary/5 transition-all font-semibold text-lg">
-              Learn More
-            </button>
-          </div>
+    <section className="bg-[#F5F0E8] py-20">
+      <div className="mx-auto max-w-4xl px-6 text-center">
+        {/* label */}
+        <p className="text-base tracking-widest text-[#E8341A] font-bold mb-6">
+          GET STARTED
+        </p>
 
-          <p className="text-sm text-muted-foreground">
-            No credit card required • First session is free
-          </p>
+        {/* heading */}
+        <h2 className="text-4xl md:text-5xl font-extrabold text-[#2C1208] mb-4">
+          Find your mentor{" "}
+          <span className="text-[#E8341A]">today</span>
+        </h2>
+
+        {/* subtitle */}
+        <p className="text-lg text-[#6B5B53] mb-10 max-w-2xl mx-auto">
+          Your next chapter starts with one conversation. Book in minutes.
+        </p>
+
+        {/* buttons */}
+        <div className="flex flex-col sm:flex-row gap-4 justify-center">
+          <button className="px-8 py-3.5 rounded-full border border-[#2C1208] text-[#2C1208] font-semibold hover:bg-[#2C1208]/5 transition-all">
+            Browse Mentors →
+          </button>
+
+          <button className="px-8 py-3.5 rounded-full border border-[#2C1208] text-[#2C1208] font-semibold hover:bg-[#2C1208]/5 transition-all">
+            See How It Works
+          </button>
         </div>
       </div>
     </section>
