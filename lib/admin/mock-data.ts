@@ -530,3 +530,60 @@ export const mockSystemSettings = {
     requireStrongPassword: true,
   },
 };
+
+// Helper functions to retrieve records by ID
+export function getTutorById(id: string) {
+  return mockTutors.find(t => t.id === id);
+}
+
+export function getUserById(id: string) {
+  return mockUsers.find(u => u.id === id);
+}
+
+export function getBookingById(id: string) {
+  return mockBookings.find(b => b.id === id);
+}
+
+export function getSessionById(id: string) {
+  return mockSessions.find(s => s.id === id);
+}
+
+export function getPaymentById(id: string) {
+  return mockPayments.find(p => p.id === id);
+}
+
+export function getRefundById(id: string) {
+  return mockRefunds.find(r => r.id === id);
+}
+
+export function getPayoutById(id: string) {
+  return mockPayouts.find(p => p.id === id);
+}
+
+export function getDisputeById(id: string) {
+  return mockDisputes.find(d => d.id === id);
+}
+
+export function getConversationById(id: string) {
+  return mockConversations.find(c => c.id === id);
+}
+
+export function getNotificationById(id: string) {
+  return mockNotifications.find(n => n.id === id);
+}
+
+export function getSubjectById(id: string) {
+  return mockSubjects.find(s => s.id === id);
+}
+
+export function getAdminById(id: string) {
+  return mockAdmins.find(a => a.id === id);
+}
+
+export function getRoleById(id: string) {
+  return mockRoles.find(r => r.id === id);
+}
+
+export function getAuditLogById(id: string) {
+  return mockAuditLogs.find(a => a.id === id);
+}

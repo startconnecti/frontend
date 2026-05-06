@@ -1,20 +1,25 @@
 'use client';
 
 import { useState } from 'react';
-import Link from 'next/link';
-import { Eye, Lock, Unlock } from 'lucide-react';
 import { AdminPageHeader } from '@/components/admin/admin-page-header';
 import { AdminStatusBadge } from '@/components/admin/admin-status-badge';
+import { AdminRowActions } from '@/components/admin/admin-row-actions';
+import { AdminBulkActionBar } from '@/components/admin/admin-bulk-actions';
+import { AdminPagination } from '@/components/admin/admin-pagination';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
+import { Checkbox } from '@/components/ui/checkbox';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Input } from '@/components/ui/input';
 import { mockUsers } from '@/lib/admin/mock-data';
 
 export default function UsersPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedRole, setSelectedRole] = useState('all');
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
+  const [selected, setSelected] = useState<Set<string>>(new Set());
 
   const filteredUsers = mockUsers.filter(user => {
     const matchesSearch = user.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -23,6 +28,10 @@ export default function UsersPage() {
     return matchesSearch && matchesRole;
   });
 
+  const totalPages = Math.ceil(filteredUsers.length / pageSize);
+  const startIndex = (page - 1) * pageSize;
+  const paginatedUsers = filteredUsers.slice(startIndex, startIndex + pageSize);
+
   const roleTabs = [
     { value: 'all', label: 'All', count: mockUsers.length },
     { value: 'student', label: 'Students', count: mockUsers.filter(u => u.role === 'student').length },
@@ -30,11 +39,45 @@ export default function UsersPage() {
     { value: 'admin', label: 'Admins', count: mockUsers.filter(u => u.role === 'admin').length },
   ];
 
+  const handleSelectAll = (checked: boolean) => {
+    if (checked) {
+      setSelected(new Set(paginatedUsers.map(u => u.id)));
+    } else {
+      setSelected(new Set());
+    }
+  };
+
+  const handleSelectOne = (id: string, checked: boolean) => {
+    const newSelected = new Set(selected);
+    if (checked) {
+      newSelected.add(id);
+    } else {
+      newSelected.delete(id);
+    }
+    setSelected(newSelected);
+  };
+
+  const handleBulkDelete = () => {
+    setSelected(new Set());
+  };
+
   return (
     <>
-      <AdminPageHeader title="Users Management" description="Manage platform users and their accounts." />
+      <AdminPageHeader 
+        title="Users Management" 
+        description="Manage platform users and their accounts."
+        action={{
+          label: 'Create User',
+          href: '/admin/users/create',
+        }}
+      />
 
       <Card>
+        <AdminBulkActionBar 
+          selectedCount={selected.size}
+          onBulkDelete={handleBulkDelete}
+        />
+
         {/* Search Bar */}
         <div className="border-b border-border px-6 py-4">
           <Input
@@ -47,7 +90,11 @@ export default function UsersPage() {
 
         {/* Tabs */}
         <div className="border-b border-border">
-          <Tabs value={selectedRole} onValueChange={setSelectedRole} className="w-full">
+          <Tabs value={selectedRole} onValueChange={(val) => {
+            setSelectedRole(val);
+            setPage(1);
+            setSelected(new Set());
+          }} className="w-full">
             <div className="px-6">
               <TabsList className="gap-2">
                 {roleTabs.map(tab => (
@@ -68,6 +115,12 @@ export default function UsersPage() {
           <Table>
             <TableHeader>
               <TableRow>
+                <TableHead className="w-12">
+                  <Checkbox
+                    checked={selected.size > 0 && selected.size === paginatedUsers.length}
+                    onCheckedChange={handleSelectAll}
+                  />
+                </TableHead>
                 <TableHead>Name</TableHead>
                 <TableHead>Email</TableHead>
                 <TableHead>Role</TableHead>
@@ -78,15 +131,21 @@ export default function UsersPage() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {filteredUsers.length === 0 ? (
+              {paginatedUsers.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={7} className="h-24 text-center text-muted-foreground">
+                  <TableCell colSpan={8} className="h-24 text-center text-muted-foreground">
                     No users found
                   </TableCell>
                 </TableRow>
               ) : (
-                filteredUsers.map(user => (
+                paginatedUsers.map(user => (
                   <TableRow key={user.id}>
+                    <TableCell>
+                      <Checkbox
+                        checked={selected.has(user.id)}
+                        onCheckedChange={(checked) => handleSelectOne(user.id, !!checked)}
+                      />
+                    </TableCell>
                     <TableCell className="font-medium">{user.name}</TableCell>
                     <TableCell className="text-sm">{user.email}</TableCell>
                     <TableCell>
@@ -98,22 +157,11 @@ export default function UsersPage() {
                     <TableCell className="text-sm text-muted-foreground">{user.createdAt}</TableCell>
                     <TableCell className="text-sm text-muted-foreground">{user.lastLogin || '-'}</TableCell>
                     <TableCell>
-                      <div className="flex items-center gap-2">
-                        <Link href={`/admin/users/${user.id}`}>
-                          <Button variant="ghost" size="sm">
-                            <Eye className="h-4 w-4" />
-                          </Button>
-                        </Link>
-                        {user.status === 'active' ? (
-                          <Button variant="ghost" size="sm" className="text-red-600 hover:text-red-700">
-                            <Lock className="h-4 w-4" />
-                          </Button>
-                        ) : (
-                          <Button variant="ghost" size="sm" className="text-green-600 hover:text-green-700">
-                            <Unlock className="h-4 w-4" />
-                          </Button>
-                        )}
-                      </div>
+                      <AdminRowActions
+                        viewHref={`/admin/users/${user.id}`}
+                        editHref={`/admin/users/${user.id}/edit`}
+                        onDelete={() => handleBulkDelete()}
+                      />
                     </TableCell>
                   </TableRow>
                 ))
@@ -121,6 +169,14 @@ export default function UsersPage() {
             </TableBody>
           </Table>
         </div>
+
+        <AdminPagination
+          page={page}
+          pageSize={pageSize}
+          total={filteredUsers.length}
+          onPageChange={setPage}
+          onPageSizeChange={setPageSize}
+        />
       </Card>
     </>
   );

@@ -5,12 +5,13 @@ import Link from 'next/link';
 import { ArrowLeft, Mail, Phone, MapPin, Award, Users } from 'lucide-react';
 import { AdminPageHeader } from '@/components/admin/admin-page-header';
 import { AdminStatusBadge } from '@/components/admin/admin-status-badge';
+import { AdminRecordNotFound } from '@/components/admin/admin-record-not-found';
 import { AdminConfirmDialog } from '@/components/admin/admin-confirm-dialog';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
-import { mockTutors } from '@/lib/admin/mock-data';
+import { getTutorById } from '@/lib/admin/mock-data';
 
 interface PageProps {
   params: {
@@ -19,21 +20,10 @@ interface PageProps {
 }
 
 export default function TutorDetailPage({ params }: PageProps) {
-  const tutor = mockTutors.find(t => t.id === params.id);
-  const [rejectionReason, setRejectionReason] = useState('');
-  const [showRejectionForm, setShowRejectionForm] = useState(false);
-
+  const tutor = getTutorById(params.id);
+  
   if (!tutor) {
-    return (
-      <div className="flex items-center justify-center py-20">
-        <Card className="p-8 text-center">
-          <p className="text-lg font-medium">Tutor not found</p>
-          <Link href="/admin/tutors">
-            <Button className="mt-4" variant="outline">Back to Tutors</Button>
-          </Link>
-        </Card>
-      </div>
-    );
+    return <AdminRecordNotFound backHref="/admin/tutors" />;
   }
 
   return (

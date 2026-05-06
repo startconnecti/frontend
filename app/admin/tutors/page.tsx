@@ -1,20 +1,25 @@
 'use client';
 
 import { useState } from 'react';
-import Link from 'next/link';
-import { Eye, CheckCircle, XCircle } from 'lucide-react';
 import { AdminPageHeader } from '@/components/admin/admin-page-header';
 import { AdminStatusBadge } from '@/components/admin/admin-status-badge';
+import { AdminRowActions } from '@/components/admin/admin-row-actions';
+import { AdminBulkActionBar } from '@/components/admin/admin-bulk-actions';
+import { AdminPagination } from '@/components/admin/admin-pagination';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
+import { Checkbox } from '@/components/ui/checkbox';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Input } from '@/components/ui/input';
 import { mockTutors } from '@/lib/admin/mock-data';
 
 export default function TutorApprovalPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedStatus, setSelectedStatus] = useState('pending');
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
+  const [selected, setSelected] = useState<Set<string>>(new Set());
 
   const filteredTutors = mockTutors.filter(tutor => {
     const matchesSearch = tutor.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -22,6 +27,10 @@ export default function TutorApprovalPage() {
     const matchesStatus = selectedStatus === 'all' || tutor.approvalStatus === selectedStatus;
     return matchesSearch && matchesStatus;
   });
+
+  const totalPages = Math.ceil(filteredTutors.length / pageSize);
+  const startIndex = (page - 1) * pageSize;
+  const paginatedTutors = filteredTutors.slice(startIndex, startIndex + pageSize);
 
   const statusTabs = [
     { value: 'all', label: 'All', count: mockTutors.length },
@@ -31,11 +40,45 @@ export default function TutorApprovalPage() {
     { value: 'suspended', label: 'Suspended', count: mockTutors.filter(t => t.approvalStatus === 'suspended').length },
   ];
 
+  const handleSelectAll = (checked: boolean) => {
+    if (checked) {
+      setSelected(new Set(paginatedTutors.map(t => t.id)));
+    } else {
+      setSelected(new Set());
+    }
+  };
+
+  const handleSelectOne = (id: string, checked: boolean) => {
+    const newSelected = new Set(selected);
+    if (checked) {
+      newSelected.add(id);
+    } else {
+      newSelected.delete(id);
+    }
+    setSelected(newSelected);
+  };
+
+  const handleBulkDelete = () => {
+    setSelected(new Set());
+  };
+
   return (
     <>
-      <AdminPageHeader title="Tutor Approval" description="Review and manage tutor applications." />
+      <AdminPageHeader 
+        title="Tutor Approval" 
+        description="Review and manage tutor applications."
+        action={{
+          label: 'Create Tutor',
+          href: '/admin/tutors/create',
+        }}
+      />
 
       <Card>
+        <AdminBulkActionBar 
+          selectedCount={selected.size}
+          onBulkDelete={handleBulkDelete}
+        />
+
         {/* Search Bar */}
         <div className="border-b border-border px-6 py-4">
           <Input
@@ -48,7 +91,11 @@ export default function TutorApprovalPage() {
 
         {/* Tabs */}
         <div className="border-b border-border">
-          <Tabs value={selectedStatus} onValueChange={setSelectedStatus} className="w-full">
+          <Tabs value={selectedStatus} onValueChange={(val) => {
+            setSelectedStatus(val);
+            setPage(1);
+            setSelected(new Set());
+          }} className="w-full">
             <div className="px-6">
               <TabsList className="gap-2">
                 {statusTabs.map(tab => (
@@ -69,6 +116,12 @@ export default function TutorApprovalPage() {
           <Table>
             <TableHeader>
               <TableRow>
+                <TableHead className="w-12">
+                  <Checkbox
+                    checked={selected.size > 0 && selected.size === paginatedTutors.length}
+                    onCheckedChange={handleSelectAll}
+                  />
+                </TableHead>
                 <TableHead>Tutor</TableHead>
                 <TableHead>Email</TableHead>
                 <TableHead>Subjects</TableHead>
@@ -79,15 +132,21 @@ export default function TutorApprovalPage() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {filteredTutors.length === 0 ? (
+              {paginatedTutors.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={7} className="h-24 text-center text-muted-foreground">
+                  <TableCell colSpan={8} className="h-24 text-center text-muted-foreground">
                     No tutors found
                   </TableCell>
                 </TableRow>
               ) : (
-                filteredTutors.map(tutor => (
+                paginatedTutors.map(tutor => (
                   <TableRow key={tutor.id}>
+                    <TableCell>
+                      <Checkbox
+                        checked={selected.has(tutor.id)}
+                        onCheckedChange={(checked) => handleSelectOne(tutor.id, !!checked)}
+                      />
+                    </TableCell>
                     <TableCell className="font-medium">{tutor.name}</TableCell>
                     <TableCell className="text-sm">{tutor.email}</TableCell>
                     <TableCell className="text-sm">{tutor.subjects.slice(0, 2).join(', ')}</TableCell>
@@ -97,23 +156,11 @@ export default function TutorApprovalPage() {
                     <TableCell className="text-sm">{tutor.rating} ⭐</TableCell>
                     <TableCell className="text-sm text-muted-foreground">{tutor.submittedAt}</TableCell>
                     <TableCell>
-                      <div className="flex items-center gap-2">
-                        <Link href={`/admin/tutors/${tutor.id}`}>
-                          <Button variant="ghost" size="sm">
-                            <Eye className="h-4 w-4" />
-                          </Button>
-                        </Link>
-                        {tutor.approvalStatus === 'pending' && (
-                          <>
-                            <Button variant="ghost" size="sm" className="text-green-600 hover:text-green-700">
-                              <CheckCircle className="h-4 w-4" />
-                            </Button>
-                            <Button variant="ghost" size="sm" className="text-red-600 hover:text-red-700">
-                              <XCircle className="h-4 w-4" />
-                            </Button>
-                          </>
-                        )}
-                      </div>
+                      <AdminRowActions
+                        viewHref={`/admin/tutors/${tutor.id}`}
+                        editHref={`/admin/tutors/${tutor.id}/edit`}
+                        onDelete={() => handleBulkDelete()}
+                      />
                     </TableCell>
                   </TableRow>
                 ))
@@ -121,6 +168,14 @@ export default function TutorApprovalPage() {
             </TableBody>
           </Table>
         </div>
+
+        <AdminPagination
+          page={page}
+          pageSize={pageSize}
+          total={filteredTutors.length}
+          onPageChange={setPage}
+          onPageSizeChange={setPageSize}
+        />
       </Card>
     </>
   );
