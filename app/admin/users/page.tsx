@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { AdminPageHeader } from '@/components/admin/admin-page-header';
 import { AdminStatusBadge } from '@/components/admin/admin-status-badge';
 import { AdminRowActions } from '@/components/admin/admin-row-actions';
-import { AdminBulkActionBar } from '@/components/admin/admin-bulk-actions';
+import { AdminBulkActions } from '@/components/admin/admin-bulk-actions';
 import { AdminPagination } from '@/components/admin/admin-pagination';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
@@ -73,8 +73,9 @@ export default function UsersPage() {
       />
 
       <Card>
-        <AdminBulkActionBar 
+        <AdminBulkActions 
           selectedCount={selected.size}
+          onClearSelection={() => setSelected(new Set())}
           onBulkDelete={handleBulkDelete}
         />
 
