@@ -313,3 +313,220 @@ export const mockRoles: Role[] = [
     },
   },
 ];
+
+// Payout Mock Data
+export const mockPayouts = [
+  {
+    id: 'payout-1',
+    tutorId: 'tutor-1',
+    amount: 1500.00,
+    status: 'pending' as const,
+    paymentMethod: 'Bank Transfer',
+    requestedAt: '2024-05-01T10:00:00Z',
+    platformCommission: 300.00,
+    grossAmount: 1800.00,
+    netAmount: 1500.00,
+    note: 'May payout request',
+  },
+  {
+    id: 'payout-2',
+    tutorId: 'tutor-2',
+    amount: 2200.00,
+    status: 'processing' as const,
+    paymentMethod: 'PayPal',
+    requestedAt: '2024-04-28T14:30:00Z',
+    platformCommission: 440.00,
+    grossAmount: 2640.00,
+    netAmount: 2200.00,
+  },
+  {
+    id: 'payout-3',
+    tutorId: 'tutor-3',
+    amount: 1050.00,
+    status: 'paid' as const,
+    paymentMethod: 'Bank Transfer',
+    requestedAt: '2024-04-20T09:15:00Z',
+    processedAt: '2024-04-25T15:45:00Z',
+    platformCommission: 210.00,
+    grossAmount: 1260.00,
+    netAmount: 1050.00,
+  },
+];
+
+// Notification Mock Data
+export const mockNotifications = [
+  {
+    id: 'notif-1',
+    recipientId: 'user-1',
+    recipientRole: 'tutor' as const,
+    type: 'session_reminder' as const,
+    title: 'Upcoming Session',
+    message: 'You have a session tomorrow at 2:00 PM with John Doe',
+    read: false,
+    relatedResourceId: 'session-1',
+    relatedResourceType: 'session',
+    createdAt: '2024-05-15T10:00:00Z',
+  },
+  {
+    id: 'notif-2',
+    recipientRole: 'all' as const,
+    type: 'system_announcement' as const,
+    title: 'Platform Maintenance',
+    message: 'Scheduled maintenance on May 20 from 2-4 AM',
+    read: false,
+    createdAt: '2024-05-15T09:30:00Z',
+  },
+  {
+    id: 'notif-3',
+    recipientId: 'user-2',
+    recipientRole: 'student' as const,
+    type: 'payment_updated' as const,
+    title: 'Payment Confirmed',
+    message: 'Your payment of $50 has been confirmed',
+    read: true,
+    relatedResourceId: 'payment-1',
+    relatedResourceType: 'payment',
+    createdAt: '2024-05-14T15:20:00Z',
+  },
+];
+
+// Conversation Mock Data
+export const mockConversations = [
+  {
+    id: 'conv-1',
+    participants: [
+      { userId: 'user-1', name: 'Sarah Ahmed', role: 'student' as const, avatar: 'https://via.placeholder.com/32' },
+      { userId: 'tutor-1', name: 'Mike Johnson', role: 'tutor' as const },
+    ],
+    lastMessage: {
+      id: 'msg-5',
+      conversationId: 'conv-1',
+      senderId: 'tutor-1',
+      senderName: 'Mike Johnson',
+      senderRole: 'tutor' as const,
+      content: 'See you tomorrow at 2 PM!',
+      createdAt: '2024-05-15T14:30:00Z',
+    },
+    status: 'active' as const,
+    relatedBookingId: 'booking-1',
+    createdAt: '2024-05-10T08:00:00Z',
+    lastActivityAt: '2024-05-15T14:30:00Z',
+  },
+  {
+    id: 'conv-2',
+    participants: [
+      { userId: 'user-3', name: 'Emma Wilson', role: 'student' as const },
+      { userId: 'tutor-2', name: 'Dr. Lisa Chen', role: 'tutor' as const },
+    ],
+    status: 'archived' as const,
+    relatedSessionId: 'session-2',
+    createdAt: '2024-05-01T10:00:00Z',
+    lastActivityAt: '2024-05-08T16:45:00Z',
+  },
+];
+
+// Messages Mock Data
+export const mockMessages = [
+  {
+    id: 'msg-1',
+    conversationId: 'conv-1',
+    senderId: 'user-1',
+    senderName: 'Sarah Ahmed',
+    senderRole: 'student' as const,
+    content: 'Hi Mike, I wanted to ask about the Math calculus session',
+    createdAt: '2024-05-15T10:00:00Z',
+  },
+  {
+    id: 'msg-2',
+    conversationId: 'conv-1',
+    senderId: 'tutor-1',
+    senderName: 'Mike Johnson',
+    senderRole: 'tutor' as const,
+    content: 'Of course! I can help you with any specific topics you are struggling with.',
+    createdAt: '2024-05-15T10:15:00Z',
+  },
+  {
+    id: 'msg-3',
+    conversationId: 'conv-1',
+    senderId: 'user-1',
+    senderName: 'Sarah Ahmed',
+    senderRole: 'student' as const,
+    content: 'Great! I need help with derivatives and integrals',
+    createdAt: '2024-05-15T10:30:00Z',
+  },
+];
+
+// Audit Log Mock Data
+export const mockAuditLogs = [
+  {
+    id: 'audit-1',
+    actorId: 'admin-1',
+    actorEmail: 'admin@connecti.com',
+    action: 'approve' as const,
+    entityType: 'tutor' as const,
+    entityId: 'tutor-1',
+    ipAddress: '192.168.1.100',
+    userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)',
+    afterValue: { approvalStatus: 'approved' },
+    createdAt: '2024-05-15T14:00:00Z',
+  },
+  {
+    id: 'audit-2',
+    actorId: 'admin-2',
+    actorEmail: 'support@connecti.com',
+    action: 'delete' as const,
+    entityType: 'booking' as const,
+    entityId: 'booking-2',
+    ipAddress: '192.168.1.101',
+    userAgent: 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7)',
+    createdAt: '2024-05-15T12:30:00Z',
+  },
+  {
+    id: 'audit-3',
+    actorId: 'admin-1',
+    actorEmail: 'admin@connecti.com',
+    action: 'update' as const,
+    entityType: 'subject' as const,
+    entityId: 'subj-1',
+    ipAddress: '192.168.1.100',
+    userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)',
+    beforeValue: { name: 'Mathematics' },
+    afterValue: { name: 'Advanced Mathematics' },
+    createdAt: '2024-05-15T11:15:00Z',
+  },
+];
+
+// System Settings Mock Data
+export const mockSystemSettings = {
+  general: {
+    platformName: 'Connecti',
+    supportEmail: 'support@connecti.com',
+    maintenanceMode: false,
+  },
+  booking: {
+    holdDuration: 24,
+    cancellationWindow: 4,
+    allowTutorCancellation: true,
+    allowStudentCancellation: true,
+  },
+  payment: {
+    paymentGateway: 'Stripe',
+    bankTransferInfo: 'Account details for bank transfers',
+    expirationTime: 30,
+  },
+  commission: {
+    platformCommissionPercentage: 20,
+    tutorPayoutHoldDuration: 7,
+    minimumPayoutAmount: 50,
+  },
+  notification: {
+    emailNotifications: true,
+    sessionReminderTime: 24,
+    systemAnnouncement: true,
+  },
+  security: {
+    adminSessionDuration: 480,
+    passwordMinLength: 8,
+    requireStrongPassword: true,
+  },
+};

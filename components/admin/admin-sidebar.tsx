@@ -16,10 +16,15 @@ const navigationItems = [
   { label: 'Sessions', href: '/admin/sessions', icon: '🎓' },
   { label: 'Payments', href: '/admin/payments', icon: '💳' },
   { label: 'Refunds', href: '/admin/refunds', icon: '↩️' },
+  { label: 'Payouts', href: '/admin/payouts', icon: '💰' },
   { label: 'Disputes', href: '/admin/disputes', icon: '⚠️' },
+  { label: 'Conversations', href: '/admin/conversations', icon: '💬' },
+  { label: 'Notifications', href: '/admin/notifications', icon: '🔔' },
   { label: 'Subjects', href: '/admin/subjects', icon: '📚' },
   { label: 'Admin Accounts', href: '/admin/admins', icon: '🔐' },
   { label: 'Roles & Permissions', href: '/admin/roles', icon: '🔑' },
+  { label: 'Audit Logs', href: '/admin/audit-logs', icon: '📋' },
+  { label: 'System Settings', href: '/admin/system-settings', icon: '⚙️' },
 ];
 
 function SidebarContent() {

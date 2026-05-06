@@ -50,9 +50,27 @@ const statusStyles: Record<string, { variant: StatusVariant; label: string }> = 
 interface AdminStatusBadgeProps {
   status: string;
   customLabel?: string;
+  type?: 'payout' | 'payment' | 'user' | 'booking';
 }
 
-export function AdminStatusBadge({ status, customLabel }: AdminStatusBadgeProps) {
+export function AdminStatusBadge({ status, customLabel, type }: AdminStatusBadgeProps) {
+  // Map payout status specifically
+  if (type === 'payout') {
+    const payoutStatuses: Record<string, { variant: StatusVariant; label: string }> = {
+      pending: { variant: 'secondary', label: 'Pending' },
+      processing: { variant: 'secondary', label: 'Processing' },
+      paid: { variant: 'default', label: 'Paid' },
+      failed: { variant: 'destructive', label: 'Failed' },
+      cancelled: { variant: 'destructive', label: 'Cancelled' },
+    };
+    const config = payoutStatuses[status] || { variant: 'outline', label: status };
+    return (
+      <Badge variant={config.variant}>
+        {customLabel || config.label}
+      </Badge>
+    );
+  }
+
   const config = statusStyles[status] || { variant: 'outline', label: status };
   
   return (
