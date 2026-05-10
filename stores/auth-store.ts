@@ -1,13 +1,40 @@
-// Note: Zustand will be installed in future phases.
-// This is a placeholder skeleton using native state patterns to define the interface.
+import { create } from 'zustand';
+import { User } from '@/types/user';
 
-export interface AuthState {
-  user: any | null;
-  token: string | null;
+interface AuthState {
+  user: User | null;
+  accessToken: string | null;
   isAuthenticated: boolean;
-  // setUser: (user: any) => void;
-  // setToken: (token: string) => void;
-  // logout: () => void;
+  isHydrated: boolean;
+  
+  // Actions
+  loginMock: (user: User, accessToken: string) => void;
+  logout: () => void;
+  setHydrated: () => void;
 }
 
-// export const useAuthStore = create<AuthState>((set) => ({ ... }));
+export const useAuthStore = create<AuthState>((set) => ({
+  user: null,
+  accessToken: null,
+  isAuthenticated: false,
+  isHydrated: false,
+
+  loginMock: (user, accessToken) => 
+    set({ 
+      user, 
+      accessToken, 
+      isAuthenticated: true 
+    }),
+
+  logout: () => 
+    set({ 
+      user: null, 
+      accessToken: null, 
+      isAuthenticated: false 
+    }),
+
+  setHydrated: () => 
+    set({ 
+      isHydrated: true 
+    }),
+}));

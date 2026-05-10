@@ -1,21 +1,25 @@
 'use client';
 
-import { ReactNode, createContext, useContext, useState } from 'react';
+import { ReactNode, createContext, useContext, useEffect } from 'react';
+import { useAuthStore } from '@/stores/auth-store';
 
 interface AuthContextType {
-  user: any;
-  isAuthenticated: boolean;
-  isLoading: boolean;
+  // We keep this lightweight as requested
+  // The actual state is in the Zustand store
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [user, setUser] = useState(null);
-  const [isLoading, setIsLoading] = useState(false);
+  const setHydrated = useAuthStore((state) => state.setHydrated);
+
+  useEffect(() => {
+    // Mark hydration on mount
+    setHydrated();
+  }, [setHydrated]);
 
   return (
-    <AuthContext.Provider value={{ user, isAuthenticated: !!user, isLoading }}>
+    <AuthContext.Provider value={{}}>
       {children}
     </AuthContext.Provider>
   );
