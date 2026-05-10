@@ -2,48 +2,72 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { LayoutDashboard, Calendar, MessageSquare, User, DollarSign, Settings, LogOut } from 'lucide-react';
+import { 
+  LayoutDashboard, 
+  User, 
+  Calendar, 
+  Video, 
+  Star, 
+  Wallet, 
+  ArrowUpRight, 
+  MessageSquare, 
+  Bell, 
+  Settings, 
+  LogOut 
+} from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { ROUTES } from '@/constants/routes';
 
-const navItems = [
-  { label: 'Dashboard', href: '/tutor/dashboard', icon: LayoutDashboard },
-  { label: 'My Bookings', href: '#', icon: Calendar },
-  { label: 'My Schedule', href: '#', icon: Calendar },
-  { label: 'Messages', href: '#', icon: MessageSquare },
-  { label: 'Wallet', href: '#', icon: DollarSign },
-  { label: 'Profile', href: '#', icon: User },
-  { label: 'Settings', href: '#', icon: Settings },
+const tutorNavItems = [
+  { label: 'Dashboard', href: ROUTES.TUTOR.DASHBOARD, icon: LayoutDashboard },
+  { label: 'My Profile', href: ROUTES.TUTOR.PROFILE, icon: User },
+  { label: 'Availability', href: ROUTES.TUTOR.AVAILABILITY, icon: Calendar },
+  { label: 'Bookings', href: ROUTES.TUTOR.BOOKINGS, icon: Calendar },
+  { label: 'Sessions', href: ROUTES.TUTOR.SESSIONS, icon: Video },
+  { label: 'Reviews', href: ROUTES.TUTOR.REVIEWS, icon: Star },
+  { label: 'Income', href: ROUTES.TUTOR.INCOME, icon: Wallet },
+  { label: 'Payouts', href: ROUTES.TUTOR.PAYOUTS, icon: ArrowUpRight },
+  { label: 'Messages', href: ROUTES.MESSAGES, icon: MessageSquare },
+  { label: 'Notifications', href: ROUTES.NOTIFICATIONS, icon: Bell },
+  { label: 'Settings', href: ROUTES.SETTINGS_PROFILE, icon: Settings },
 ];
 
 export function TutorSidebar() {
   const pathname = usePathname();
 
   return (
-    <aside className="hidden lg:flex w-64 flex-col fixed inset-y-0 border-r bg-card">
+    <aside className="hidden lg:flex w-64 flex-col fixed inset-y-0 border-r bg-card z-50">
       <div className="p-6">
-        <Link href="/" className="flex items-center gap-3">
-          <span className="text-xl font-bold">Connecti Tutor</span>
+        <Link href={ROUTES.HOME} className="flex items-center gap-3">
+          <span className="text-xl font-bold tracking-tight" style={{ color: '#2C1208' }}>Connecti</span>
         </Link>
       </div>
-      <nav className="flex-1 px-4 space-y-1">
-        {navItems.map((item) => (
-          <Link
-            key={item.href}
-            href={item.href}
-            className={cn(
-              'flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors',
-              pathname === item.href ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:bg-muted hover:text-foreground'
-            )}
-          >
-            <item.icon className="h-4 w-4" />
-            {item.label}
-          </Link>
-        ))}
+      
+      <nav className="flex-1 px-4 space-y-1 overflow-y-auto">
+        {tutorNavItems.map((item) => {
+          const isActive = pathname === item.href;
+          return (
+            <Link
+              key={item.href}
+              href={item.href}
+              className={cn(
+                'flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-all group',
+                isActive 
+                  ? 'bg-primary text-primary-foreground' 
+                  : 'text-muted-foreground hover:bg-muted hover:text-foreground'
+              )}
+            >
+              <item.icon className={cn('h-4 w-4', isActive ? 'text-primary-foreground' : 'text-muted-foreground group-hover:text-foreground')} />
+              {item.label}
+            </Link>
+          );
+        })}
       </nav>
-      <div className="p-4 border-t">
-        <button className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-muted-foreground hover:bg-muted hover:text-foreground transition-colors">
+
+      <div className="p-4 border-t mt-auto">
+        <button className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-destructive hover:bg-destructive/10 transition-colors">
           <LogOut className="h-4 w-4" />
-          Logout
+          Log out
         </button>
       </div>
     </aside>
