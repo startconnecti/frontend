@@ -1,16 +1,11 @@
-export default function StudentDashboardPage() {
-  return (
-    <div className="space-y-6">
-      <h1 className="text-3xl font-bold">Student Dashboard</h1>
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        <div className="rounded-lg border bg-card p-4">Stats Placeholder</div>
-        <div className="rounded-lg border bg-card p-4">Stats Placeholder</div>
-        <div className="rounded-lg border bg-card p-4">Stats Placeholder</div>
-        <div className="rounded-lg border bg-card p-4">Stats Placeholder</div>
-      </div>
-      <div className="rounded-lg border bg-card p-10 text-center text-muted-foreground">
-        Dashboard content under construction
-      </div>
-    </div>
-  );
+import { StudentDashboardPlaceholder } from '@/features/dashboard/components/student-dashboard-placeholder';
+import { Metadata } from 'next';
+
+export const metadata: Metadata = {
+  title: 'Student Dashboard | Connecti',
+  description: 'Manage your learning and upcoming sessions.',
+};
+
+export default function StudentDashboard() {
+  return <StudentDashboardPlaceholder />;
 }
