@@ -53,7 +53,7 @@ export function StudentSessionsPage() {
       >
         <div className="grid grid-cols-1 gap-4">
           {sessions.map((session) => (
-            <div key={session.id} className="cursor-pointer" onClick={() => router.push(`${ROUTES.STUDENT.SESSIONS}/${session.id}`)}>
+            <div key={session.id} className="cursor-pointer" onClick={() => router.push(ROUTES.STUDENT.SESSION_DETAIL(session.id))}>
               <ClientSessionCard
                 id={session.id}
                 participantName={session.tutor.fullName}

@@ -21,15 +21,19 @@ export const ROUTES = {
   MESSAGES: '/messages',
   NOTIFICATIONS: '/notifications',
   SETTINGS_PROFILE: '/settings/profile',
-  SESSION: (id: string) => `/sessions/${id}`,
+  SETTINGS_PASSWORD: '/settings/password',
 
   // Student Dashboard
   STUDENT: {
     DASHBOARD: '/student/dashboard',
     BOOKINGS: '/student/bookings',
     SESSIONS: '/student/sessions',
+    SESSION_DETAIL: (id: string) => `/student/sessions/${id}`,
+    SESSION_FEEDBACK: (id: string) => `/student/sessions/${id}/feedback`,
     PAYMENTS: '/student/payments',
+    PAYMENT_DETAIL: (id: string) => `/student/payments/${id}`,
     FAVORITES: '/student/favorites',
+    FEEDBACKS: '/student/feedbacks',
   },
 
   // Tutor Dashboard

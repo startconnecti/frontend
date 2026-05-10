@@ -20,10 +20,11 @@ import { ROUTES } from '@/constants/routes';
 const studentNavItems = [
   { label: 'Dashboard', href: ROUTES.STUDENT.DASHBOARD, icon: LayoutDashboard },
   { label: 'Find Tutors', href: ROUTES.DISCOVER, icon: Search },
-  { label: 'Bookings', href: ROUTES.STUDENT.BOOKINGS, icon: Calendar },
+  { label: 'Bookings', href: ROUTES.STUDENT.BOOKINGS, icon: Calendar, disabled: true },
   { label: 'Sessions', href: ROUTES.STUDENT.SESSIONS, icon: Video },
   { label: 'Payments', href: ROUTES.STUDENT.PAYMENTS, icon: CreditCard },
   { label: 'Favorites', href: ROUTES.STUDENT.FAVORITES, icon: Heart },
+  { label: 'Feedbacks', href: ROUTES.STUDENT.FEEDBACKS, icon: MessageSquare },
   { label: 'Messages', href: ROUTES.MESSAGES, icon: MessageSquare },
   { label: 'Notifications', href: ROUTES.NOTIFICATIONS, icon: Bell },
   { label: 'Settings', href: ROUTES.SETTINGS_PROFILE, icon: Settings },
@@ -43,6 +44,18 @@ export function StudentSidebar() {
       <nav className="flex-1 px-4 space-y-1 overflow-y-auto">
         {studentNavItems.map((item) => {
           const isActive = pathname === item.href;
+          if (item.disabled) {
+            return (
+              <div
+                key={item.href}
+                className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-muted-foreground/40 cursor-not-allowed select-none"
+              >
+                <item.icon className="h-4 w-4" />
+                {item.label}
+                <span className="ml-auto text-[8px] font-black uppercase tracking-tighter bg-muted px-1.5 py-0.5 rounded border border-border/40">Soon</span>
+              </div>
+            );
+          }
           return (
             <Link
               key={item.href}

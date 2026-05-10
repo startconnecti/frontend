@@ -5,6 +5,8 @@ import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '@/componen
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Session } from '../types';
+import { ROUTES } from '@/constants/routes';
+import Link from 'next/link';
 
 interface SessionDetailCardProps {
   session: Session;
@@ -135,9 +137,11 @@ export function SessionDetailCard({ session }: SessionDetailCardProps) {
         </Button>
         
         {session.status === 'completed' && session.feedbackStatus === 'pending' && (
-          <Button variant="outline" className="font-bold gap-2" disabled>
-            <MessageSquareQuote className="h-4 w-4" />
-            Leave Feedback
+          <Button variant="outline" className="font-bold gap-2" asChild>
+            <Link href={ROUTES.STUDENT.SESSION_FEEDBACK(session.id)}>
+              <MessageSquareQuote className="h-4 w-4" />
+              Leave Feedback
+            </Link>
           </Button>
         )}
 

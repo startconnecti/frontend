@@ -4,6 +4,8 @@ import { Bell, MessageSquare, Search, Menu } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { useUIStore } from '@/stores/ui-store';
+import { ROUTES } from '@/constants/routes';
+import Link from 'next/link';
 
 export function DashboardHeader() {
   const openMobileSidebar = useUIStore((state) => state.openMobileSidebar);
@@ -34,15 +36,19 @@ export function DashboardHeader() {
 
         {/* Actions */}
         <div className="flex items-center gap-x-3 lg:gap-x-5">
-          <Button variant="ghost" size="icon" className="text-muted-foreground relative">
-            <MessageSquare className="h-5 w-5" />
-            {/* Mock unread indicator */}
-            <span className="absolute top-2 right-2 flex h-2 w-2 rounded-full bg-primary" />
+          <Button variant="ghost" size="icon" className="text-muted-foreground relative" asChild>
+            <Link href={ROUTES.MESSAGES}>
+              <MessageSquare className="h-5 w-5" />
+              {/* Mock unread indicator */}
+              <span className="absolute top-2 right-2 flex h-2 w-2 rounded-full bg-primary" />
+            </Link>
           </Button>
 
-          <Button variant="ghost" size="icon" className="text-muted-foreground relative">
-            <Bell className="h-5 w-5" />
-            <span className="absolute top-2 right-2 flex h-2 w-2 rounded-full bg-primary" />
+          <Button variant="ghost" size="icon" className="text-muted-foreground relative" asChild>
+            <Link href={ROUTES.NOTIFICATIONS}>
+              <Bell className="h-5 w-5" />
+              <span className="absolute top-2 right-2 flex h-2 w-2 rounded-full bg-primary" />
+            </Link>
           </Button>
 
           <div className="h-6 w-px bg-border lg:block" />

@@ -131,9 +131,11 @@ export function TutorDashboardPage() {
           <section className="space-y-6">
             <div className="flex items-center justify-between">
               <h3 className="text-xl font-bold" style={{ color: '#2C1208' }}>Recent Student Feedback</h3>
-              <Button variant="ghost" className="text-primary font-bold gap-2">
-                All Reviews
-                <ArrowRight className="h-4 w-4" />
+              <Button variant="ghost" className="text-primary font-bold gap-2" asChild>
+                <Link href={ROUTES.TUTOR.REVIEWS}>
+                  All Reviews
+                  <ArrowRight className="h-4 w-4" />
+                </Link>
               </Button>
             </div>
             

@@ -50,7 +50,7 @@ export function TutorProfileSummaryCard({ profile }: TutorProfileSummaryCardProp
 
             <div className="flex flex-wrap justify-center md:justify-start gap-4">
               <Button variant="outline" size="sm" className="font-bold gap-2" asChild>
-                <Link href={`/tutors/${profile.id}`} target="_blank">
+                <Link href={ROUTES.TUTOR_DETAIL(profile.id)} target="_blank">
                   <ExternalLink className="h-4 w-4" />
                   Preview Public Profile
                 </Link>

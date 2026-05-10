@@ -22,11 +22,11 @@ const tutorNavItems = [
   { label: 'Dashboard', href: ROUTES.TUTOR.DASHBOARD, icon: LayoutDashboard },
   { label: 'My Profile', href: ROUTES.TUTOR.PROFILE, icon: User },
   { label: 'Availability', href: ROUTES.TUTOR.AVAILABILITY, icon: Calendar },
-  { label: 'Bookings', href: ROUTES.TUTOR.BOOKINGS, icon: Calendar },
-  { label: 'Sessions', href: ROUTES.TUTOR.SESSIONS, icon: Video },
+  { label: 'Bookings', href: ROUTES.TUTOR.BOOKINGS, icon: Calendar, disabled: true },
+  { label: 'Sessions', href: ROUTES.TUTOR.SESSIONS, icon: Video, disabled: true },
   { label: 'Reviews', href: ROUTES.TUTOR.REVIEWS, icon: Star },
-  { label: 'Income', href: ROUTES.TUTOR.INCOME, icon: Wallet },
-  { label: 'Payouts', href: ROUTES.TUTOR.PAYOUTS, icon: ArrowUpRight },
+  { label: 'Income', href: ROUTES.TUTOR.INCOME, icon: Wallet, disabled: true },
+  { label: 'Payouts', href: ROUTES.TUTOR.PAYOUTS, icon: ArrowUpRight, disabled: true },
   { label: 'Messages', href: ROUTES.MESSAGES, icon: MessageSquare },
   { label: 'Notifications', href: ROUTES.NOTIFICATIONS, icon: Bell },
   { label: 'Settings', href: ROUTES.SETTINGS_PROFILE, icon: Settings },
@@ -46,6 +46,18 @@ export function TutorSidebar() {
       <nav className="flex-1 px-4 space-y-1 overflow-y-auto">
         {tutorNavItems.map((item) => {
           const isActive = pathname === item.href;
+          if (item.disabled) {
+            return (
+              <div
+                key={item.href}
+                className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-muted-foreground/40 cursor-not-allowed select-none"
+              >
+                <item.icon className="h-4 w-4" />
+                {item.label}
+                <span className="ml-auto text-[8px] font-black uppercase tracking-tighter bg-muted px-1.5 py-0.5 rounded border border-border/40">Soon</span>
+              </div>
+            );
+          }
           return (
             <Link
               key={item.href}
