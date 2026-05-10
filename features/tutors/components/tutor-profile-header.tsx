@@ -29,7 +29,7 @@ export function TutorProfileHeader({
       <Avatar className="h-24 w-24 md:h-32 md:w-32 border-4 border-background shadow-lg">
         <AvatarImage src={avatarUrl} alt={name} />
         <AvatarFallback className="text-3xl bg-primary/5 text-primary">
-          {name.split(' ').map(n => n[0]).join('')}
+          {name?.split(' ').map(n => n[0]).join('') || '?'}
         </AvatarFallback>
       </Avatar>
 
@@ -41,7 +41,7 @@ export function TutorProfileHeader({
               <ShieldCheck className="h-6 w-6 text-primary fill-primary/10" />
             </div>
             <div className="flex flex-wrap gap-2 pt-1">
-              {subjects.map(s => (
+              {subjects?.map(s => (
                 <Badge key={s} variant="secondary" className="bg-primary/5 text-primary hover:bg-primary/10 border-none px-3">
                   {s}
                 </Badge>
@@ -62,12 +62,12 @@ export function TutorProfileHeader({
         <div className="flex flex-wrap items-center gap-x-8 gap-y-3 pt-2 text-sm">
           <div className="flex items-center gap-2">
             <Star className="h-5 w-5 fill-amber-400 text-amber-400" />
-            <span className="font-bold text-lg">{rating.toFixed(1)}</span>
-            <span className="text-muted-foreground">({reviewCount} reviews)</span>
+            <span className="font-bold text-lg">{(rating || 0).toFixed(1)}</span>
+            <span className="text-muted-foreground">({reviewCount || 0} reviews)</span>
           </div>
           <div className="flex items-center gap-2 text-muted-foreground">
             <GraduationCap className="h-5 w-5" />
-            <span>{experience} years of experience</span>
+            <span>{experience || 0} years of experience</span>
           </div>
           <div className="flex items-center gap-2 text-muted-foreground">
             <Clock className="h-5 w-5" />

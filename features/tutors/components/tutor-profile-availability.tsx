@@ -13,8 +13,10 @@ export function TutorProfileAvailability({ slots }: TutorProfileAvailabilityProp
 
   // Group slots by day
   const groupedSlots = slots.reduce((acc, slot) => {
-    if (!acc[slot.day]) acc[slot.day] = [];
-    acc[slot.day].push(slot);
+    const day = slot.day || slot.dayOfWeek;
+    if (!day) return acc;
+    if (!acc[day]) acc[day] = [];
+    acc[day].push(slot);
     return acc;
   }, {} as Record<string, AvailabilitySlot[]>);
 

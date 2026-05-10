@@ -1,86 +1,49 @@
-import { Tutor, TutorFilters, TutorSortOption } from '../types';
-import { MOCK_TUTORS } from '../mock-data';
+import { api } from '@/lib/api/client';
+import { Tutor, TutorFilters } from '../types';
 
-const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
+export const FALLBACK_SUBJECTS = [
+  'Mathematics', 'Physics', 'Chemistry', 'Biology', 'English', 
+  'Spanish', 'French', 'Computer Science', 'History', 'Geography'
+];
 
 export const tutorService = {
   async getTutors(filters: TutorFilters): Promise<Tutor[]> {
-    await delay(Math.floor(Math.random() * (600 - 300 + 1) + 300));
-
-    let filtered = MOCK_TUTORS.filter(t => t.approvalStatus === 'approved' && t.isPublic);
-
-    // Apply filters
-    if (filters.subject && filters.subject !== 'all') {
-      filtered = filtered.filter(t => t.subjects.includes(filters.subject!));
+    const response = await api.get<any>('/api/v1/tutors', { params: filters as any });
+    
+    // Handle different response shapes safely
+    if (Array.isArray(response)) {
+      return response;
     }
-
-    if (filters.keyword) {
-      const lowerKeyword = filters.keyword.toLowerCase();
-      filtered = filtered.filter(t => 
-        t.fullName.toLowerCase().includes(lowerKeyword) || 
-        t.bio.toLowerCase().includes(lowerKeyword) ||
-        t.subjects.some(s => s.toLowerCase().includes(lowerKeyword))
-      );
+    
+    if (response && typeof response === 'object') {
+      // Handle { items: [], total: 10 } or { data: [], meta: {} }
+      return response.items || response.data || [];
     }
-
-    if (filters.minPrice !== undefined) {
-      filtered = filtered.filter(t => t.hourlyRate >= filters.minPrice!);
-    }
-
-    if (filters.maxPrice !== undefined) {
-      filtered = filtered.filter(t => t.hourlyRate <= filters.maxPrice!);
-    }
-
-    if (filters.minRating !== undefined) {
-      filtered = filtered.filter(t => t.averageRating >= filters.minRating!);
-    }
-
-    if (filters.availabilityDay && filters.availabilityDay !== 'all') {
-      filtered = filtered.filter(t => 
-        t.availabilitySlots.some(s => s.day === filters.availabilityDay)
-      );
-    }
-
-    // Apply Sorting
-    switch (filters.sortBy) {
-      case 'highest_rating':
-        filtered.sort((a, b) => b.averageRating - a.averageRating);
-        break;
-      case 'lowest_price':
-        filtered.sort((a, b) => a.hourlyRate - b.hourlyRate);
-        break;
-      case 'highest_price':
-        filtered.sort((a, b) => b.hourlyRate - a.hourlyRate);
-        break;
-      case 'most_reviewed':
-        filtered.sort((a, b) => b.reviewCount - a.reviewCount);
-        break;
-      case 'newest':
-        // Mock newest by comparing IDs in reverse
-        filtered.sort((a, b) => b.id.localeCompare(a.id));
-        break;
-      default:
-        // 'recommended' - default mock sort
-        break;
-    }
-
-    return filtered;
+    
+    return [];
   },
 
   async getTutorById(id: string, publicOnly: boolean = false): Promise<Tutor | null> {
-    await delay(Math.floor(Math.random() * (600 - 300 + 1) + 300));
-    const tutor = MOCK_TUTORS.find(t => t.id === id);
-    if (!tutor) return null;
-    if (publicOnly && (tutor.approvalStatus !== 'approved' || !tutor.isPublic)) {
+    try {
+      const tutor = await api.get<Tutor>(`/api/v1/tutors/${id}`);
+      
+      if (publicOnly && (tutor.approvalStatus !== 'approved' || !tutor.isPublic)) {
+        return null;
+      }
+      
+      return tutor;
+    } catch (error) {
+      // Return null for 404 or other errors during fetching individual tutor
       return null;
     }
-    return tutor;
   },
 
   async getSubjects(): Promise<string[]> {
-    await delay(200);
-    const subjectsSet = new Set<string>();
-    MOCK_TUTORS.forEach(t => t.subjects.forEach(s => subjectsSet.add(s)));
-    return Array.from(subjectsSet).sort();
+    try {
+      return await api.get<string[]>('/api/v1/subjects');
+    } catch (error) {
+      // Fallback if endpoint is not available
+      return FALLBACK_SUBJECTS;
+    }
   }
 };

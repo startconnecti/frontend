@@ -69,7 +69,7 @@ export function TutorProfilePage({ id }: TutorProfilePageProps) {
 
             {/* Sticky Sidebar */}
             <div className="lg:col-span-1">
-              <TutorBookingSummaryCard hourlyRate={tutor.hourlyRate} />
+              <TutorBookingSummaryCard tutor={tutor} />
             </div>
           </div>
         )}

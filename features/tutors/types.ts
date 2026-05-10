@@ -16,7 +16,9 @@ export interface Certificate {
 }
 
 export interface AvailabilitySlot {
-  day: 'monday' | 'tuesday' | 'wednesday' | 'thursday' | 'friday' | 'saturday' | 'sunday';
+  id?: string;
+  day?: 'monday' | 'tuesday' | 'wednesday' | 'thursday' | 'friday' | 'saturday' | 'sunday';
+  dayOfWeek?: 'monday' | 'tuesday' | 'wednesday' | 'thursday' | 'friday' | 'saturday' | 'sunday';
   startTime: string; // HH:mm
   endTime: string;   // HH:mm
 }
@@ -54,4 +56,6 @@ export interface TutorFilters {
   minRating?: number;
   availabilityDay?: string;
   sortBy: TutorSortOption;
+  page?: number;
+  limit?: number;
 }
