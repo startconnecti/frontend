@@ -11,7 +11,46 @@ This document defines the strict coding standards and architectural rules for th
 - **Desktop-First Responsive**: Design for large screens first, then implement specific mobile behaviors (drawers, stacked cards).
 
 ## 2. File & Folder Rules
+Please verify and commit Phase 3C Tutor Profile Page.
 
+Before committing, run:
+
+1. npm run build
+2. git diff --stat
+3. git status
+
+Then verify:
+- No files under app/admin were modified.
+- No files under components/admin were modified.
+- No files under lib/admin were modified.
+- app/(public)/tutors/[id]/page.tsx is thin and only composes the feature component.
+- No component imports mock data directly.
+- Tutor profile page uses useTutorDetailQuery and tutor service.
+- getTutorById for public profile does not expose non-approved or non-public tutors.
+- No real API calls were added.
+- No route guards or redirects were added.
+- No auth logic was added.
+- No booking logic was added.
+- Book and Message actions are safe login placeholders only.
+- Favorite action is safe placeholder only.
+- No any types.
+- Desktop sticky booking card does not break mobile layout.
+- Not found state works for missing/private tutor.
+
+If any issue is found, fix only Phase 3C tutor profile issues.
+
+If verification passes, commit with:
+
+feat(tutors): implement tutor profile page
+
+After committing, report:
+1. commit hash
+2. build result
+3. changed files
+4. confirmation that admin was untouched
+5. confirmation that no API/auth/booking/route guard logic was added
+6. confirmation that non-approved/non-public tutors are not exposed
+7. follow-up notes for Phase 4
 - **`app/`**: Contains ONLY layouts and "thin" pages. Use Route Groups `(public)`, `(auth)`, `(student)`, `(tutor)`.
 - **`features/`**: The core of the app. Each folder is a module containing its own hooks, components, and services.
 - **`components/ui/`**: Atomic Shadcn primitives. Do not add business logic here.

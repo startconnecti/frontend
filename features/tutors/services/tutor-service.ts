@@ -67,10 +67,14 @@ export const tutorService = {
     return filtered;
   },
 
-  async getTutorById(id: string): Promise<Tutor | null> {
+  async getTutorById(id: string, publicOnly: boolean = false): Promise<Tutor | null> {
     await delay(Math.floor(Math.random() * (600 - 300 + 1) + 300));
     const tutor = MOCK_TUTORS.find(t => t.id === id);
-    return tutor || null;
+    if (!tutor) return null;
+    if (publicOnly && (tutor.approvalStatus !== 'approved' || !tutor.isPublic)) {
+      return null;
+    }
+    return tutor;
   },
 
   async getSubjects(): Promise<string[]> {
