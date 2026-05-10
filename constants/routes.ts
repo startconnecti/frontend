@@ -10,6 +10,12 @@ export const ROUTES = {
   LOGIN: '/login',
   REGISTER: '/register',
   FORGOT_PASSWORD: '/forgot-password',
+  ONBOARDING_STUDENT: '/onboarding/student',
+  ONBOARDING_TUTOR: '/onboarding/tutor',
+
+  // Redirect Helpers
+  STUDENT_DASHBOARD: '/student/dashboard',
+  TUTOR_DASHBOARD: '/tutor/dashboard',
 
   // Shared Logged-in
   MESSAGES: '/messages',
