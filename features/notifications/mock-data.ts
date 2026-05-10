@@ -1,0 +1,51 @@
+import { Notification } from './types';
+
+export const MOCK_NOTIFICATIONS: Notification[] = [
+  {
+    id: 'ntf-001',
+    type: 'message',
+    title: 'New Message',
+    content: 'Dr. Sarah Wilson sent you a message about your upcoming Physics session.',
+    isRead: false,
+    createdAt: '2024-05-10T10:30:00Z',
+    actionHref: '/messages/conv-001',
+  },
+  {
+    id: 'ntf-002',
+    type: 'session',
+    title: 'Session Reminder',
+    content: 'Your Calculus II session with James Miller starts in 1 hour.',
+    isRead: false,
+    createdAt: '2024-05-10T09:00:00Z',
+    actionHref: '/student/sessions/sess-002',
+  },
+  {
+    id: 'ntf-003',
+    type: 'payment',
+    title: 'Payment Successful',
+    content: 'Your payment for "Advanced Physics" has been processed successfully.',
+    isRead: true,
+    readAt: '2024-05-09T11:00:00Z',
+    createdAt: '2024-05-09T10:45:00Z',
+    actionHref: '/student/payments/pay-001',
+  },
+  {
+    id: 'ntf-004',
+    type: 'booking',
+    title: 'Booking Confirmed',
+    content: 'Your booking request for Biology with Robert Fox has been accepted.',
+    isRead: true,
+    readAt: '2024-05-08T16:00:00Z',
+    createdAt: '2024-05-08T15:30:00Z',
+  },
+  {
+    id: 'ntf-005',
+    type: 'system',
+    title: 'Account Security',
+    content: 'Your password was successfully changed.',
+    isRead: true,
+    readAt: '2024-05-01T10:05:00Z',
+    createdAt: '2024-05-01T10:00:00Z',
+    actionHref: '/settings/password',
+  },
+];
