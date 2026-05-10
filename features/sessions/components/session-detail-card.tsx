@@ -66,7 +66,7 @@ export function SessionDetailCard({ session }: SessionDetailCardProps) {
                   <Video className="h-3 w-3" />
                   Meeting Link
                 </h4>
-                <p className="text-xs text-muted-foreground">This session will take place via {session.meetingProvider.replace('_', ' ')}.</p>
+                <p className="text-xs text-muted-foreground">This session will take place via {session.meetingProvider?.replace('_', ' ') || 'the specified platform'}.</p>
                 <Button className="w-full font-bold gap-2" asChild>
                   <a href={session.meetingUrl} target="_blank" rel="noopener noreferrer">
                     Join Session Now
@@ -85,11 +85,11 @@ export function SessionDetailCard({ session }: SessionDetailCardProps) {
               </h4>
               <div className="flex items-center gap-4">
                 <Avatar className="h-12 w-12 border-2 border-primary/10">
-                  <AvatarImage src={session.tutor.avatarUrl} alt={session.tutor.fullName} />
-                  <AvatarFallback>{session.tutor.fullName[0]}</AvatarFallback>
+                  <AvatarImage src={session.tutor?.avatarUrl} alt={session.tutor?.fullName || 'Tutor'} />
+                  <AvatarFallback>{session.tutor?.fullName?.[0] || '?'}</AvatarFallback>
                 </Avatar>
                 <div>
-                  <p className="font-bold">{session.tutor.fullName}</p>
+                  <p className="font-bold">{session.tutor?.fullName || 'Unknown Tutor'}</p>
                   <Button variant="link" className="p-0 h-auto text-xs font-bold text-primary hover:underline" disabled>
                     View Full Profile
                   </Button>
@@ -105,12 +105,12 @@ export function SessionDetailCard({ session }: SessionDetailCardProps) {
               <div className="p-4 rounded-xl border border-border/40 bg-muted/5 space-y-2">
                 <div className="flex items-center justify-between text-sm">
                   <span className="text-muted-foreground">Session Amount</span>
-                  <span className="font-bold">${session.paymentSummary.amount}</span>
+                  <span className="font-bold">${session.paymentSummary?.amount ?? 0}</span>
                 </div>
                 <div className="flex items-center justify-between text-sm">
                   <span className="text-muted-foreground">Payment Status</span>
-                  <span className={`font-bold capitalize ${session.paymentSummary.status === 'paid' ? 'text-emerald-600' : 'text-rose-600'}`}>
-                    {session.paymentSummary.status}
+                  <span className={`font-bold capitalize ${session.paymentSummary?.status === 'paid' ? 'text-emerald-600' : 'text-rose-600'}`}>
+                    {session.paymentSummary?.status || 'Unknown'}
                   </span>
                 </div>
               </div>

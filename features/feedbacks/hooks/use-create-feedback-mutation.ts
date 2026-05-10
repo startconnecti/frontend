@@ -12,9 +12,11 @@ export function useCreateFeedbackMutation() {
 
   return useMutation({
     mutationFn: (request: CreateFeedbackRequest) => feedbackService.createFeedback(request),
-    onSuccess: () => {
+    onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ['student-feedbacks'] });
       queryClient.invalidateQueries({ queryKey: ['tutor-reviews'] });
+      queryClient.invalidateQueries({ queryKey: ['session-detail', variables.sessionId] });
+      queryClient.invalidateQueries({ queryKey: ['sessions'] });
       toast.success('Feedback submitted successfully');
     },
     onError: (error) => {

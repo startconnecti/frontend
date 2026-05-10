@@ -1,13 +1,14 @@
 'use client';
 
 import { useState } from 'react';
-import { ArrowLeft, CheckCircle2, LayoutDashboard, History } from 'lucide-react';
+import { ArrowLeft, CheckCircle2, LayoutDashboard, History, Loader2, AlertCircle, Clock } from 'lucide-react';
 import { useRouter, useParams } from 'next/navigation';
 import { PageContainer } from '@/components/shared';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { FeedbackForm } from './feedback-form';
 import { useCreateFeedbackMutation } from '../hooks/use-create-feedback-mutation';
+import { useSessionDetailQuery } from '@/features/sessions/hooks/use-session-detail-query';
 import Link from 'next/link';
 import { ROUTES } from '@/constants/routes';
 
@@ -16,6 +17,8 @@ export function CreateFeedbackPage() {
   const params = useParams();
   const sessionId = params.id as string;
   const [isSuccess, setIsSuccess] = useState(false);
+  
+  const { data: session, isLoading, isError } = useSessionDetailQuery(sessionId);
   const mutation = useCreateFeedbackMutation();
 
   const handleFeedbackSubmit = (values: { rating: number; comment?: string }) => {
@@ -26,6 +29,59 @@ export function CreateFeedbackPage() {
       onSuccess: () => setIsSuccess(true),
     });
   };
+
+  if (isLoading) {
+    return (
+      <PageContainer className="py-20 flex items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </PageContainer>
+    );
+  }
+
+  if (isError || !session) {
+    return (
+      <PageContainer className="py-20 flex flex-col items-center justify-center text-center space-y-6">
+        <div className="h-20 w-20 bg-rose-100 rounded-full flex items-center justify-center text-rose-600">
+          <AlertCircle className="h-10 w-10" />
+        </div>
+        <div className="space-y-2">
+          <h3 className="text-2xl font-bold">Session Not Found</h3>
+          <p className="text-muted-foreground">We couldn't find the session you're trying to review.</p>
+        </div>
+        <Button onClick={() => router.push(ROUTES.STUDENT.SESSIONS)}>Back to Sessions</Button>
+      </PageContainer>
+    );
+  }
+
+  if (session.status !== 'completed') {
+    return (
+      <PageContainer className="py-20 flex flex-col items-center justify-center text-center space-y-6">
+        <div className="h-20 w-20 bg-amber-100 rounded-full flex items-center justify-center text-amber-600">
+          <Clock className="h-10 w-10" />
+        </div>
+        <div className="space-y-2">
+          <h3 className="text-2xl font-bold">Session Not Completed</h3>
+          <p className="text-muted-foreground">Feedback can only be submitted after the session has been completed.</p>
+        </div>
+        <Button onClick={() => router.push(`${ROUTES.STUDENT.SESSIONS}/${sessionId}`)}>Back to Session Detail</Button>
+      </PageContainer>
+    );
+  }
+
+  if (session.feedbackStatus === 'submitted') {
+    return (
+      <PageContainer className="py-20 flex flex-col items-center justify-center text-center space-y-6">
+        <div className="h-20 w-20 bg-blue-100 rounded-full flex items-center justify-center text-blue-600">
+          <CheckCircle2 className="h-10 w-10" />
+        </div>
+        <div className="space-y-2">
+          <h3 className="text-2xl font-bold">Feedback Already Submitted</h3>
+          <p className="text-muted-foreground">You have already shared your experience for this session.</p>
+        </div>
+        <Button onClick={() => router.push(`${ROUTES.STUDENT.SESSIONS}/${sessionId}`)}>Back to Session Detail</Button>
+      </PageContainer>
+    );
+  }
 
   if (isSuccess) {
     return (
@@ -83,8 +139,8 @@ export function CreateFeedbackPage() {
               <p className="text-sm font-bold">{sessionId}</p>
             </div>
             <div className="text-right">
-              <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground mb-1">Subject</p>
-              <p className="text-sm font-bold">Physics • Session #1</p>
+              <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground mb-1">Subject & Tutor</p>
+              <p className="text-sm font-bold">{session.subject} • {session.tutor?.fullName || 'Unknown Tutor'}</p>
             </div>
           </div>
         </div>
