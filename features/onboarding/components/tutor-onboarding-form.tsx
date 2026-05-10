@@ -1,34 +1,40 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
-import { Loader2, ArrowLeft, ArrowRight, CheckCircle2, Info, GraduationCap, DollarSign, Award, Calendar, ShieldCheck, User } from 'lucide-react';
+import { Loader2, ArrowLeft, ArrowRight, CheckCircle2, User, GraduationCap, DollarSign, Award, Calendar, ShieldCheck } from 'lucide-react';
 import Link from 'next/link';
 
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
 import { ROUTES } from '@/constants/routes';
 import { TutorOnboardingRequest } from '../types';
+import { ONBOARDING_CONSTANTS } from '../constants';
 import { TutorOnboardingStepper } from './tutor-onboarding-stepper';
 import { useCompleteTutorOnboardingMutation } from '../hooks/use-complete-tutor-onboarding-mutation';
 
+import { TutorPersonalStep } from './tutor-personal-step';
+import { TutorTeachingProfileStep } from './tutor-teaching-profile-step';
+import { TutorSubjectsRateStep } from './tutor-subjects-rate-step';
+import { TutorCertificatesStep } from './tutor-certificates-step';
+import { TutorAvailabilityStep } from './tutor-availability-step';
+import { TutorReviewSubmitStep } from './tutor-review-submit-step';
+
 const STEPS = [
   { title: 'Personal', icon: User },
-  { title: 'Bio', icon: GraduationCap },
-  { title: 'Rates', icon: DollarSign },
-  { title: 'Certs', icon: Award },
-  { title: 'Availability', icon: Calendar },
+  { title: 'Profile', icon: GraduationCap },
+  { title: 'Rate', icon: DollarSign },
+  { title: 'Certificates', icon: Award },
+  { title: 'Schedule', icon: Calendar },
   { title: 'Review', icon: ShieldCheck },
 ];
 
 export function TutorOnboardingForm() {
   const router = useRouter();
   const [currentStep, setCurrentStep] = useState(0);
+  const [errors, setErrors] = useState<Record<string, string>>({});
   const onboardingMutation = useCompleteTutorOnboardingMutation();
   
-  // Typed local state for the form
   const [formData, setFormData] = useState<TutorOnboardingRequest>({
     fullName: '',
     phoneNumber: '',
@@ -37,33 +43,88 @@ export function TutorOnboardingForm() {
     bio: '',
     experienceText: '',
     yearsOfExperience: 0,
-    hourlyRate: 20,
+    hourlyRate: 25,
     subjects: [],
     certificates: [],
     weeklyAvailability: [],
     requestNote: '',
   });
 
-  const nextStep = () => setCurrentStep((prev) => Math.min(prev + 1, STEPS.length - 1));
-  const prevStep = () => setCurrentStep((prev) => Math.max(prev - 1, 0));
-
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
+  const updateFormData = (newData: Partial<TutorOnboardingRequest>) => {
+    setFormData((prev) => ({ ...prev, ...newData }));
+    // Clear errors for fields being updated
+    if (errors) {
+      const newErrors = { ...errors };
+      Object.keys(newData).forEach(key => delete newErrors[key]);
+      setErrors(newErrors);
+    }
   };
 
-  const handleNumericChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: parseFloat(value) || 0 }));
+  const validateStep = (step: number): boolean => {
+    const newErrors: Record<string, string> = {};
+
+    if (step === 0) {
+      if (!formData.fullName.trim()) newErrors.fullName = 'Full name is required';
+      if (!formData.gender) newErrors.gender = 'Gender is required';
+    }
+
+    if (step === 1) {
+      if (formData.bio.length < ONBOARDING_CONSTANTS.BIO_MIN_LENGTH) {
+        newErrors.bio = `Bio must be at least ${ONBOARDING_CONSTANTS.BIO_MIN_LENGTH} characters`;
+      }
+      if (formData.yearsOfExperience < 0) newErrors.yearsOfExperience = 'Years of experience cannot be negative';
+    }
+
+    if (step === 2) {
+      if (formData.subjects.length === 0) newErrors.subjects = 'Please select at least one subject';
+      if (formData.hourlyRate <= 0) newErrors.hourlyRate = 'Hourly rate must be greater than 0';
+    }
+
+    if (step === 3) {
+      formData.certificates.forEach((cert, i) => {
+        if (!cert.title.trim()) newErrors[`cert_${i}_title`] = 'Title is required';
+      });
+    }
+
+    if (step === 4) {
+      formData.weeklyAvailability.forEach((avail, i) => {
+        if (avail.startTime >= avail.endTime) {
+          newErrors[`avail_${i}`] = 'Start time must be before end time';
+        }
+      });
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
+  const handleNext = () => {
+    if (validateStep(currentStep)) {
+      setCurrentStep((prev) => Math.min(prev + 1, STEPS.length - 1));
+    }
+  };
+
+  const handleBack = () => {
+    setCurrentStep((prev) => Math.max(prev - 1, 0));
   };
 
   const handleSubmit = async () => {
-    try {
-      await onboardingMutation.mutateAsync(formData);
-    } catch (err) {
-      // Error handled by mutation
+    if (validateStep(currentStep)) {
+      try {
+        await onboardingMutation.mutateAsync(formData);
+      } catch (err) {
+        // Error handled by mutation
+      }
     }
   };
+
+  const isStepInvalid = useMemo(() => {
+    // Basic reactive validation for UI state
+    if (currentStep === 0) return !formData.fullName.trim();
+    if (currentStep === 1) return formData.bio.length < ONBOARDING_CONSTANTS.BIO_MIN_LENGTH;
+    if (currentStep === 2) return formData.subjects.length === 0 || formData.hourlyRate <= 0;
+    return false;
+  }, [currentStep, formData]);
 
   if (onboardingMutation.isSuccess) {
     return (
@@ -79,9 +140,6 @@ export function TutorOnboardingForm() {
             Your tutor profile has been submitted for admin review. We'll notify you once your account is approved.
           </p>
         </div>
-        <div className="p-4 rounded-xl bg-primary/5 border border-primary/10 max-w-md mx-auto">
-          <p className="text-sm font-medium text-primary">Approval Status: Pending</p>
-        </div>
         <Button size="lg" className="px-12 font-bold shadow-lg shadow-primary/20" asChild>
           <Link href={ROUTES.TUTOR_DASHBOARD}>
             Go to My Dashboard
@@ -95,7 +153,7 @@ export function TutorOnboardingForm() {
     <div className="space-y-8">
       <TutorOnboardingStepper steps={STEPS} currentStep={currentStep} />
 
-      <Card className="border-border/60 shadow-xl shadow-primary/5 min-h-[400px] flex flex-col">
+      <Card className="border-border/60 shadow-xl shadow-primary/5 min-h-[450px] flex flex-col">
         <CardHeader className="bg-primary/5 border-b border-primary/10">
           <div className="flex items-center gap-3">
             <div className="h-10 w-10 rounded-xl bg-primary/10 flex items-center justify-center text-primary">
@@ -105,155 +163,28 @@ export function TutorOnboardingForm() {
               })()}
             </div>
             <div>
-              <CardTitle className="text-lg">{STEPS[currentStep].title} Information</CardTitle>
+              <CardTitle className="text-lg">{STEPS[currentStep].title}</CardTitle>
               <CardDescription>Step {currentStep + 1} of {STEPS.length}</CardDescription>
             </div>
           </div>
         </CardHeader>
         
         <CardContent className="pt-8 flex-1">
-          {/* Step 1: Personal Information */}
-          {currentStep === 0 && (
-            <div className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <label className="text-sm font-bold">Full Name</label>
-                  <Input name="fullName" value={formData.fullName} onChange={handleInputChange} placeholder="John Doe" />
-                </div>
-                <div className="space-y-2">
-                  <label className="text-sm font-bold">Phone Number</label>
-                  <Input name="phoneNumber" value={formData.phoneNumber} onChange={handleInputChange} placeholder="+1 234 567 890" />
-                </div>
-              </div>
-              <div className="p-4 rounded-xl bg-muted/30 border border-border/40">
-                <p className="text-xs text-muted-foreground flex items-center gap-2">
-                  <Info className="h-3 w-3" />
-                  Gender and Date of Birth will be added in the next sub-phase.
-                </p>
-              </div>
-            </div>
-          )}
-
-          {/* Step 2: Teaching Profile */}
-          {currentStep === 1 && (
-            <div className="space-y-4">
-              <div className="space-y-2">
-                <label className="text-sm font-bold">Professional Bio</label>
-                <Textarea 
-                  name="bio" 
-                  value={formData.bio} 
-                  onChange={handleInputChange} 
-                  placeholder="Tell students about yourself and your teaching style..." 
-                  className="min-h-[150px]"
-                />
-              </div>
-              <div className="space-y-2">
-                <label className="text-sm font-bold">Years of Experience</label>
-                <Input 
-                  name="yearsOfExperience" 
-                  type="number" 
-                  value={formData.yearsOfExperience} 
-                  onChange={handleNumericChange} 
-                />
-              </div>
-            </div>
-          )}
-
-          {/* Step 3: Subjects & Rates */}
-          {currentStep === 2 && (
-            <div className="space-y-4">
-              <div className="space-y-2">
-                <label className="text-sm font-bold">Hourly Rate (USD)</label>
-                <div className="relative">
-                  <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                  <Input 
-                    name="hourlyRate" 
-                    type="number" 
-                    value={formData.hourlyRate} 
-                    onChange={handleNumericChange} 
-                    className="pl-9"
-                  />
-                </div>
-              </div>
-              <div className="p-8 rounded-2xl border-2 border-dashed border-border/60 flex flex-col items-center justify-center text-center gap-3 bg-muted/5">
-                <div className="h-12 w-12 rounded-full bg-muted flex items-center justify-center">
-                  <GraduationCap className="h-6 w-6 text-muted-foreground" />
-                </div>
-                <div className="space-y-1">
-                  <p className="font-bold">Subject Selection</p>
-                  <p className="text-sm text-muted-foreground">Detailed subject picker will be implemented in the next sub-phase.</p>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* Step 4: Certificates */}
-          {currentStep === 3 && (
-            <div className="space-y-4 py-8 flex flex-col items-center justify-center text-center gap-4">
-              <div className="h-16 w-16 rounded-full bg-muted flex items-center justify-center">
-                <Award className="h-8 w-8 text-muted-foreground" />
-              </div>
-              <div className="space-y-2">
-                <h4 className="font-bold text-lg">Verification of Credentials</h4>
-                <p className="text-sm text-muted-foreground max-w-sm">
-                  You will be able to upload your degree, certificates, and identity documents here in the next phase.
-                </p>
-              </div>
-              <div className="px-4 py-2 rounded-full bg-primary/5 text-primary text-xs font-bold border border-primary/10">
-                Mock File Upload Integration - Coming Soon
-              </div>
-            </div>
-          )}
-
-          {/* Step 5: Availability */}
-          {currentStep === 4 && (
-            <div className="space-y-4 py-8 flex flex-col items-center justify-center text-center gap-4">
-              <div className="h-16 w-16 rounded-full bg-muted flex items-center justify-center">
-                <Calendar className="h-8 w-8 text-muted-foreground" />
-              </div>
-              <div className="space-y-2">
-                <h4 className="font-bold text-lg">Weekly Schedule</h4>
-                <p className="text-sm text-muted-foreground max-w-sm">
-                  A comprehensive weekly availability grid will be implemented in the next phase.
-                </p>
-              </div>
-            </div>
-          )}
-
-          {/* Step 6: Review */}
-          {currentStep === 5 && (
-            <div className="space-y-6">
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div className="p-4 rounded-xl border border-border/40 bg-muted/5 space-y-1">
-                  <p className="text-[10px] font-bold uppercase text-muted-foreground">Full Name</p>
-                  <p className="font-medium">{formData.fullName || 'Not provided'}</p>
-                </div>
-                <div className="p-4 rounded-xl border border-border/40 bg-muted/5 space-y-1">
-                  <p className="text-[10px] font-bold uppercase text-muted-foreground">Hourly Rate</p>
-                  <p className="font-medium">${formData.hourlyRate}/hr</p>
-                </div>
-              </div>
-              <div className="p-4 rounded-xl border border-border/40 bg-muted/5 space-y-1">
-                <p className="text-[10px] font-bold uppercase text-muted-foreground">Experience</p>
-                <p className="font-medium">{formData.yearsOfExperience} years</p>
-              </div>
-              <div className="p-4 rounded-xl bg-amber-50 border border-amber-200 flex gap-3">
-                <ShieldCheck className="h-5 w-5 text-amber-600 shrink-0" />
-                <p className="text-xs text-amber-800">
-                  By submitting, you agree that your profile will be reviewed by our moderation team. You won't be visible in search results until approved.
-                </p>
-              </div>
-            </div>
-          )}
+          {currentStep === 0 && <TutorPersonalStep data={formData} onChange={updateFormData} errors={errors} />}
+          {currentStep === 1 && <TutorTeachingProfileStep data={formData} onChange={updateFormData} errors={errors} />}
+          {currentStep === 2 && <TutorSubjectsRateStep data={formData} onChange={updateFormData} errors={errors} />}
+          {currentStep === 3 && <TutorCertificatesStep data={formData} onChange={updateFormData} errors={errors} />}
+          {currentStep === 4 && <TutorAvailabilityStep data={formData} onChange={updateFormData} errors={errors} />}
+          {currentStep === 5 && <TutorReviewSubmitStep data={formData} onChange={updateFormData} />}
         </CardContent>
 
         <CardFooter className="border-t bg-muted/10 p-6 flex items-center justify-between">
           <div className="flex gap-2">
             <Button variant="ghost" asChild>
-              <Link href={ROUTES.TUTOR_DASHBOARD}>Save & Exit</Link>
+              <Link href={ROUTES.TUTOR_DASHBOARD}>Skip & Exit</Link>
             </Button>
             {currentStep > 0 && (
-              <Button variant="outline" onClick={prevStep}>
+              <Button variant="outline" onClick={handleBack}>
                 <ArrowLeft className="mr-2 h-4 w-4" />
                 Back
               </Button>
@@ -261,7 +192,7 @@ export function TutorOnboardingForm() {
           </div>
 
           {currentStep < STEPS.length - 1 ? (
-            <Button onClick={nextStep} className="font-bold">
+            <Button onClick={handleNext} className="font-bold" disabled={isStepInvalid}>
               Next Step
               <ArrowRight className="ml-2 h-4 w-4" />
             </Button>
