@@ -17,6 +17,8 @@ import {
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { ROUTES } from '@/constants/routes';
+import { useAuthStore } from '@/stores/auth-store';
+import { useRouter } from 'next/navigation';
 
 const tutorNavItems = [
   { label: 'Dashboard', href: ROUTES.TUTOR.DASHBOARD, icon: LayoutDashboard },
@@ -34,6 +36,13 @@ const tutorNavItems = [
 
 export function TutorSidebar() {
   const pathname = usePathname();
+  const router = useRouter();
+  const logout = useAuthStore((state) => state.logout);
+
+  const handleLogout = () => {
+    logout();
+    router.push(ROUTES.LOGIN);
+  };
 
   return (
     <aside className="hidden lg:flex w-64 flex-col fixed inset-y-0 border-r bg-card z-50">
@@ -77,7 +86,10 @@ export function TutorSidebar() {
       </nav>
 
       <div className="p-4 border-t mt-auto">
-        <button className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-destructive hover:bg-destructive/10 transition-colors">
+        <button 
+          onClick={handleLogout}
+          className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-destructive hover:bg-destructive/10 transition-colors"
+        >
           <LogOut className="h-4 w-4" />
           Log out
         </button>

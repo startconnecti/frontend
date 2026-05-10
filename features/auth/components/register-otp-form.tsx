@@ -17,6 +17,7 @@ import {
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { ROUTES } from '@/constants/routes';
+import { useAuthStore } from '@/stores/auth-store';
 import { useVerifyRegisterOtpMutation } from '../hooks/use-verify-register-otp-mutation';
 import { AuthAlert } from './auth-alert';
 
@@ -35,6 +36,7 @@ interface RegisterOtpFormProps {
 export function RegisterOtpForm({ email, role, onBack }: RegisterOtpFormProps) {
   const router = useRouter();
   const verifyMutation = useVerifyRegisterOtpMutation();
+  const loginMock = useAuthStore((state) => state.loginMock);
 
   const form = useForm<OtpFormValues>({
     resolver: zodResolver(otpSchema),
@@ -45,10 +47,15 @@ export function RegisterOtpForm({ email, role, onBack }: RegisterOtpFormProps) {
 
   const onSubmit = async (values: OtpFormValues) => {
     try {
-      await verifyMutation.mutateAsync({
+      const response = await verifyMutation.mutateAsync({
         email,
         otp: values.otp,
+        role,
       });
+
+      // Update global auth store
+      loginMock(response.user, response.token);
+
       // Redirect to correct onboarding based on role
       const redirectPath = role === 'student' ? ROUTES.ONBOARDING_STUDENT : ROUTES.ONBOARDING_TUTOR;
       router.push(redirectPath);

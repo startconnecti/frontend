@@ -27,6 +27,7 @@ import {
 } from '@/components/ui/select';
 import { ROUTES } from '@/constants/routes';
 import { GENDER_OPTIONS, ONBOARDING_CONSTANTS } from '../constants';
+import { useAuthStore } from '@/stores/auth-store';
 import { useCompleteStudentOnboardingMutation } from '../hooks/use-complete-student-onboarding-mutation';
 
 const studentOnboardingSchema = z.object({
@@ -55,9 +56,11 @@ export function StudentOnboardingForm() {
     },
   });
 
+  const updateUser = useAuthStore((state) => state.updateUser);
   const onSubmit = async (values: StudentOnboardingFormValues) => {
     try {
       await onboardingMutation.mutateAsync(values);
+      updateUser({ onboardingCompleted: true });
     } catch (err) {
       // Error handled by mutation
     }

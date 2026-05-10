@@ -2,25 +2,32 @@
 
 import { ReactNode } from 'react';
 import { StudentSidebar } from '@/components/client/student-sidebar';
+import { TutorSidebar } from '@/components/client/tutor-sidebar';
 import { DashboardHeader } from '@/components/client/dashboard-header';
 import { Sheet, SheetContent } from '@/components/ui/sheet';
 import { useUIStore } from '@/stores/ui-store';
+import { useAuthStore } from '@/stores/auth-store';
 import { RouteGuard } from '@/components/shared/route-guard';
 
-export default function StudentLayout({ children }: { children: ReactNode }) {
+export default function AuthenticatedLayout({ children }: { children: ReactNode }) {
   const isMobileSidebarOpen = useUIStore((state) => state.isMobileSidebarOpen);
   const closeMobileSidebar = useUIStore((state) => state.closeMobileSidebar);
+  const user = useAuthStore((state) => state.user);
+
+  // Fallback to StudentSidebar during hydration if role is not yet known
+  // though RouteGuard handles the loading state.
+  const Sidebar = user?.role === 'tutor' ? TutorSidebar : StudentSidebar;
 
   return (
-    <RouteGuard allowedRole="student">
+    <RouteGuard>
       <div className="flex h-screen bg-background overflow-hidden">
         {/* Desktop Sidebar */}
-        <StudentSidebar />
+        <Sidebar />
 
         {/* Mobile Sidebar (Sheet) */}
         <Sheet open={isMobileSidebarOpen} onOpenChange={(open) => !open && closeMobileSidebar()}>
           <SheetContent side="left" className="p-0 w-64 border-none">
-            <StudentSidebar />
+            <Sidebar />
           </SheetContent>
         </Sheet>
 

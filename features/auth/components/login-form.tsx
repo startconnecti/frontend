@@ -51,11 +51,11 @@ export function LoginForm() {
       // Update global auth store
       loginMock(response.user, response.token);
 
-      // Redirect based on role
+      // Redirect based on role and onboarding status
       if (response.user.role === 'student') {
-        router.push(ROUTES.STUDENT_DASHBOARD);
+        router.push(response.user.onboardingCompleted ? ROUTES.STUDENT_DASHBOARD : ROUTES.ONBOARDING_STUDENT);
       } else {
-        router.push(ROUTES.TUTOR_DASHBOARD);
+        router.push(response.user.onboardingCompleted ? ROUTES.TUTOR_DASHBOARD : ROUTES.ONBOARDING_TUTOR);
       }
     } catch (err) {
       // Error is handled by mutation state, but we catch to prevent unhandled promise rejection

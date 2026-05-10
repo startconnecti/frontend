@@ -2,11 +2,11 @@
 
 import Link from 'next/link';
 import Image from 'next/image';
-import { Menu, X } from 'lucide-react';
-import { useState } from 'react';
+import { Menu } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { ROUTES } from '@/constants/routes';
+import { useAuthStore } from '@/stores/auth-store';
 
 const navLinks = [
   { label: 'Find Tutors', href: ROUTES.DISCOVER },
@@ -15,6 +15,9 @@ const navLinks = [
 ];
 
 export function PublicHeader() {
+  const { isAuthenticated, user, isHydrated } = useAuthStore();
+  const dashboardUrl = user?.role === 'tutor' ? ROUTES.TUTOR_DASHBOARD : ROUTES.STUDENT_DASHBOARD;
+
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="container mx-auto flex h-16 items-center justify-between px-4 sm:px-6">
@@ -41,14 +44,24 @@ export function PublicHeader() {
 
         {/* Desktop Auth Buttons */}
         <div className="hidden md:flex items-center gap-4">
-          <Link href={ROUTES.LOGIN}>
-            <Button variant="ghost" size="sm" className="font-medium">Log in</Button>
-          </Link>
-          <Link href={ROUTES.REGISTER}>
-            <Button size="sm" className="font-medium bg-primary text-primary-foreground hover:opacity-90">
-              Get started
-            </Button>
-          </Link>
+          {isHydrated && isAuthenticated ? (
+            <Link href={dashboardUrl}>
+              <Button size="sm" className="font-bold bg-primary text-primary-foreground hover:opacity-90">
+                Dashboard
+              </Button>
+            </Link>
+          ) : (
+            <>
+              <Link href={ROUTES.LOGIN}>
+                <Button variant="ghost" size="sm" className="font-medium">Log in</Button>
+              </Link>
+              <Link href={ROUTES.REGISTER}>
+                <Button size="sm" className="font-medium bg-primary text-primary-foreground hover:opacity-90">
+                  Get started
+                </Button>
+              </Link>
+            </>
+          )}
         </div>
 
         {/* Mobile Nav */}
@@ -72,12 +85,20 @@ export function PublicHeader() {
                   </Link>
                 ))}
                 <div className="flex flex-col gap-3 pt-4">
-                  <Link href={ROUTES.LOGIN} className="w-full">
-                    <Button variant="outline" className="w-full">Log in</Button>
-                  </Link>
-                  <Link href={ROUTES.REGISTER} className="w-full">
-                    <Button className="w-full">Get started</Button>
-                  </Link>
+                  {isHydrated && isAuthenticated ? (
+                    <Link href={dashboardUrl} className="w-full">
+                      <Button className="w-full font-bold">Dashboard</Button>
+                    </Link>
+                  ) : (
+                    <>
+                      <Link href={ROUTES.LOGIN} className="w-full">
+                        <Button variant="outline" className="w-full">Log in</Button>
+                      </Link>
+                      <Link href={ROUTES.REGISTER} className="w-full">
+                        <Button className="w-full">Get started</Button>
+                      </Link>
+                    </>
+                  )}
                 </div>
               </nav>
             </SheetContent>

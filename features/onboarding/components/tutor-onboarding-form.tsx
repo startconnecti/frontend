@@ -11,6 +11,7 @@ import { ROUTES } from '@/constants/routes';
 import { TutorOnboardingRequest } from '../types';
 import { ONBOARDING_CONSTANTS } from '../constants';
 import { TutorOnboardingStepper } from './tutor-onboarding-stepper';
+import { useAuthStore } from '@/stores/auth-store';
 import { useCompleteTutorOnboardingMutation } from '../hooks/use-complete-tutor-onboarding-mutation';
 
 import { TutorPersonalStep } from './tutor-personal-step';
@@ -108,10 +109,12 @@ export function TutorOnboardingForm() {
     setCurrentStep((prev) => Math.max(prev - 1, 0));
   };
 
+  const updateUser = useAuthStore((state) => state.updateUser);
   const handleSubmit = async () => {
     if (validateStep(currentStep)) {
       try {
         await onboardingMutation.mutateAsync(formData);
+        updateUser({ onboardingCompleted: true });
       } catch (err) {
         // Error handled by mutation
       }

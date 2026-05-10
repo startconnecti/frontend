@@ -8,6 +8,7 @@ export const MOCK_USERS: (AuthUser & { password?: string })[] = [
     fullName: 'Alex Student',
     role: 'student',
     status: 'active',
+    onboardingCompleted: true,
   },
   {
     id: 'user_tutor_1',
@@ -17,6 +18,7 @@ export const MOCK_USERS: (AuthUser & { password?: string })[] = [
     role: 'tutor',
     status: 'active',
     approvalStatus: 'approved',
+    onboardingCompleted: true,
   },
   {
     id: 'user_tutor_pending',
@@ -26,6 +28,7 @@ export const MOCK_USERS: (AuthUser & { password?: string })[] = [
     role: 'tutor',
     status: 'active',
     approvalStatus: 'pending',
+    onboardingCompleted: true,
   },
   {
     id: 'user_tutor_rejected',
@@ -35,6 +38,7 @@ export const MOCK_USERS: (AuthUser & { password?: string })[] = [
     role: 'tutor',
     status: 'active',
     approvalStatus: 'rejected',
+    onboardingCompleted: true,
   },
   {
     id: 'user_student_blocked',
@@ -43,5 +47,15 @@ export const MOCK_USERS: (AuthUser & { password?: string })[] = [
     fullName: 'Ben Blocked',
     role: 'student',
     status: 'blocked',
+    onboardingCompleted: true,
+  },
+  {
+    id: 'user_new_student',
+    email: 'newbie@example.com',
+    password: 'password123',
+    fullName: 'New Student',
+    role: 'student',
+    status: 'active',
+    onboardingCompleted: false,
   }
 ];

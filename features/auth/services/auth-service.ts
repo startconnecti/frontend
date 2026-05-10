@@ -43,16 +43,27 @@ export const authService = {
     if (exists) {
       throw { message: 'Email already in use', code: 'EMAIL_EXISTS' } as AuthError;
     }
-    console.log(`Mock OTP ${AUTH_CONSTANTS.MOCK_OTP} sent to ${request.email}`);
+    // Mock OTP sent to email
     return true;
   },
 
-  async verifyRegisterOtp(request: VerifyRegisterOtpRequest): Promise<boolean> {
+  async verifyRegisterOtp(request: VerifyRegisterOtpRequest & { role: UserRole }): Promise<LoginResponse> {
     await delay(400);
     if (request.otp !== AUTH_CONSTANTS.MOCK_OTP) {
       throw { message: 'Invalid verification code', code: 'INVALID_OTP' } as AuthError;
     }
-    return true;
+    
+    return {
+      user: {
+        id: `user_new_${Date.now()}`,
+        email: request.email,
+        fullName: request.email.split('@')[0],
+        role: request.role,
+        status: 'active',
+        onboardingCompleted: false,
+      },
+      token: `mock-jwt-token-new-${Date.now()}`
+    };
   },
 
   async requestForgotPassword(request: ForgotPasswordRequest): Promise<boolean> {
@@ -61,7 +72,7 @@ export const authService = {
     if (!exists) {
       throw { message: 'No account found with this email', code: 'USER_NOT_FOUND' } as AuthError;
     }
-    console.log(`Mock Reset OTP ${AUTH_CONSTANTS.MOCK_OTP} sent to ${request.email}`);
+    // Mock Reset OTP sent to email
     return true;
   },
 

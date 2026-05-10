@@ -5,10 +5,20 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { useUIStore } from '@/stores/ui-store';
 import { ROUTES } from '@/constants/routes';
+import { useAuthStore } from '@/stores/auth-store';
 import Link from 'next/link';
 
 export function DashboardHeader() {
   const openMobileSidebar = useUIStore((state) => state.openMobileSidebar);
+  const user = useAuthStore((state) => state.user);
+
+  const getInitials = (name: string) => {
+    return name
+      .split(' ')
+      .map((n) => n[0])
+      .join('')
+      .toUpperCase();
+  };
 
   return (
     <header className="sticky top-0 z-40 flex h-16 shrink-0 items-center gap-x-4 border-b bg-background px-4 sm:px-6">
@@ -56,12 +66,14 @@ export function DashboardHeader() {
           {/* User Profile Area */}
           <div className="flex items-center gap-3">
             <div className="hidden sm:block text-right">
-              <p className="text-sm font-semibold text-foreground">John Doe</p>
-              <p className="text-xs text-muted-foreground">Student</p>
+              <p className="text-sm font-semibold text-foreground">{user?.fullName || 'User'}</p>
+              <p className="text-xs text-muted-foreground capitalize">{user?.role || ''}</p>
             </div>
             <Avatar className="h-9 w-9 border border-border">
               <AvatarImage src="" />
-              <AvatarFallback className="bg-primary/5 text-primary">JD</AvatarFallback>
+              <AvatarFallback className="bg-primary/5 text-primary">
+                {user?.fullName ? getInitials(user.fullName) : 'U'}
+              </AvatarFallback>
             </Avatar>
           </div>
         </div>

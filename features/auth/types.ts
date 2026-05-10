@@ -11,6 +11,7 @@ export interface AuthUser {
   status: UserStatus;
   avatarUrl?: string;
   approvalStatus?: TutorApprovalStatus;
+  onboardingCompleted: boolean;
   phoneNumber?: string;
   gender?: Gender;
   dateOfBirth?: string;
@@ -35,6 +36,7 @@ export interface RegisterCredentialsRequest {
 export interface VerifyRegisterOtpRequest {
   email: string;
   otp: string;
+  role: UserRole;
 }
 
 export interface StudentProfileSetupRequest {
