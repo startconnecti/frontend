@@ -68,7 +68,7 @@ export function TutorBookingSummaryCard({ tutor }: TutorBookingSummaryCardProps)
   const handlePay = () => {
     // Case B: If paymentId already exists in booking response, redirect directly
     if (bookingResponse?.paymentId) {
-      router.push(`${ROUTES.STUDENT_PAYMENTS}/${bookingResponse.paymentId}`);
+      router.push(ROUTES.STUDENT.PAYMENT_DETAIL(bookingResponse.paymentId));
       return;
     }
 
@@ -79,7 +79,7 @@ export function TutorBookingSummaryCard({ tutor }: TutorBookingSummaryCardProps)
       method: paymentMethod
     }, {
       onSuccess: (payment) => {
-        router.push(`${ROUTES.STUDENT_PAYMENTS}/${payment.id}`);
+        router.push(ROUTES.STUDENT.PAYMENT_DETAIL(payment.id));
       }
     });
   };
@@ -138,10 +138,10 @@ export function TutorBookingSummaryCard({ tutor }: TutorBookingSummaryCardProps)
             
             <div className="flex gap-2">
               <Button variant="ghost" className="flex-1 h-10 text-xs font-bold rounded-xl" asChild>
-                <Link href={ROUTES.STUDENT_SESSIONS}>View Sessions</Link>
+                <Link href={ROUTES.STUDENT.SESSIONS}>View Sessions</Link>
               </Button>
               <Button variant="ghost" className="flex-1 h-10 text-xs font-bold rounded-xl" asChild>
-                <Link href={ROUTES.STUDENT_DASHBOARD}>Dashboard</Link>
+                <Link href={ROUTES.STUDENT.DASHBOARD}>Dashboard</Link>
               </Button>
             </div>
           </div>

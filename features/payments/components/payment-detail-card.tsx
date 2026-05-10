@@ -11,17 +11,22 @@ import {
   RotateCcw,
   ExternalLink,
   FileText,
-  ShieldAlert
+  ShieldAlert,
+  Loader2
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Payment } from '../types';
+import Link from 'next/link';
+import { ROUTES } from '@/constants/routes';
 
 interface PaymentDetailCardProps {
   payment: Payment;
+  onRefresh?: () => void;
+  isRefreshing?: boolean;
 }
 
-export function PaymentDetailCard({ payment }: PaymentDetailCardProps) {
+export function PaymentDetailCard({ payment, onRefresh, isRefreshing }: PaymentDetailCardProps) {
   const statusColors = {
     pending: 'bg-amber-100 text-amber-700 border-amber-200',
     processing: 'bg-blue-100 text-blue-700 border-blue-200',
@@ -156,6 +161,10 @@ export function PaymentDetailCard({ payment }: PaymentDetailCardProps) {
                     <p className="text-lg font-mono font-black text-amber-900">{payment.transferReference}</p>
                   </div>
                 )}
+                <div className="flex items-start gap-3 text-xs text-amber-700 bg-amber-100/50 p-3 rounded-xl border border-amber-200/50">
+                  <Clock className="h-4 w-4 shrink-0" />
+                  <p>Our team will manually verify your transfer. This process usually takes 2-4 hours during business hours.</p>
+                </div>
               </div>
             )}
 
@@ -216,13 +225,37 @@ export function PaymentDetailCard({ payment }: PaymentDetailCardProps) {
         )}
       </CardContent>
 
-      <CardFooter className="bg-muted/10 border-t border-border/40 p-6 flex flex-wrap gap-4">
+      <CardFooter className="bg-muted/10 border-t border-border/40 p-6 flex flex-wrap gap-4 items-center">
         {payment.status === 'pending' && payment.paymentUrl && (
           <Button className="font-bold gap-2" asChild>
             <a href={payment.paymentUrl} target="_blank" rel="noopener noreferrer">
               Continue Payment
               <ExternalLink className="h-4 w-4" />
             </a>
+          </Button>
+        )}
+        
+        {(payment.status === 'pending' || payment.status === 'processing') && (
+          <Button 
+            variant="outline" 
+            className="font-bold gap-2"
+            onClick={onRefresh}
+            disabled={isRefreshing}
+          >
+            {isRefreshing ? (
+              <Loader2 className="h-4 w-4 animate-spin" />
+            ) : (
+              <RotateCcw className="h-4 w-4" />
+            )}
+            Refresh Status
+          </Button>
+        )}
+
+        {payment.status === 'succeeded' && (
+          <Button className="font-bold rounded-xl" asChild>
+            <Link href={ROUTES.STUDENT.SESSIONS}>
+              Go to Sessions
+            </Link>
           </Button>
         )}
         

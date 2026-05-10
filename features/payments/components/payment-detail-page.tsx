@@ -52,7 +52,11 @@ export function PaymentDetailPage() {
         />
       </div>
 
-      <PaymentDetailCard payment={payment} />
+      <PaymentDetailCard 
+        payment={payment} 
+        onRefresh={() => refetch()} 
+        isRefreshing={isLoading} 
+      />
     </PageContainer>
   );
 }
