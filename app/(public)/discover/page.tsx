@@ -1,8 +1,11 @@
+import { TutorDiscoverPage } from '@/features/tutors/components/tutor-discover-page';
+import { Metadata } from 'next';
+
+export const metadata: Metadata = {
+  title: 'Discover Tutors | Connecti',
+  description: 'Find and book top-rated tutors for any subject.',
+};
+
 export default function DiscoverPage() {
-  return (
-    <div className="container mx-auto py-20 text-center">
-      <h1 className="text-4xl font-bold">Discover Mentors</h1>
-      <p className="mt-4 text-muted-foreground text-lg">Under Construction</p>
-    </div>
-  );
+  return <TutorDiscoverPage />;
 }
