@@ -46,7 +46,7 @@ export function ProfileSettingsPage() {
               </Button>
             </div>
             <div className="space-y-1">
-              <h3 className="text-2xl font-black" style={{ color: '#2C1208' }}>{profile.fullName}</h3>
+              <h3 className="text-2xl font-black text-brand-dark">{profile.fullName}</h3>
               <p className="text-sm text-muted-foreground font-medium">{profile.email}</p>
               <div className="inline-flex items-center px-2 py-0.5 rounded-full bg-primary/10 text-primary text-[10px] font-black uppercase tracking-widest">
                 {profile.role}
@@ -58,7 +58,7 @@ export function ProfileSettingsPage() {
 
       <div className="space-y-6">
         <div className="space-y-1">
-          <h4 className="text-lg font-bold" style={{ color: '#2C1208' }}>Personal Information</h4>
+          <h4 className="text-lg font-bold text-brand-dark">Personal Information</h4>
           <p className="text-sm text-muted-foreground">Update your personal details and contact information.</p>
         </div>
         

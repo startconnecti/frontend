@@ -1,3 +1,5 @@
+import { ApiError } from '@/lib/api/errors';
+
 export type UserRole = 'student' | 'tutor';
 export type UserStatus = 'active' | 'inactive' | 'blocked';
 export type Gender = 'male' | 'female' | 'other' | 'undisclosed';
@@ -24,7 +26,8 @@ export interface LoginRequest {
 
 export interface LoginResponse {
   user: AuthUser;
-  token: string;
+  accessToken: string;
+  refreshToken: string;
 }
 
 export interface RegisterCredentialsRequest {
@@ -66,7 +69,4 @@ export interface ResetPasswordRequest {
   password?: string;
 }
 
-export interface AuthError {
-  message: string;
-  code: string;
-}
+export type { ApiError as AuthError };

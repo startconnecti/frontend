@@ -37,7 +37,7 @@ export function TutorProfileHeader({
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div className="space-y-1">
             <div className="flex items-center gap-2">
-              <h1 className="text-3xl font-black tracking-tight" style={{ color: '#2C1208' }}>{name}</h1>
+              <h1 className="text-3xl font-black tracking-tight text-brand-dark">{name}</h1>
               <ShieldCheck className="h-6 w-6 text-primary fill-primary/10" />
             </div>
             <div className="flex flex-wrap gap-2 pt-1">
@@ -50,10 +50,10 @@ export function TutorProfileHeader({
           </div>
 
           <div className="flex items-center gap-2">
-            <Button variant="outline" size="icon" className="rounded-full">
+            <Button variant="outline" size="icon" className="rounded-full" aria-label="Add to favorites">
               <Heart className="h-5 w-5" />
             </Button>
-            <Button variant="outline" size="icon" className="rounded-full">
+            <Button variant="outline" size="icon" className="rounded-full" aria-label="Send message">
               <MessageSquare className="h-5 w-5" />
             </Button>
           </div>

@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
+import { setFormErrors } from '@/lib/api/query-utils';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { useRouter } from 'next/navigation';
@@ -33,7 +34,7 @@ type LoginFormValues = z.infer<typeof loginSchema>;
 export function LoginForm() {
   const router = useRouter();
   const loginMutation = useLoginMutation();
-  const loginMock = useAuthStore((state) => state.loginMock);
+  const setAuth = useAuthStore((state) => state.setAuth);
   const [showPassword, setShowPassword] = useState(false);
 
   const form = useForm<LoginFormValues>({
@@ -49,7 +50,7 @@ export function LoginForm() {
       const response = await loginMutation.mutateAsync(values);
       
       // Update global auth store
-      loginMock(response.user, response.token);
+      setAuth(response.user, response.accessToken, response.refreshToken);
 
       // Redirect based on role and onboarding status
       if (response.user.role === 'student') {
@@ -58,7 +59,7 @@ export function LoginForm() {
         router.push(response.user.onboardingCompleted ? ROUTES.TUTOR_DASHBOARD : ROUTES.ONBOARDING_TUTOR);
       }
     } catch (err) {
-      // Error is handled by mutation state, but we catch to prevent unhandled promise rejection
+      setFormErrors(err, form.setError);
     }
   };
 

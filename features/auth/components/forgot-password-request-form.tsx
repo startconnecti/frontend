@@ -1,6 +1,7 @@
 'use client';
 
 import { useForm } from 'react-hook-form';
+import { setFormErrors } from '@/lib/api/query-utils';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { Loader2 } from 'lucide-react';
@@ -43,7 +44,7 @@ export function ForgotPasswordRequestForm({ onSuccess }: ForgotPasswordRequestFo
       await requestMutation.mutateAsync(values);
       onSuccess(values.email);
     } catch (err) {
-      // Error handled by mutation state
+      setFormErrors(err, form.setError);
     }
   };
 

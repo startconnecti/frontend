@@ -53,7 +53,7 @@ export function TutorUpcomingSessionCard({ session }: TutorUpcomingSessionCardPr
               <AvatarFallback>{session.studentName[0]}</AvatarFallback>
             </Avatar>
             <div className="space-y-1">
-              <h3 className="text-xl font-bold" style={{ color: '#2C1208' }}>{session.subject}</h3>
+              <h3 className="text-xl font-bold text-brand-dark">{session.subject}</h3>
               <p className="text-sm text-muted-foreground font-medium">Teaching {session.studentName}</p>
             </div>
           </div>

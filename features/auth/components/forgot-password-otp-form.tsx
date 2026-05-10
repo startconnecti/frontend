@@ -1,6 +1,7 @@
 'use client';
 
 import { useForm } from 'react-hook-form';
+import { setFormErrors } from '@/lib/api/query-utils';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { Loader2, ArrowLeft, RefreshCw } from 'lucide-react';
@@ -48,7 +49,7 @@ export function ForgotPasswordOtpForm({ email, onSuccess, onBack }: ForgotPasswo
       });
       onSuccess(values.otp);
     } catch (err) {
-      // Error handled by mutation state
+      setFormErrors(err, form.setError);
     }
   };
 

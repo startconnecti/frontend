@@ -1,9 +1,9 @@
 'use client';
 
 import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { handleMutationError } from '@/lib/api/query-utils';
 import { messageService } from '../services/message-service';
-import { toast } from 'sonner';
-
+ 
 interface SendMessageRequest {
   conversationId: string;
   content: string;
@@ -19,8 +19,8 @@ export function useSendMessageMutation() {
       queryClient.invalidateQueries({ queryKey: ['conversation-detail', conversationId] });
       queryClient.invalidateQueries({ queryKey: ['conversations'] });
     },
-    onError: () => {
-      toast.error('Failed to send message');
+    onError: (error) => {
+      handleMutationError(error, 'Failed to send message');
     },
   });
 }

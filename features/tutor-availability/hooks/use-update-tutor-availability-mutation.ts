@@ -5,6 +5,8 @@ import { tutorAvailabilityService } from '../services/tutor-availability-service
 import { UpdateAvailabilityRequest } from '../types';
 import { toast } from 'sonner';
 
+import { handleMutationError } from '@/lib/api/query-utils';
+
 export function useUpdateTutorAvailabilityMutation() {
   const queryClient = useQueryClient();
 
@@ -14,8 +16,8 @@ export function useUpdateTutorAvailabilityMutation() {
       queryClient.setQueryData(['tutor-availability'], data);
       toast.success('Availability updated successfully');
     },
-    onError: () => {
-      toast.error('Failed to update availability');
+    onError: (error) => {
+      handleMutationError(error, 'Failed to update availability');
     },
   });
 }

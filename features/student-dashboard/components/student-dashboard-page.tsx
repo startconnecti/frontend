@@ -110,7 +110,7 @@ export function StudentDashboardPage() {
         <div className="lg:col-span-2 space-y-10">
           {/* Upcoming Session */}
           <section className="space-y-4">
-            <h3 className="text-xl font-bold flex items-center gap-2" style={{ color: '#2C1208' }}>
+            <h3 className="text-xl font-bold flex items-center gap-2 text-brand-dark">
               <TrendingUp className="h-5 w-5 text-primary" />
               Upcoming Session
             </h3>
@@ -162,7 +162,7 @@ export function StudentDashboardPage() {
 
           {/* Quick Links / Help */}
           <div className="p-6 rounded-2xl bg-primary/5 border border-primary/10 space-y-4">
-            <h4 className="font-bold text-sm" style={{ color: '#2C1208' }}>Need Help?</h4>
+            <h4 className="font-bold text-sm text-brand-dark">Need Help?</h4>
             <p className="text-xs text-muted-foreground leading-relaxed">
               Check out our Help Center or contact support if you have issues with your bookings or sessions.
             </p>

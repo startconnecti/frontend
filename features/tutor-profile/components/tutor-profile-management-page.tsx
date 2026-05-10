@@ -24,7 +24,7 @@ export function TutorProfileManagementPage() {
     return (
       <PageContainer className="py-20 text-center">
         <div className="max-w-md mx-auto space-y-4">
-          <h3 className="text-2xl font-black" style={{ color: '#2C1208' }}>Unable to load profile</h3>
+          <h3 className="text-2xl font-black text-brand-dark">Unable to load profile</h3>
           <p className="text-muted-foreground font-medium">There was an error retrieving your tutor profile information. Please try again later.</p>
         </div>
       </PageContainer>

@@ -1,6 +1,7 @@
 'use client';
 
 import { useForm } from 'react-hook-form';
+import { setFormErrors } from '@/lib/api/query-utils';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { Loader2, CheckCircle2 } from 'lucide-react';
@@ -55,7 +56,7 @@ export function ResetPasswordForm({ email, otp }: ResetPasswordFormProps) {
         password: values.password,
       });
     } catch (err) {
-      // Error handled by mutation state
+      setFormErrors(err, form.setError);
     }
   };
 
@@ -68,7 +69,7 @@ export function ResetPasswordForm({ email, otp }: ResetPasswordFormProps) {
           </div>
         </div>
         <div className="space-y-2">
-          <h3 className="text-xl font-bold" style={{ color: '#2C1208' }}>Password Reset Successful</h3>
+          <h3 className="text-xl font-bold text-brand-dark">Password Reset Successful</h3>
           <p className="text-sm text-muted-foreground">
             Your password has been successfully updated. You can now sign in with your new credentials.
           </p>

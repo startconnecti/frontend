@@ -24,7 +24,7 @@ export function ConversationList({ conversations }: ConversationListProps) {
         return (
           <button
             key={conv.id}
-            onClick={() => router.push(`${ROUTES.STUDENT.MESSAGES}/${conv.id}`)}
+            onClick={() => router.push(`${ROUTES.MESSAGES}/${conv.id}`)}
             className={cn(
               "flex items-center gap-4 p-4 text-left border-b border-border/40 transition-all hover:bg-muted/50",
               isActive && "bg-primary/5 border-l-4 border-l-primary"
@@ -34,7 +34,7 @@ export function ConversationList({ conversations }: ConversationListProps) {
               <Avatar className="h-12 w-12 shadow-sm">
                 <AvatarImage src={conv.participant.avatarUrl} alt={conv.participant.fullName} />
                 <AvatarFallback className="font-bold">
-                  {conv.participant.fullName.split(' ').map(n => n[0]).join('')}
+                  {conv.participant.fullName?.split(' ').map(n => n[0]).join('') || '?'}
                 </AvatarFallback>
               </Avatar>
               {conv.unreadCount > 0 && (
@@ -46,7 +46,7 @@ export function ConversationList({ conversations }: ConversationListProps) {
             
             <div className="flex-1 min-w-0 space-y-1">
               <div className="flex items-center justify-between gap-2">
-                <h4 className="text-sm font-black truncate" style={{ color: '#2C1208' }}>
+                <h4 className="text-sm font-black truncate text-brand-dark">
                   {conv.participant.fullName}
                 </h4>
                 <span className="text-[10px] text-muted-foreground whitespace-nowrap font-medium">

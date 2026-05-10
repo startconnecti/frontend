@@ -120,7 +120,7 @@ export function TutorDashboardPage() {
         <div className="lg:col-span-2 space-y-10">
           {/* Upcoming Session */}
           <section className="space-y-4">
-            <h3 className="text-xl font-bold flex items-center gap-2" style={{ color: '#2C1208' }}>
+            <h3 className="text-xl font-bold flex items-center gap-2 text-brand-dark">
               <TrendingUp className="h-5 w-5 text-primary" />
               Upcoming Session
             </h3>
@@ -130,7 +130,7 @@ export function TutorDashboardPage() {
           {/* Recent Reviews */}
           <section className="space-y-6">
             <div className="flex items-center justify-between">
-              <h3 className="text-xl font-bold" style={{ color: '#2C1208' }}>Recent Student Feedback</h3>
+              <h3 className="text-xl font-bold text-brand-dark">Recent Student Feedback</h3>
               <Button variant="ghost" className="text-primary font-bold gap-2" asChild>
                 <Link href={ROUTES.TUTOR.REVIEWS}>
                   All Reviews

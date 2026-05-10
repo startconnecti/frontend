@@ -13,7 +13,7 @@ export default function OnboardingLayout({ children }: { children: ReactNode }) 
         <div className="mb-8 flex justify-center">
           <Link href={ROUTES.HOME} className="flex items-center gap-3 transition-opacity hover:opacity-80">
             <Image src="/connecti-logo-mark.svg" alt="Connecti" width={44} height={44} />
-            <span className="text-3xl font-black" style={{ color: '#2C1208' }}>
+            <span className="text-3xl font-black text-brand-dark">
               Connecti
             </span>
           </Link>

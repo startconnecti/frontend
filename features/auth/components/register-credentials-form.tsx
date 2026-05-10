@@ -1,6 +1,7 @@
 'use client';
 
 import { useForm } from 'react-hook-form';
+import { setFormErrors } from '@/lib/api/query-utils';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { Loader2, GraduationCap, User } from 'lucide-react';
@@ -61,7 +62,7 @@ export function RegisterCredentialsForm({ onSuccess }: RegisterCredentialsFormPr
       });
       onSuccess(values);
     } catch (err) {
-      // Error handled by mutation
+      setFormErrors(err, form.setError);
     }
   };
 

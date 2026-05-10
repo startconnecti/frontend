@@ -22,7 +22,7 @@ export function TutorEarningsSummary({ earnings }: TutorEarningsSummaryProps) {
         <div className="space-y-1">
           <p className="text-xs text-muted-foreground font-medium">Monthly Revenue</p>
           <div className="flex items-baseline gap-2">
-            <h3 className="text-3xl font-black" style={{ color: '#2C1208' }}>${earnings.monthlyEarnings}</h3>
+            <h3 className="text-3xl font-black text-brand-dark">${earnings?.monthlyEarnings ?? 0}</h3>
             <span className="text-[10px] font-bold text-emerald-600 flex items-center">
               <TrendingUp className="h-3 w-3 mr-0.5" />
               +12%
@@ -33,7 +33,7 @@ export function TutorEarningsSummary({ earnings }: TutorEarningsSummaryProps) {
         <div className="p-4 rounded-xl bg-muted/5 border border-border/40 space-y-2">
           <div className="flex items-center justify-between">
             <p className="text-xs text-muted-foreground">Pending Payout</p>
-            <p className="text-sm font-bold">${earnings.pendingPayoutAmount}</p>
+            <p className="text-sm font-bold">${earnings?.pendingPayoutAmount ?? 0}</p>
           </div>
           <div className="h-1.5 w-full bg-muted rounded-full overflow-hidden">
             <div className="h-full bg-primary rounded-full w-[65%]" />

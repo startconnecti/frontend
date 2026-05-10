@@ -1,6 +1,7 @@
 'use client';
 
 import { useForm } from 'react-hook-form';
+import { setFormErrors } from '@/lib/api/query-utils';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { Loader2, ArrowLeft, RefreshCw } from 'lucide-react';
@@ -36,7 +37,7 @@ interface RegisterOtpFormProps {
 export function RegisterOtpForm({ email, role, onBack }: RegisterOtpFormProps) {
   const router = useRouter();
   const verifyMutation = useVerifyRegisterOtpMutation();
-  const loginMock = useAuthStore((state) => state.loginMock);
+  const setAuth = useAuthStore((state) => state.setAuth);
 
   const form = useForm<OtpFormValues>({
     resolver: zodResolver(otpSchema),
@@ -54,13 +55,13 @@ export function RegisterOtpForm({ email, role, onBack }: RegisterOtpFormProps) {
       });
 
       // Update global auth store
-      loginMock(response.user, response.token);
+      setAuth(response.user, response.accessToken, response.refreshToken);
 
       // Redirect to correct onboarding based on role
       const redirectPath = role === 'student' ? ROUTES.ONBOARDING_STUDENT : ROUTES.ONBOARDING_TUTOR;
       router.push(redirectPath);
     } catch (err) {
-      // Error handled by mutation
+      setFormErrors(err, form.setError);
     }
   };
 

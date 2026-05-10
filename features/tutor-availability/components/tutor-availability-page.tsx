@@ -104,7 +104,7 @@ export function TutorAvailabilityPage() {
 
           <div className="space-y-6">
             <div className="flex items-center justify-between">
-              <h3 className="text-xl font-black uppercase tracking-widest" style={{ color: '#2C1208' }}>
+              <h3 className="text-xl font-black uppercase tracking-widest text-brand-dark">
                 {activeDay} Slots
               </h3>
               <p className="text-xs text-muted-foreground font-medium">{activeDaySlots.length} active slots</p>
@@ -127,7 +127,7 @@ export function TutorAvailabilityPage() {
           <AvailabilityCalendarPreview slots={availability?.slots || []} />
           
           <div className="p-6 rounded-3xl bg-primary/5 border border-primary/10 space-y-4">
-            <h4 className="font-black text-sm uppercase tracking-widest" style={{ color: '#2C1208' }}>Scheduling Tips</h4>
+            <h4 className="font-black text-sm uppercase tracking-widest text-brand-dark">Scheduling Tips</h4>
             <ul className="space-y-3">
               {[
                 'Keep 15-min buffers between slots',

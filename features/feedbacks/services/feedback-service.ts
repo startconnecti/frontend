@@ -1,22 +1,13 @@
+import { api } from '@/lib/api/client';
 import { Feedback, CreateFeedbackRequest, TutorReviewSummary } from '../types';
-import { MOCK_FEEDBACKS } from '../mock-data';
-
-const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
-
-let feedbackStorage = [...MOCK_FEEDBACKS];
 
 export const feedbackService = {
   async getStudentFeedbacks(): Promise<Feedback[]> {
-    const latency = Math.floor(Math.random() * (600 - 300 + 1)) + 300;
-    await sleep(latency);
-    return [...feedbackStorage];
+    return api.get<Feedback[]>('/api/v1/feedbacks/me');
   },
 
   async getTutorReviews(): Promise<Feedback[]> {
-    const latency = Math.floor(Math.random() * (600 - 300 + 1)) + 300;
-    await sleep(latency);
-    // For this mock, assume tutor is tutor-001
-    return feedbackStorage.filter(f => f.tutorId === 'tutor-001');
+    return api.get<Feedback[]>('/api/v1/feedbacks/tutor');
   },
 
   async getTutorReviewSummary(): Promise<TutorReviewSummary> {
@@ -36,23 +27,6 @@ export const feedbackService = {
   },
 
   async createFeedback(request: CreateFeedbackRequest): Promise<Feedback> {
-    const latency = Math.floor(Math.random() * (600 - 300 + 1)) + 300;
-    await sleep(latency);
-    
-    const newFeedback: Feedback = {
-      id: `fb-${Date.now()}`,
-      sessionId: request.sessionId,
-      studentId: 'student-001',
-      tutorId: 'tutor-001', // Mock assumption
-      tutorName: 'Dr. Sarah Wilson',
-      studentName: 'Alex Johnson',
-      subject: 'Physics',
-      rating: request.rating,
-      comment: request.comment,
-      createdAt: new Date().toISOString(),
-    };
-    
-    feedbackStorage.push(newFeedback);
-    return newFeedback;
+    return api.post<Feedback>('/api/v1/feedbacks', request);
   }
 };

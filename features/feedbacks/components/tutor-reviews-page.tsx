@@ -39,7 +39,7 @@ export function TutorReviewsPage() {
 
           <Card className="border-border/60 shadow-lg bg-white rounded-3xl overflow-hidden md:col-span-2">
             <CardContent className="p-8 space-y-4">
-              <h4 className="text-sm font-black uppercase tracking-widest flex items-center gap-2" style={{ color: '#2C1208' }}>
+              <h4 className="text-sm font-black uppercase tracking-widest flex items-center gap-2 text-brand-dark">
                 <BarChart3 className="h-4 w-4 text-primary" />
                 Rating Distribution
               </h4>
@@ -67,11 +67,11 @@ export function TutorReviewsPage() {
 
       <div className="space-y-6">
         <div className="flex items-center justify-between">
-          <h3 className="text-xl font-black uppercase tracking-widest" style={{ color: '#2C1208' }}>Recent Reviews</h3>
+          <h3 className="text-xl font-black uppercase tracking-widest text-brand-dark">Recent Reviews</h3>
           <div className="flex items-center gap-2 px-3 py-1 bg-muted/50 rounded-full">
             <Users className="h-3.5 w-3.5 text-muted-foreground" />
             <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">
-              {data?.summary.totalReviews || 0} Total Reviews
+              {data?.summary?.totalReviews || 0} Total Reviews
             </span>
           </div>
         </div>

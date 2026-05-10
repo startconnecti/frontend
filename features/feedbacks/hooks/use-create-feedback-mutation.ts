@@ -5,6 +5,8 @@ import { feedbackService } from '../services/feedback-service';
 import { CreateFeedbackRequest } from '../types';
 import { toast } from 'sonner';
 
+import { handleMutationError } from '@/lib/api/query-utils';
+
 export function useCreateFeedbackMutation() {
   const queryClient = useQueryClient();
 
@@ -15,8 +17,8 @@ export function useCreateFeedbackMutation() {
       queryClient.invalidateQueries({ queryKey: ['tutor-reviews'] });
       toast.success('Feedback submitted successfully');
     },
-    onError: () => {
-      toast.error('Failed to submit feedback');
+    onError: (error) => {
+      handleMutationError(error, 'Failed to submit feedback');
     },
   });
 }

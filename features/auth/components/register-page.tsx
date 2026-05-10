@@ -27,7 +27,7 @@ export function RegisterPage() {
   return (
     <div className="w-full max-w-lg mx-auto space-y-6">
       <div className="text-center space-y-2">
-        <h1 className="text-3xl font-extrabold tracking-tight" style={{ color: '#2C1208' }}>
+        <h1 className="text-3xl font-extrabold tracking-tight text-brand-dark">
           {step === 'credentials' ? 'Join Connecti' : 'Check your email'}
         </h1>
         <p className="text-muted-foreground">

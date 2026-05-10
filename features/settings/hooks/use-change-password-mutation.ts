@@ -5,14 +5,16 @@ import { settingsService } from '../services/settings-service';
 import { ChangePasswordRequest } from '../types';
 import { toast } from 'sonner';
 
+import { handleMutationError } from '@/lib/api/query-utils';
+
 export function useChangePasswordMutation() {
   return useMutation({
     mutationFn: (request: ChangePasswordRequest) => settingsService.changePassword(request),
     onSuccess: () => {
       toast.success('Password changed successfully');
     },
-    onError: () => {
-      toast.error('Failed to change password');
+    onError: (error) => {
+      handleMutationError(error, 'Failed to change password');
     },
   });
 }

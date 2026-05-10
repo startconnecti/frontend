@@ -19,6 +19,7 @@ import { cn } from '@/lib/utils';
 import { ROUTES } from '@/constants/routes';
 import { useAuthStore } from '@/stores/auth-store';
 import { useRouter } from 'next/navigation';
+import { useQueryClient } from '@tanstack/react-query';
 
 const tutorNavItems = [
   { label: 'Dashboard', href: ROUTES.TUTOR.DASHBOARD, icon: LayoutDashboard },
@@ -39,8 +40,11 @@ export function TutorSidebar() {
   const router = useRouter();
   const logout = useAuthStore((state) => state.logout);
 
+  const queryClient = useQueryClient();
+
   const handleLogout = () => {
     logout();
+    queryClient.clear();
     router.push(ROUTES.LOGIN);
   };
 
@@ -48,7 +52,7 @@ export function TutorSidebar() {
     <aside className="hidden lg:flex w-64 flex-col fixed inset-y-0 border-r bg-card z-50">
       <div className="p-6">
         <Link href={ROUTES.HOME} className="flex items-center gap-3">
-          <span className="text-xl font-bold tracking-tight" style={{ color: '#2C1208' }}>Connecti</span>
+          <span className="text-xl font-bold tracking-tight text-brand-dark">Connecti</span>
         </Link>
       </div>
       

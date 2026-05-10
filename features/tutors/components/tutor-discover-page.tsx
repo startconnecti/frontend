@@ -31,7 +31,7 @@ export function TutorDiscoverPage() {
       {/* Hero Section */}
       <div className="mb-12 space-y-6">
         <div className="max-w-2xl">
-          <h1 className="text-4xl font-extrabold tracking-tight sm:text-5xl mb-4" style={{ color: '#2C1208' }}>
+          <h1 className="text-4xl font-extrabold tracking-tight sm:text-5xl mb-4 text-brand-dark">
             Find your perfect tutor
           </h1>
           <p className="text-lg text-muted-foreground">

@@ -55,10 +55,10 @@ export function Hero() {
           {/* Headline */}
           <div className="space-y-4">
             <div className="space-y-2">
-              <h1 className="text-6xl lg:text-7xl font-extrabold leading-tight" style={{ color: '#2C1208' }}>
+              <h1 className="text-6xl lg:text-7xl font-extrabold leading-tight text-brand-dark">
                 Stop guessing.
               </h1>
-              <h1 className="text-6xl lg:text-7xl font-extrabold leading-tight" style={{ color: '#E8341A' }}>
+              <h1 className="text-6xl lg:text-7xl font-extrabold leading-tight text-brand-orange">
                 Start connecting.
               </h1>
             </div>

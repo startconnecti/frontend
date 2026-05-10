@@ -38,7 +38,7 @@ export function MessagesPage() {
         activeId ? "hidden md:flex" : "flex"
       )}>
         <div className="p-4 border-b border-border/40 flex items-center justify-between">
-          <h2 className="text-xl font-black" style={{ color: '#2C1208' }}>Messages</h2>
+          <h2 className="text-xl font-black text-brand-dark">Messages</h2>
           <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground">
             <Search className="h-4 w-4" />
           </Button>
@@ -68,18 +68,18 @@ export function MessagesPage() {
                     variant="ghost" 
                     size="icon" 
                     className="md:hidden"
-                    onClick={() => router.push(ROUTES.STUDENT.MESSAGES)}
+                    onClick={() => router.push(ROUTES.MESSAGES)}
                   >
                     <ArrowLeft className="h-5 w-5" />
                   </Button>
                   <Avatar className="h-10 w-10 border-2 border-primary/10">
                     <AvatarImage src={detail.conversation.participant.avatarUrl} alt={detail.conversation.participant.fullName} />
                     <AvatarFallback className="font-bold">
-                      {detail.conversation.participant.fullName.split(' ').map(n => n[0]).join('')}
+                      {detail.conversation.participant.fullName?.split(' ').map(n => n[0]).join('') || '?'}
                     </AvatarFallback>
                   </Avatar>
                   <div className="space-y-0.5">
-                    <h3 className="text-sm font-black leading-none" style={{ color: '#2C1208' }}>
+                    <h3 className="text-sm font-black leading-none text-brand-dark">
                       {detail.conversation.participant.fullName}
                     </h3>
                     <p className="text-[10px] text-emerald-600 font-black uppercase tracking-widest">Online</p>
@@ -126,7 +126,7 @@ export function MessagesPage() {
               <MessageCircle className="h-12 w-12 text-primary" />
             </div>
             <div className="space-y-2">
-              <h3 className="text-2xl font-black" style={{ color: '#2C1208' }}>Select a conversation</h3>
+              <h3 className="text-2xl font-black text-brand-dark">Select a conversation</h3>
               <p className="text-sm text-muted-foreground font-medium leading-relaxed">
                 Connect with your tutors and students to discuss sessions, share feedback, and stay updated.
               </p>

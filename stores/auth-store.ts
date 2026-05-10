@@ -5,11 +5,12 @@ import { AuthUser } from '@/features/auth/types';
 interface AuthState {
   user: AuthUser | null;
   accessToken: string | null;
+  refreshToken: string | null;
   isAuthenticated: boolean;
   isHydrated: boolean;
   
   // Actions
-  loginMock: (user: AuthUser, accessToken: string) => void;
+  setAuth: (user: AuthUser, accessToken: string, refreshToken: string) => void;
   logout: () => void;
   setHydrated: () => void;
   updateUser: (user: Partial<AuthUser>) => void;
@@ -20,13 +21,15 @@ export const useAuthStore = create<AuthState>()(
     (set) => ({
       user: null,
       accessToken: null,
+      refreshToken: null,
       isAuthenticated: false,
       isHydrated: false,
 
-      loginMock: (user, accessToken) => 
+      setAuth: (user, accessToken, refreshToken) => 
         set({ 
           user, 
           accessToken, 
+          refreshToken,
           isAuthenticated: true 
         }),
 
@@ -34,6 +37,7 @@ export const useAuthStore = create<AuthState>()(
         set({ 
           user: null, 
           accessToken: null, 
+          refreshToken: null,
           isAuthenticated: false 
         }),
 
@@ -53,6 +57,7 @@ export const useAuthStore = create<AuthState>()(
       partialize: (state) => ({
         user: state.user,
         accessToken: state.accessToken,
+        refreshToken: state.refreshToken,
         isAuthenticated: state.isAuthenticated,
       }),
       onRehydrateStorage: () => (state) => {

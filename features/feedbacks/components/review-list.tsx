@@ -21,11 +21,11 @@ export function ReviewList({ reviews, showParticipant = true }: ReviewListProps)
               <div className="flex items-center gap-3">
                 <Avatar className="h-10 w-10 border-2 border-primary/10">
                   <AvatarFallback className="font-bold text-xs uppercase bg-primary/5">
-                    {review.studentName.split(' ').map(n => n[0]).join('')}
+                    {review.studentName?.split(' ').map(n => n[0]).join('') || '?'}
                   </AvatarFallback>
                 </Avatar>
                 <div>
-                  <p className="text-sm font-black" style={{ color: '#2C1208' }}>{review.studentName}</p>
+                  <p className="text-sm font-black text-brand-dark">{review.studentName}</p>
                   <p className="text-[10px] text-muted-foreground font-bold uppercase tracking-widest">{review.subject}</p>
                 </div>
               </div>

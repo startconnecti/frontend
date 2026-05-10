@@ -1,27 +1,16 @@
+import { api } from '@/lib/api/client';
 import { ProfileSettings, UpdateProfileRequest, ChangePasswordRequest } from '../types';
-import { MOCK_PROFILE_SETTINGS } from '../mock-data';
-
-const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
-
-let profileStorage = { ...MOCK_PROFILE_SETTINGS };
 
 export const settingsService = {
   async getProfileSettings(): Promise<ProfileSettings> {
-    const latency = Math.floor(Math.random() * (600 - 300 + 1)) + 300;
-    await sleep(latency);
-    return { ...profileStorage };
+    return api.get<ProfileSettings>('/api/v1/users/profile');
   },
 
   async updateProfileSettings(request: UpdateProfileRequest): Promise<ProfileSettings> {
-    const latency = Math.floor(Math.random() * (600 - 300 + 1)) + 300;
-    await sleep(latency);
-    profileStorage = { ...profileStorage, ...request };
-    return { ...profileStorage };
+    return api.put<ProfileSettings>('/api/v1/users/profile', request);
   },
 
   async changePassword(request: ChangePasswordRequest): Promise<void> {
-    const latency = Math.floor(Math.random() * (600 - 300 + 1)) + 300;
-    await sleep(latency);
-    // Simulating success
+    await api.put('/api/v1/users/password', request);
   }
 };

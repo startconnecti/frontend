@@ -63,7 +63,7 @@ export function RouteGuard({
   if (!isHydrated || !isAuthenticated) {
     return (
       <div className="flex min-h-screen items-center justify-center">
-        <LoadingState />
+        <LoadingState type="page" />
       </div>
     );
   }

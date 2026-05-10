@@ -2,9 +2,7 @@
 
 import Link from 'next/link';
 import { ArrowLeft, Info } from 'lucide-react';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/alert';
-// Wait, Card is from ui/card, not ui/alert
-import { Card as ShadcnCard, CardContent as ShadcnCardContent, CardDescription as ShadcnCardDescription, CardFooter as ShadcnCardFooter, CardHeader as ShadcnCardHeader, CardTitle as ShadcnCardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { ROUTES } from '@/constants/routes';
 import { LoginForm } from './login-form';
@@ -13,7 +11,7 @@ export function LoginPage() {
   return (
     <div className="w-full max-w-md mx-auto space-y-6">
       <div className="text-center space-y-2">
-        <h1 className="text-3xl font-extrabold tracking-tight" style={{ color: '#2C1208' }}>
+        <h1 className="text-3xl font-extrabold tracking-tight text-brand-dark">
           Welcome Back
         </h1>
         <p className="text-muted-foreground">
@@ -21,19 +19,19 @@ export function LoginPage() {
         </p>
       </div>
 
-      <ShadcnCard className="border-border/60 shadow-xl shadow-primary/5 rounded-3xl overflow-hidden">
-        <ShadcnCardContent className="pt-8">
+      <Card className="border-border/60 shadow-xl shadow-primary/5 rounded-3xl overflow-hidden">
+        <CardContent className="pt-8">
           <LoginForm />
-        </ShadcnCardContent>
-        <ShadcnCardFooter className="flex flex-col gap-4 pb-8 border-t bg-muted/10 pt-6">
+        </CardContent>
+        <CardFooter className="flex flex-col gap-4 pb-8 border-t bg-muted/10 pt-6">
           <div className="text-sm text-center text-muted-foreground">
             Don't have an account?{' '}
             <Link href={ROUTES.REGISTER} className="text-primary font-bold hover:underline">
               Create one now
             </Link>
           </div>
-        </ShadcnCardFooter>
-      </ShadcnCard>
+        </CardFooter>
+      </Card>
 
       {/* Helper credentials for testing */}
       <div className="p-4 rounded-xl border border-dashed border-border/60 bg-muted/5 space-y-3">

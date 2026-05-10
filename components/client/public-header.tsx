@@ -25,7 +25,7 @@ export function PublicHeader() {
         <div className="flex items-center gap-8">
           <Link href={ROUTES.HOME} className="flex items-center gap-3 shrink-0">
             <Image src="/connecti-logo-mark.svg" alt="Connecti" width={32} height={32} />
-            <span className="text-xl font-bold tracking-tight" style={{ color: '#2C1208' }}>Connecti</span>
+            <span className="text-xl font-bold tracking-tight text-brand-dark">Connecti</span>
           </Link>
           
           {/* Desktop Nav Links */}

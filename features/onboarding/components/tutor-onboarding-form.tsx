@@ -138,7 +138,7 @@ export function TutorOnboardingForm() {
           </div>
         </div>
         <div className="space-y-2">
-          <h3 className="text-2xl font-bold" style={{ color: '#2C1208' }}>Application Submitted!</h3>
+          <h3 className="text-2xl font-bold text-brand-dark">Application Submitted!</h3>
           <p className="text-muted-foreground max-w-md mx-auto">
             Your tutor profile has been submitted for admin review. We'll notify you once your account is approved.
           </p>
