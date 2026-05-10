@@ -1,11 +1,11 @@
-import { StudentDashboardPlaceholder } from '@/features/dashboard/components/student-dashboard-placeholder';
+import { StudentDashboardPage } from '@/features/student-dashboard';
 import { Metadata } from 'next';
 
 export const metadata: Metadata = {
   title: 'Student Dashboard | Connecti',
-  description: 'Manage your learning and upcoming sessions.',
+  description: 'Manage your learning journey, sessions, and tutors.',
 };
 
 export default function StudentDashboard() {
-  return <StudentDashboardPlaceholder />;
+  return <StudentDashboardPage />;
 }
