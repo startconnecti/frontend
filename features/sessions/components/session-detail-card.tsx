@@ -25,8 +25,8 @@ export function SessionDetailCard({ session }: SessionDetailCardProps) {
   };
 
   return (
-    <Card className="border-border/60 shadow-xl overflow-hidden">
-      <CardHeader className="bg-muted/10 border-b border-border/40 p-6 flex flex-row items-center justify-between">
+    <Card className="border-border/60 shadow-xl shadow-primary/5 rounded-3xl overflow-hidden">
+      <CardHeader className="bg-muted/10 border-b border-border/40 p-8 flex flex-row items-center justify-between">
         <div className="space-y-1">
           <CardTitle className="text-2xl font-black" style={{ color: '#2C1208' }}>{session.subject}</CardTitle>
           <div className="flex items-center gap-3">
@@ -38,7 +38,7 @@ export function SessionDetailCard({ session }: SessionDetailCardProps) {
         </div>
       </CardHeader>
 
-      <CardContent className="p-8 space-y-8">
+      <CardContent className="p-10 space-y-10">
         {/* Info Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
           {/* Left: Time & Meeting */}

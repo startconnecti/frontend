@@ -94,7 +94,7 @@ export function RegisterCredentialsForm({ onSuccess }: RegisterCredentialsFormPr
                       <FormControl>
                         <RadioGroupItem value="student" className="sr-only" />
                       </FormControl>
-                      <FormLabel className={`flex flex-col items-center justify-between rounded-xl border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground cursor-pointer ${field.value === 'student' ? 'border-primary' : ''}`}>
+                      <FormLabel className={`flex flex-col items-center justify-between rounded-2xl border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground cursor-pointer ${field.value === 'student' ? 'border-primary' : ''}`}>
                         <User className="mb-2 h-6 w-6" />
                         <span className="text-sm font-bold">Student</span>
                       </FormLabel>
@@ -103,7 +103,7 @@ export function RegisterCredentialsForm({ onSuccess }: RegisterCredentialsFormPr
                       <FormControl>
                         <RadioGroupItem value="tutor" className="sr-only" />
                       </FormControl>
-                      <FormLabel className={`flex flex-col items-center justify-between rounded-xl border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground cursor-pointer ${field.value === 'tutor' ? 'border-primary' : ''}`}>
+                      <FormLabel className={`flex flex-col items-center justify-between rounded-2xl border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground cursor-pointer ${field.value === 'tutor' ? 'border-primary' : ''}`}>
                         <GraduationCap className="mb-2 h-6 w-6" />
                         <span className="text-sm font-bold">Tutor</span>
                       </FormLabel>

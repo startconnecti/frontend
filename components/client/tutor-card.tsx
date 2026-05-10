@@ -31,7 +31,7 @@ export function TutorCard({
   href = `/tutors/${id}` 
 }: TutorCardProps) {
   return (
-    <Card className="flex flex-col h-full hover:shadow-md transition-shadow group border-border/60">
+    <Card className="flex flex-col h-full hover:shadow-xl hover:shadow-primary/5 transition-all group border-border/60 rounded-3xl overflow-hidden">
       <CardHeader className="flex-row gap-4 space-y-0 p-6">
         <Avatar className="h-16 w-16 border-2 border-primary/10">
           <AvatarImage src={avatar} alt={name} />

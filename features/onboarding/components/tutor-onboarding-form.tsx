@@ -153,7 +153,7 @@ export function TutorOnboardingForm() {
     <div className="space-y-8">
       <TutorOnboardingStepper steps={STEPS} currentStep={currentStep} />
 
-      <Card className="border-border/60 shadow-xl shadow-primary/5 min-h-[450px] flex flex-col">
+      <Card className="border-border/60 shadow-xl shadow-primary/5 rounded-3xl overflow-hidden min-h-[450px] flex flex-col">
         <CardHeader className="bg-primary/5 border-b border-primary/10">
           <div className="flex items-center gap-3">
             <div className="h-10 w-10 rounded-xl bg-primary/10 flex items-center justify-center text-primary">

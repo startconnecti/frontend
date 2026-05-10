@@ -37,7 +37,7 @@ export function RegisterPage() {
         </p>
       </div>
 
-      <Card className="border-border/60 shadow-xl shadow-primary/5">
+      <Card className="border-border/60 shadow-xl shadow-primary/5 rounded-3xl overflow-hidden">
         <CardHeader className="pb-2">
           <div className="flex items-center justify-center gap-2 mb-2">
             <div className={`h-1.5 w-12 rounded-full transition-colors ${step === 'credentials' ? 'bg-primary' : 'bg-muted'}`} />

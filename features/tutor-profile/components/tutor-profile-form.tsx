@@ -59,14 +59,14 @@ export function TutorProfileForm({ initialData }: TutorProfileFormProps) {
     <div className="space-y-8">
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
-          <Card className="border-border/60 shadow-sm overflow-hidden">
+          <Card className="border-border/60 shadow-sm rounded-3xl overflow-hidden">
             <CardHeader className="bg-muted/10 border-b border-border/40 p-6">
               <CardTitle className="text-lg font-black uppercase tracking-widest flex items-center gap-2" style={{ color: '#2C1208' }}>
                 <Info className="h-5 w-5 text-primary" />
                 Basic Information
               </CardTitle>
             </CardHeader>
-            <CardContent className="p-8 space-y-6">
+            <CardContent className="p-10 space-y-8">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <FormField
                   control={form.control}
@@ -167,14 +167,14 @@ export function TutorProfileForm({ initialData }: TutorProfileFormProps) {
           </Card>
 
           {/* Subjects (Simplified Preview/Edit) */}
-          <Card className="border-border/60 shadow-sm overflow-hidden">
+          <Card className="border-border/60 shadow-sm rounded-3xl overflow-hidden">
             <CardHeader className="bg-muted/10 border-b border-border/40 p-6">
               <CardTitle className="text-lg font-black uppercase tracking-widest flex items-center gap-2" style={{ color: '#2C1208' }}>
                 <Badge className="bg-primary/10 text-primary hover:bg-primary/10 border-none">Subjects</Badge>
                 Expertise
               </CardTitle>
             </CardHeader>
-            <CardContent className="p-8 space-y-4">
+            <CardContent className="p-10 space-y-4">
               <div className="flex flex-wrap gap-2">
                 {form.watch('subjects').map((subject) => (
                   <Badge key={subject} variant="secondary" className="px-4 py-2 text-xs font-bold rounded-xl">
@@ -187,14 +187,14 @@ export function TutorProfileForm({ initialData }: TutorProfileFormProps) {
           </Card>
 
           {/* Certificates (Preview Only) */}
-          <Card className="border-border/60 shadow-sm overflow-hidden opacity-80">
+          <Card className="border-border/60 shadow-sm rounded-3xl overflow-hidden">
             <CardHeader className="bg-muted/10 border-b border-border/40 p-6">
               <CardTitle className="text-lg font-black uppercase tracking-widest flex items-center gap-2 text-muted-foreground">
                 <GraduationCap className="h-5 w-5" />
                 Certificates & Qualifications
               </CardTitle>
             </CardHeader>
-            <CardContent className="p-8 space-y-6">
+            <CardContent className="p-10 space-y-6">
               <div className="space-y-4">
                 {initialData.certificates.map((cert) => (
                   <div key={cert.id} className="flex items-center justify-between p-4 rounded-xl border border-border/40 bg-muted/5">

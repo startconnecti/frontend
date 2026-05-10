@@ -21,7 +21,7 @@ export function LoginPage() {
         </p>
       </div>
 
-      <ShadcnCard className="border-border/60 shadow-xl shadow-primary/5">
+      <ShadcnCard className="border-border/60 shadow-xl shadow-primary/5 rounded-3xl overflow-hidden">
         <ShadcnCardContent className="pt-8">
           <LoginForm />
         </ShadcnCardContent>

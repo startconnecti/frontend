@@ -13,7 +13,7 @@ export function AvailabilityCalendarPreview({ slots }: AvailabilityCalendarPrevi
   const days = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'] as const;
   
   return (
-    <Card className="border-border/60 shadow-xl overflow-hidden bg-white">
+    <Card className="border-border/60 shadow-xl shadow-primary/5 rounded-3xl overflow-hidden bg-white">
       <CardHeader className="bg-primary/5 border-b border-border/40 p-6">
         <CardTitle className="text-sm font-black uppercase tracking-widest flex items-center gap-2" style={{ color: '#2C1208' }}>
           <CalendarIcon className="h-4 w-4 text-primary" />

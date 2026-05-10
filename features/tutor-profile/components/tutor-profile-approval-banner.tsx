@@ -12,7 +12,7 @@ interface TutorProfileApprovalBannerProps {
 export function TutorProfileApprovalBanner({ status, reviewNote }: TutorProfileApprovalBannerProps) {
   if (status === 'approved') {
     return (
-      <Alert className="bg-emerald-50 border-emerald-200 text-emerald-800">
+      <Alert className="bg-emerald-50 border-emerald-200 text-emerald-800 rounded-2xl">
         <CheckCircle2 className="h-4 w-4 text-emerald-600" />
         <AlertTitle className="font-black text-xs uppercase tracking-widest">Profile Approved</AlertTitle>
         <AlertDescription className="text-sm font-medium">
@@ -24,7 +24,7 @@ export function TutorProfileApprovalBanner({ status, reviewNote }: TutorProfileA
 
   if (status === 'pending') {
     return (
-      <Alert className="bg-amber-50 border-amber-200 text-amber-800">
+      <Alert className="bg-amber-50 border-amber-200 text-amber-800 rounded-2xl">
         <Clock className="h-4 w-4 text-amber-600" />
         <AlertTitle className="font-black text-xs uppercase tracking-widest">Under Review</AlertTitle>
         <AlertDescription className="text-sm font-medium">
@@ -36,12 +36,12 @@ export function TutorProfileApprovalBanner({ status, reviewNote }: TutorProfileA
 
   if (status === 'rejected') {
     return (
-      <Alert variant="destructive" className="bg-rose-50 border-rose-200 text-rose-800">
+      <Alert variant="destructive" className="bg-rose-50 border-rose-200 text-rose-800 rounded-2xl">
         <XCircle className="h-4 w-4 text-rose-600" />
         <AlertTitle className="font-black text-xs uppercase tracking-widest">Action Required</AlertTitle>
         <AlertDescription className="text-sm font-medium space-y-2">
           <p>Your profile was not approved for the following reason:</p>
-          <div className="p-3 bg-white/50 rounded-lg border border-rose-100 italic">
+          <div className="p-3 bg-white/50 rounded-xl border border-rose-100 italic">
             "{reviewNote || 'Incomplete profile information or invalid certificates.'}"
           </div>
           <p>Please update your profile based on the feedback and resubmit for review.</p>

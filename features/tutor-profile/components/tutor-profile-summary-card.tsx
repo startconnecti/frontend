@@ -14,7 +14,7 @@ interface TutorProfileSummaryCardProps {
 
 export function TutorProfileSummaryCard({ profile }: TutorProfileSummaryCardProps) {
   return (
-    <Card className="border-border/60 bg-white shadow-xl overflow-hidden">
+    <Card className="border-border/60 bg-white shadow-xl shadow-primary/5 rounded-3xl overflow-hidden">
       <CardContent className="p-8">
         <div className="flex flex-col md:flex-row items-center md:items-start gap-8">
           <div className="relative group">

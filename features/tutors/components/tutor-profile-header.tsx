@@ -37,7 +37,7 @@ export function TutorProfileHeader({
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div className="space-y-1">
             <div className="flex items-center gap-2">
-              <h1 className="text-3xl font-bold tracking-tight" style={{ color: '#2C1208' }}>{name}</h1>
+              <h1 className="text-3xl font-black tracking-tight" style={{ color: '#2C1208' }}>{name}</h1>
               <ShieldCheck className="h-6 w-6 text-primary fill-primary/10" />
             </div>
             <div className="flex flex-wrap gap-2 pt-1">

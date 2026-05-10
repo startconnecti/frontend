@@ -43,8 +43,8 @@ export function PaymentDetailCard({ payment }: PaymentDetailCardProps) {
   const StatusIcon = statusIcons[payment.status];
 
   return (
-    <Card className="border-border/60 shadow-xl overflow-hidden">
-      <CardHeader className="bg-muted/10 border-b border-border/40 p-6">
+    <Card className="border-border/60 shadow-xl shadow-primary/5 rounded-3xl overflow-hidden">
+      <CardHeader className="bg-muted/10 border-b border-border/40 p-8">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div className="space-y-1">
             <div className="flex items-center gap-2">
@@ -61,7 +61,7 @@ export function PaymentDetailCard({ payment }: PaymentDetailCardProps) {
         </div>
       </CardHeader>
 
-      <CardContent className="p-8 space-y-10">
+      <CardContent className="p-10 space-y-10">
         {/* Top Section: Amount & Summary */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           <div className="md:col-span-1 space-y-4">

@@ -35,7 +35,7 @@ export function StudentUpcomingSessionCard({ session }: StudentUpcomingSessionCa
   const timeStr = startDate.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true });
 
   return (
-    <Card className="border-primary/20 shadow-xl shadow-primary/5 overflow-hidden">
+    <Card className="border-primary/20 shadow-xl shadow-primary/5 rounded-3xl overflow-hidden">
       <CardHeader className="bg-primary/5 border-b border-primary/10 flex flex-row items-center justify-between pb-4">
         <div className="flex items-center gap-2 text-primary font-bold text-xs uppercase tracking-widest">
           <Clock className="h-3.5 w-3.5" />

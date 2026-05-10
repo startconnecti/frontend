@@ -18,7 +18,7 @@ export function StudentOnboardingPage() {
           align="center"
         />
 
-        <Card className="border-border/60 shadow-xl shadow-primary/5">
+        <Card className="border-border/60 shadow-xl shadow-primary/5 rounded-3xl overflow-hidden">
           <CardHeader className="bg-primary/5 border-b border-primary/10 pb-6">
             <CardTitle className="text-xl">Personal Information</CardTitle>
             <CardDescription>

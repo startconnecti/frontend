@@ -40,7 +40,7 @@ export function TutorApprovalStatusCard({ status, isPublic }: TutorApprovalStatu
   const Icon = config.icon;
 
   return (
-    <Card className={`border ${config.color} shadow-sm overflow-hidden`}>
+    <Card className={`border ${config.color} shadow-sm rounded-2xl overflow-hidden`}>
       <CardContent className="p-4 flex items-start gap-4">
         <div className={`h-10 w-10 rounded-full bg-white flex items-center justify-center shrink-0 shadow-sm ${config.iconColor}`}>
           <Icon className="h-6 w-6" />

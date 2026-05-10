@@ -16,7 +16,7 @@ export function TutorProfileCertificates({ certificates }: TutorProfileCertifica
       <h2 className="text-xl font-bold tracking-tight" style={{ color: '#2C1208' }}>Certificates & Education</h2>
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         {certificates.map((cert) => (
-          <Card key={cert.id} className="p-4 flex items-start gap-4 border-border/40 hover:border-primary/20 transition-colors group">
+          <Card key={cert.id} className="p-4 flex items-start gap-4 border-border/40 hover:border-primary/20 transition-colors group rounded-2xl">
             <div className="h-10 w-10 rounded-lg bg-primary/5 flex items-center justify-center shrink-0 group-hover:bg-primary/10 transition-colors">
               <Award className="h-6 w-6 text-primary" />
             </div>

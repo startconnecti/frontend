@@ -13,7 +13,7 @@ interface TutorEarningsSummaryProps {
 
 export function TutorEarningsSummary({ earnings }: TutorEarningsSummaryProps) {
   return (
-    <Card className="border-border/60 shadow-sm overflow-hidden">
+    <Card className="border-border/60 shadow-sm rounded-2xl overflow-hidden">
       <CardHeader className="bg-primary/5 border-b border-primary/10 flex flex-row items-center justify-between py-4">
         <CardTitle className="text-sm font-bold uppercase tracking-wider text-primary">Earnings Overview</CardTitle>
         <Wallet className="h-4 w-4 text-primary" />

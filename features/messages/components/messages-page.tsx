@@ -34,7 +34,7 @@ export function MessagesPage() {
     <div className="flex h-[calc(100vh-140px)] gap-6 p-4 md:p-8">
       {/* Sidebar - List */}
       <Card className={cn(
-        "flex-col w-full md:w-80 lg:w-96 overflow-hidden border-border/60 shadow-xl bg-white",
+        "flex-col w-full md:w-80 lg:w-96 overflow-hidden border-border/60 shadow-xl shadow-primary/5 rounded-3xl bg-white",
         activeId ? "hidden md:flex" : "flex"
       )}>
         <div className="p-4 border-b border-border/40 flex items-center justify-between">
@@ -55,7 +55,7 @@ export function MessagesPage() {
 
       {/* Main Content - Thread */}
       <Card className={cn(
-        "flex-1 flex flex-col overflow-hidden border-border/60 shadow-xl bg-white",
+        "flex-1 flex flex-col overflow-hidden border-border/60 shadow-xl shadow-primary/5 rounded-3xl bg-white",
         !activeId ? "hidden md:flex items-center justify-center bg-muted/5" : "flex"
       )}>
         {activeId ? (
