@@ -8,5 +8,13 @@ export const sessionService = {
 
   async getSessionById(id: string): Promise<Session> {
     return api.get<Session>(`/api/v1/sessions/${id}`);
+  },
+
+  async getTutorSessions(filters: SessionFilters): Promise<Session[]> {
+    return api.get<Session[]>('/api/v1/tutors/sessions', { params: filters });
+  },
+
+  async getTutorSessionById(id: string): Promise<Session> {
+    return api.get<Session>(`/api/v1/tutors/sessions/${id}`);
   }
 };

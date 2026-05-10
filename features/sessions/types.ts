@@ -6,6 +6,12 @@ export interface SessionTutor {
   avatarUrl?: string;
 }
 
+export interface SessionStudent {
+  id: string;
+  fullName: string;
+  avatarUrl?: string;
+}
+
 export interface SessionPaymentSummary {
   amount: number;
   status: 'paid' | 'refunded' | 'pending';
@@ -16,6 +22,7 @@ export interface Session {
   id: string;
   bookingId: string;
   studentId: string;
+  student?: SessionStudent;
   tutor: SessionTutor;
   subject: string;
   startTime: string;

@@ -43,6 +43,7 @@ export const ROUTES = {
     AVAILABILITY: '/tutor/availability',
     BOOKINGS: '/tutor/bookings',
     SESSIONS: '/tutor/sessions',
+    SESSION_DETAIL: (id: string) => `/tutor/sessions/${id}`,
     REVIEWS: '/tutor/reviews',
     INCOME: '/tutor/income',
     PAYOUTS: '/tutor/payouts',

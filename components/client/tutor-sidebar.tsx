@@ -26,7 +26,7 @@ const tutorNavItems = [
   { label: 'My Profile', href: ROUTES.TUTOR.PROFILE, icon: User },
   { label: 'Availability', href: ROUTES.TUTOR.AVAILABILITY, icon: Calendar },
   { label: 'Bookings', href: ROUTES.TUTOR.BOOKINGS, icon: Calendar, disabled: true },
-  { label: 'Sessions', href: ROUTES.TUTOR.SESSIONS, icon: Video, disabled: true },
+  { label: 'Sessions', href: ROUTES.TUTOR.SESSIONS, icon: Video },
   { label: 'Reviews', href: ROUTES.TUTOR.REVIEWS, icon: Star },
   { label: 'Income', href: ROUTES.TUTOR.INCOME, icon: Wallet, disabled: true },
   { label: 'Payouts', href: ROUTES.TUTOR.PAYOUTS, icon: ArrowUpRight, disabled: true },
