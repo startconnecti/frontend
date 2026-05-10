@@ -28,10 +28,11 @@ type OtpFormValues = z.infer<typeof otpSchema>;
 
 interface RegisterOtpFormProps {
   email: string;
+  role: 'student' | 'tutor';
   onBack: () => void;
 }
 
-export function RegisterOtpForm({ email, onBack }: RegisterOtpFormProps) {
+export function RegisterOtpForm({ email, role, onBack }: RegisterOtpFormProps) {
   const router = useRouter();
   const verifyMutation = useVerifyRegisterOtpMutation();
 
@@ -48,8 +49,9 @@ export function RegisterOtpForm({ email, onBack }: RegisterOtpFormProps) {
         email,
         otp: values.otp,
       });
-      // Redirect to login after success
-      router.push(ROUTES.LOGIN + '?registered=true');
+      // Redirect to correct onboarding based on role
+      const redirectPath = role === 'student' ? ROUTES.ONBOARDING_STUDENT : ROUTES.ONBOARDING_TUTOR;
+      router.push(redirectPath);
     } catch (err) {
       // Error handled by mutation
     }

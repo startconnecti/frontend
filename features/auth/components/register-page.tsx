@@ -51,7 +51,11 @@ export function RegisterPage() {
           {step === 'credentials' ? (
             <RegisterCredentialsForm onSuccess={handleCredentialsSuccess} />
           ) : (
-            <RegisterOtpForm email={formData?.email || ''} onBack={handleBackToCredentials} />
+            <RegisterOtpForm 
+              email={formData?.email || ''} 
+              role={formData?.role || 'student'} 
+              onBack={handleBackToCredentials} 
+            />
           )}
         </CardContent>
         {step === 'credentials' && (
