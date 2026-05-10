@@ -35,8 +35,16 @@ export interface Payment {
   paidAt?: string;
   createdAt: string;
   transferReference?: string;
+  transferInstructions?: string;
+  paymentUrl?: string;
   proofFileUrl?: string;
   refundSummary?: RefundSummary;
+}
+
+export interface CreatePaymentRequest {
+  bookingId: string;
+  method: PaymentMethod;
+  paymentMethod?: PaymentMethod;
 }
 
 export interface PaymentFilters {

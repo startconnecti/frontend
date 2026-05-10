@@ -9,7 +9,9 @@ interface PaymentCardProps {
   date: string;
   description: string;
   status: AllStatuses;
-  type: 'inbound' | 'outbound';
+  type?: 'inbound' | 'outbound';
+  currency?: string;
+  method?: string;
   onViewReceipt?: () => void;
 }
 
@@ -19,7 +21,7 @@ export function PaymentCard({
   date,
   description,
   status,
-  type,
+  method,
   onViewReceipt
 }: PaymentCardProps) {
   const isPositive = type === 'inbound';
