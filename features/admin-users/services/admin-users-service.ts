@@ -1,5 +1,7 @@
 import { adminApi } from '@/lib/admin-api/client';
 import {
+  AdminUserDetail,
+  AdminUserMutationResponse,
   AdminUsersListResponse,
   AdminUsersQueryParams,
 } from '../types';
@@ -42,6 +44,22 @@ export const adminUsersService = {
       {
         params: buildAdminUsersRequestParams(params),
       }
+    );
+  },
+
+  async getUserById(userId: string): Promise<AdminUserDetail> {
+    return adminApi.get<AdminUserDetail>(`/api/v1/admin/users/${userId}`);
+  },
+
+  async blockUser(userId: string): Promise<AdminUserMutationResponse> {
+    return adminApi.post<AdminUserMutationResponse>(
+      `/api/v1/admin/users/${userId}/block`
+    );
+  },
+
+  async unblockUser(userId: string): Promise<AdminUserMutationResponse> {
+    return adminApi.post<AdminUserMutationResponse>(
+      `/api/v1/admin/users/${userId}/unblock`
     );
   },
 };

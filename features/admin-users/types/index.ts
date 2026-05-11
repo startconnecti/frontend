@@ -30,3 +30,15 @@ export interface AdminUsersListResponse {
   limit: number;
   totalPages: number;
 }
+
+export type AdminUserDetail = AdminUser & {
+  phone?: string | null;
+  avatar?: string | null;
+  dateOfBirth?: string | null;
+  gender?: string | null;
+  updatedAt?: string | null;
+};
+
+export interface AdminUserMutationResponse {
+  message: string;
+}
