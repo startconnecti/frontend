@@ -19,7 +19,7 @@ export class ApiError extends Error {
     return new ApiError(response.error, status, response.meta.requestId);
   }
 
-  static isApiError(error: any): error is ApiError {
+  static isApiError(error: unknown): error is ApiError {
     return error instanceof ApiError;
   }
 }
