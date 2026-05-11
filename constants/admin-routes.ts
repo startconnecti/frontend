@@ -4,6 +4,8 @@ export const ADMIN_ROUTES = {
 
   USERS: '/admin/users',
   USER_DETAIL: (id: string) => `/admin/users/${id}`,
+  USER_CREATE: '/admin/users/create',
+  USER_EDIT: (id: string) => `/admin/users/${id}/edit`,
 
   TUTORS: '/admin/tutors',
   TUTOR_DETAIL: (id: string) => `/admin/tutors/${id}`,

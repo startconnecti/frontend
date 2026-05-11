@@ -81,7 +81,7 @@ export default function UsersPage() {
         description="Manage platform users and their accounts."
         action={{
           label: 'Create User',
-          href: '#',
+          href: ADMIN_ROUTES.USER_CREATE,
         }}
       />
 
@@ -204,6 +204,7 @@ export default function UsersPage() {
                     <TableCell>
                       <AdminRowActions
                         viewHref={ADMIN_ROUTES.USER_DETAIL(user.id)}
+                        editHref={ADMIN_ROUTES.USER_EDIT(user.id)}
                         onDelete={handleBulkDelete}
                       />
                     </TableCell>

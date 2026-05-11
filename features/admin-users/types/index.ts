@@ -1,9 +1,6 @@
 export type AdminUserRole = 'student' | 'tutor';
 
-export type AdminUserStatus =
-  | 'active'
-  | 'inactive'
-  | 'blocked';
+export type AdminUserStatus = 'active' | 'inactive' | 'blocked';
 
 export interface AdminUser {
   id: string;
@@ -12,6 +9,7 @@ export interface AdminUser {
   role: AdminUserRole;
   status: AdminUserStatus;
   createdAt: string;
+  updatedAt?: string | null;
   lastLoginAt?: string | null;
 }
 
@@ -28,6 +26,7 @@ export interface AdminUsersListResponse {
   total: number;
   page: number;
   limit: number;
+  offset: number;
   totalPages: number;
 }
 
@@ -36,7 +35,6 @@ export type AdminUserDetail = AdminUser & {
   avatar?: string | null;
   dateOfBirth?: string | null;
   gender?: string | null;
-  updatedAt?: string | null;
 };
 
 export interface AdminUserMutationResponse {
