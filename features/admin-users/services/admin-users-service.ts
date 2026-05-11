@@ -3,6 +3,7 @@ import {
   AdminUsersListResponse,
   AdminUsersQueryParams,
 } from '../types';
+import { PAGINATION } from '@/constants/pagination';
 
 type AdminUsersRequestParams = Record<string, string | number | boolean>;
 
@@ -23,13 +24,11 @@ function buildAdminUsersRequestParams(
     requestParams.status = params.status;
   }
 
-  if (params.page) {
-    requestParams.page = params.page;
-  }
+  const page = params.page && params.page > 0 ? params.page : 1;
+  const limit = params.limit && params.limit > 0 ? params.limit : PAGINATION.DEFAULT_PAGE_SIZE;
 
-  if (params.limit) {
-    requestParams.limit = params.limit;
-  }
+  requestParams.limit = limit;
+  requestParams.offset = (page - 1) * limit;
 
   return requestParams;
 }

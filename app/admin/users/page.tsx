@@ -22,12 +22,13 @@ import {
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ADMIN_ROUTES } from '@/constants/admin-routes';
 import { AdminUserRole, useAdminUsersQuery } from '@/features/admin-users';
+import { PAGINATION } from '@/constants/pagination';
 
 export default function UsersPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedRole, setSelectedRole] = useState<'all' | AdminUserRole>('all');
   const [page, setPage] = useState(1);
-  const [pageSize, setPageSize] = useState(10);
+  const [pageSize, setPageSize] = useState(PAGINATION.DEFAULT_PAGE_SIZE);
   const [selected, setSelected] = useState<Set<string>>(new Set());
 
   const queryParams = {
