@@ -5,7 +5,7 @@ import { AdminApiErrorResponse, AdminApiSuccessResponse } from './types';
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL ?? '';
 
 type AdminRequestBody =
-  | Record<string, unknown>
+  | object
   | Array<unknown>
   | string
   | number
