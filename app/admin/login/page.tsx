@@ -1,63 +1,78 @@
 'use client';
 
-import { useState } from 'react';
+import { FormEvent, useState } from 'react';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
+import { ADMIN_ROUTES } from '@/constants/admin-routes';
+import { useAdminLoginMutation } from '@/features/admin-auth';
+import { AdminApiError } from '@/lib/admin-api/errors';
+import { useAdminAuthStore } from '@/stores/admin-auth-store';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card } from '@/components/ui/card';
 
 export default function AdminLoginPage() {
   const router = useRouter();
+  const login = useAdminAuthStore((state) => state.login);
+  const adminLoginMutation = useAdminLoginMutation();
+
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
 
-  const handleLogin = (e: React.FormEvent) => {
-    e.preventDefault();
+  const isLoading = adminLoginMutation.isPending;
+
+  const handleLogin = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
     setError('');
-    setIsLoading(true);
 
-    // Mock login - any credentials work
-    setTimeout(() => {
-      if (email && password) {
-        router.push('/admin');
-      } else {
-        setError('Please enter both email and password');
+    if (!email.trim() || !password) {
+      setError('Please enter both email and password');
+      return;
+    }
+
+    try {
+      const response = await adminLoginMutation.mutateAsync({
+        email: email.trim(),
+        password,
+      });
+
+      login(response.admin, response.accessToken, response.refreshToken);
+      router.push(ADMIN_ROUTES.DASHBOARD);
+    } catch (loginError) {
+      if (AdminApiError.isAdminApiError(loginError)) {
+        setError(loginError.message);
+        return;
       }
-      setIsLoading(false);
-    }, 500);
+
+      setError('Unable to sign in. Please try again.');
+    }
   };
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-background px-4 py-12">
       <Card className="w-full max-w-md">
         <div className="px-6 py-8">
-          {/* Logo */}
           <div className="mb-8 flex justify-center">
             <div className="flex items-center gap-3">
               <Image src="/connecti-logo-mark.svg" alt="Connecti" width={40} height={40} />
-              <span className="text-2xl font-bold" style={{ color: '#2C1208' }}>
-                Connecti
-              </span>
+              <span className="text-2xl font-bold text-brand-dark">Connecti</span>
             </div>
           </div>
 
-          {/* Title */}
           <div className="mb-6 text-center">
             <h1 className="text-2xl font-bold text-foreground">Admin Portal</h1>
-            <p className="mt-2 text-sm text-muted-foreground">Sign in to access the admin dashboard</p>
+            <p className="mt-2 text-sm text-muted-foreground">
+              Sign in to access the admin dashboard
+            </p>
           </div>
 
-          {/* Error Message */}
           {error && (
             <div className="mb-4 rounded-lg border border-destructive/50 bg-destructive/10 p-3 text-sm text-destructive">
               {error}
             </div>
           )}
 
-          {/* Form */}
           <form onSubmit={handleLogin} className="space-y-4">
             <div>
               <label htmlFor="email" className="mb-2 block text-sm font-medium">
@@ -68,8 +83,9 @@ export default function AdminLoginPage() {
                 type="email"
                 placeholder="admin@connecti.com"
                 value={email}
-                onChange={(e) => setEmail(e.target.value)}
+                onChange={(event) => setEmail(event.target.value)}
                 className="h-10"
+                autoComplete="email"
               />
             </div>
 
@@ -82,8 +98,9 @@ export default function AdminLoginPage() {
                 type="password"
                 placeholder="••••••••"
                 value={password}
-                onChange={(e) => setPassword(e.target.value)}
+                onChange={(event) => setPassword(event.target.value)}
                 className="h-10"
+                autoComplete="current-password"
               />
             </div>
 
@@ -96,19 +113,8 @@ export default function AdminLoginPage() {
             </Button>
           </form>
 
-          {/* Footer */}
-          <div className="mt-6 space-y-3 text-center text-sm">
-            <a href="#" className="block text-primary hover:underline">
-              Forgot password?
-            </a>
-            <div className="flex items-center gap-2">
-              <div className="h-px flex-1 bg-border"></div>
-              <span className="text-muted-foreground">Demo credentials</span>
-              <div className="h-px flex-1 bg-border"></div>
-            </div>
-            <p className="text-muted-foreground">
-              Use any email and password to access the demo
-            </p>
+          <div className="mt-6 text-center text-sm text-muted-foreground">
+            Use your Connecti admin account to continue.
           </div>
         </div>
       </Card>
