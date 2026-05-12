@@ -53,7 +53,20 @@ function isAdminUserStatus(status: string | undefined): status is AdminUserStatu
   return status === 'active' || status === 'inactive' || status === 'blocked';
 }
 
-function normalizeUser(item: RawAdminUserListItem): AdminUser {
+function normalizeUser(item: RawAdminUserListItem | null | undefined): AdminUser {
+  if (!item) {
+    return {
+      id: '',
+      fullName: '-',
+      email: '-',
+      role: 'student',
+      status: 'inactive',
+      createdAt: new Date(0).toISOString(),
+      updatedAt: null,
+      lastLoginAt: null,
+    };
+  }
+
   const id = item.id ?? item.userId ?? '';
 
   return {
@@ -87,19 +100,28 @@ function normalizeUserDetail(response: RawAdminUserDetailResponse): AdminUserDet
 }
 
 function normalizeUsersListResponse(
-  response: RawAdminUsersListResponse,
+  response: any,
   page: number,
   fallbackLimit: number
 ): AdminUsersListResponse {
-  const items = response.items ?? [];
-  const pagination = response.pagination;
+  let rawItems: RawAdminUserListItem[] = [];
+  let total = 0;
+  let paginationData = null;
 
-  const limit = pagination?.limit ?? fallbackLimit;
-  const offset = pagination?.offset ?? (page - 1) * limit;
-  const total = pagination?.total ?? items.length;
+  if (Array.isArray(response)) {
+    rawItems = response;
+    total = response.length;
+  } else if (response && typeof response === 'object') {
+    rawItems = response.items ?? response.data ?? [];
+    paginationData = response.pagination;
+    total = paginationData?.total ?? rawItems.length;
+  }
+
+  const limit = paginationData?.limit ?? fallbackLimit;
+  const offset = paginationData?.offset ?? (page - 1) * limit;
 
   return {
-    items: items.map(normalizeUser).filter((user) => Boolean(user.id)),
+    items: rawItems.map(normalizeUser).filter((user) => Boolean(user.id)),
     total,
     page,
     limit,
@@ -145,7 +167,7 @@ export const adminUsersService = {
         ? params.limit
         : PAGINATION.DEFAULT_PAGE_SIZE;
 
-    const response = await adminApi.get<RawAdminUsersListResponse>(
+    const response = await adminApi.get<any>(
       '/api/v1/admin/users',
       {
         params: buildAdminUsersRequestParams(params),

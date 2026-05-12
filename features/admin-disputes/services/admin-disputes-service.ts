@@ -76,7 +76,29 @@ function normalizeDisputePriority(priority?: string): AdminDisputePriority {
   return 'medium';
 }
 
-function normalizeDispute(item: RawDisputeListItem): AdminDisputeListItem {
+function normalizeDispute(item: RawDisputeListItem | null | undefined): AdminDisputeListItem {
+  if (!item) {
+    return {
+      id: '',
+      bookingId: '',
+      sessionId: null,
+      studentId: '',
+      studentName: '-',
+      studentEmail: '-',
+      tutorId: '',
+      tutorName: '-',
+      tutorEmail: '-',
+      subject: '-',
+      description: '-',
+      status: 'open',
+      priority: 'medium',
+      resolution: null,
+      createdAt: new Date(0).toISOString(),
+      resolvedAt: null,
+      updatedAt: null,
+    };
+  }
+
   return {
     id: item.id ?? item.disputeId ?? '',
     bookingId: item.bookingId ?? '',
@@ -98,14 +120,25 @@ function normalizeDispute(item: RawDisputeListItem): AdminDisputeListItem {
   };
 }
 
-function normalizeDisputesResponse(response: RawDisputeListResponse, page: number, limit: number): AdminDisputeListResponse {
-  const items = (response.items ?? response.data ?? []).map(normalizeDispute);
-  const total = response.pagination?.total ?? response.total ?? 0;
+function normalizeDisputesResponse(response: any, page: number, limit: number): AdminDisputeListResponse {
+  let rawItems: RawDisputeListItem[] = [];
+  let total = 0;
+  let paginationData = null;
+
+  if (Array.isArray(response)) {
+    rawItems = response;
+    total = response.length;
+  } else if (response && typeof response === 'object') {
+    rawItems = response.items ?? response.data ?? [];
+    paginationData = response.pagination;
+    total = paginationData?.total ?? rawItems.length;
+  }
+
   const offset = (page - 1) * limit;
   const totalPages = Math.max(1, Math.ceil(total / limit));
 
   return {
-    items,
+    items: rawItems.map(normalizeDispute),
     total,
     page,
     limit,
@@ -120,7 +153,7 @@ export const adminDisputesService = {
   ): Promise<AdminDisputeListResponse> {
     const { keyword, status, priority, page = 1, limit = 10 } = params;
 
-    const response = await adminApi.get<RawDisputeListResponse>(
+    const response = await adminApi.get<any>(
       '/api/v1/admin/disputes',
       {
         params: {

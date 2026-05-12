@@ -83,7 +83,27 @@ function normalizePaymentStatus(status?: string): AdminPaymentStatus {
   return 'pending';
 }
 
-function normalizeBooking(item: RawBookingListItem): AdminBookingListItem {
+function normalizeBooking(item: RawBookingListItem | null | undefined): AdminBookingListItem {
+  if (!item) {
+    return {
+      id: '',
+      studentId: '',
+      studentName: '-',
+      studentEmail: '-',
+      tutorId: '',
+      tutorName: '-',
+      tutorEmail: '-',
+      subjectName: '-',
+      startTime: new Date(0).toISOString(),
+      endTime: new Date(0).toISOString(),
+      status: 'pending',
+      paymentStatus: 'pending',
+      amount: 0,
+      createdAt: new Date(0).toISOString(),
+      updatedAt: null,
+    };
+  }
+
   return {
     id: item.id ?? item.bookingId ?? '',
     studentId: item.studentId ?? item.student?.userId ?? '',
@@ -125,19 +145,29 @@ export const adminBookingsService = {
     const limit =
       params.limit && params.limit > 0 ? params.limit : PAGINATION.DEFAULT_PAGE_SIZE;
 
-    const response = await adminApi.get<RawBookingsListResponse>(
+    const response = await adminApi.get<any>(
       '/api/v1/admin/bookings',
       { params: buildParams(params) }
     );
 
-    const items = response.items ?? [];
-    const pagination = response.pagination;
-    const total = pagination?.total ?? items.length;
-    const responseLimit = pagination?.limit ?? limit;
-    const offset = pagination?.offset ?? (page - 1) * responseLimit;
+    let rawItems: RawBookingListItem[] = [];
+    let total = 0;
+    let paginationData = null;
+
+    if (Array.isArray(response)) {
+      rawItems = response;
+      total = response.length;
+    } else if (response && typeof response === 'object') {
+      rawItems = response.items ?? response.data ?? [];
+      paginationData = response.pagination;
+      total = paginationData?.total ?? rawItems.length;
+    }
+
+    const responseLimit = paginationData?.limit ?? limit;
+    const offset = paginationData?.offset ?? (page - 1) * responseLimit;
 
     return {
-      items: items.map(normalizeBooking).filter((booking) => booking.id),
+      items: rawItems.map(normalizeBooking).filter((booking) => booking.id),
       total,
       page,
       limit: responseLimit,
@@ -151,7 +181,7 @@ export const adminBookingsService = {
       `/api/v1/admin/bookings/${id}`
     );
 
-    if (!response.booking) {
+    if (!response || !response.booking) {
       throw new Error('Booking response is missing booking');
     }
 

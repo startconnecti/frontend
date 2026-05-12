@@ -59,7 +59,26 @@ function normalizeRefundStatus(status?: string): AdminRefundStatus {
   return 'pending';
 }
 
-function normalizeRefund(item: RawRefundListItem): AdminRefundListItem {
+function normalizeRefund(item: RawRefundListItem | null | undefined): AdminRefundListItem {
+  if (!item) {
+    return {
+      id: '',
+      paymentId: '',
+      bookingId: '',
+      studentId: '',
+      studentName: '-',
+      studentEmail: '-',
+      amount: 0,
+      currency: 'USD',
+      status: 'pending',
+      reason: '-',
+      note: null,
+      requestedAt: new Date(0).toISOString(),
+      processedAt: null,
+      updatedAt: null,
+    };
+  }
+
   return {
     id: item.id ?? item.refundId ?? '',
     paymentId: item.paymentId ?? '',
@@ -100,18 +119,29 @@ export async function getAdminRefunds(
     queryParams.reason = params.reason;
   }
 
-  const response = await adminApi.get<RawRefundListResponse>('/api/v1/admin/refunds', {
+  const response = await adminApi.get<any>('/api/v1/admin/refunds', {
     params: queryParams,
   });
 
-  const items = (response.items ?? response.data ?? []).map(normalizeRefund);
-  const total = response.total ?? response.pagination?.total ?? 0;
-  const responseLimit = limit;
-  const responseOffset = offset;
+  let rawItems: RawRefundListItem[] = [];
+  let total = 0;
+  let paginationData = null;
+
+  if (Array.isArray(response)) {
+    rawItems = response;
+    total = response.length;
+  } else if (response && typeof response === 'object') {
+    rawItems = response.items ?? response.data ?? [];
+    paginationData = response.pagination;
+    total = paginationData?.total ?? response.total ?? rawItems.length;
+  }
+
+  const responseLimit = paginationData?.limit ?? limit;
+  const responseOffset = paginationData?.offset ?? offset;
   const totalPages = Math.max(1, Math.ceil(total / responseLimit));
 
   return {
-    items,
+    items: rawItems.map(normalizeRefund),
     total,
     page,
     limit: responseLimit,

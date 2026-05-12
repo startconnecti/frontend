@@ -69,7 +69,21 @@ function normalizeSubjects(subjects?: RawSubject[]) {
     .filter((subject) => subject.id);
 }
 
-function normalizeTutor(item: RawTutorListItem): AdminTutorListItem {
+function normalizeTutor(item: RawTutorListItem | null | undefined): AdminTutorListItem {
+  if (!item) {
+    return {
+      id: '',
+      userId: '',
+      fullName: '-',
+      email: '-',
+      profileStatus: 'pending',
+      hourlyRate: 0,
+      subjects: [],
+      createdAt: new Date(0).toISOString(),
+      updatedAt: null,
+    };
+  }
+
   return {
     id: item.id ?? item.tutorProfileId ?? '',
     userId: item.userId ?? '',
@@ -105,19 +119,29 @@ export const adminTutorsService = {
     const limit =
       params.limit && params.limit > 0 ? params.limit : PAGINATION.DEFAULT_PAGE_SIZE;
 
-    const response = await adminApi.get<RawTutorsListResponse>(
+    const response = await adminApi.get<any>(
       '/api/v1/admin/tutor-profiles',
       { params: buildParams(params) }
     );
 
-    const items = response.items ?? [];
-    const pagination = response.pagination;
-    const total = pagination?.total ?? items.length;
-    const responseLimit = pagination?.limit ?? limit;
-    const offset = pagination?.offset ?? (page - 1) * responseLimit;
+    let rawItems: RawTutorListItem[] = [];
+    let total = 0;
+    let paginationData = null;
+
+    if (Array.isArray(response)) {
+      rawItems = response;
+      total = response.length;
+    } else if (response && typeof response === 'object') {
+      rawItems = response.items ?? response.data ?? [];
+      paginationData = response.pagination;
+      total = paginationData?.total ?? rawItems.length;
+    }
+
+    const responseLimit = paginationData?.limit ?? limit;
+    const offset = paginationData?.offset ?? (page - 1) * responseLimit;
 
     return {
-      items: items.map(normalizeTutor).filter((tutor) => tutor.id),
+      items: rawItems.map(normalizeTutor).filter((tutor) => tutor.id),
       total,
       page,
       limit: responseLimit,
@@ -131,7 +155,7 @@ export const adminTutorsService = {
       `/api/v1/admin/tutor-profiles/${id}`
     );
 
-    if (!response.tutorProfile) {
+    if (!response || !response.tutorProfile) {
       throw new Error('Tutor profile response is missing tutorProfile');
     }
 

@@ -14,7 +14,21 @@ interface RawAuditLogItem {
   createdAt?: string;
 }
 
-function normalizeAuditLog(item: RawAuditLogItem): AdminAuditLogItem {
+function normalizeAuditLog(item: RawAuditLogItem | null | undefined): AdminAuditLogItem {
+  if (!item) {
+    return {
+      id: '',
+      actorId: '-',
+      actorEmail: '-',
+      action: '-',
+      entityType: '-',
+      entityId: '-',
+      ipAddress: '-',
+      userAgent: '-',
+      createdAt: new Date(0).toISOString(),
+    };
+  }
+
   return {
     id: item.id ?? item.logId ?? '',
     actorId: item.actorId ?? '-',
@@ -30,14 +44,12 @@ function normalizeAuditLog(item: RawAuditLogItem): AdminAuditLogItem {
 
 export const adminAuditLogsService = {
   async listAuditLogs(params: AdminAuditLogsQueryParams): Promise<AdminAuditLogsListResponse> {
-    const offset = params.page && params.limit ? (params.page - 1) * params.limit : 0;
+    const page = params.page ?? 1;
     const limit = params.limit ?? 10;
+    const offset = (page - 1) * limit;
 
     try {
-      const response = await adminApi.get<{
-        items: RawAuditLogItem[];
-        pagination?: { limit: number; offset: number; total: number };
-      }>('/api/v1/admin/audit-logs', {
+      const response = await adminApi.get<any>('/api/v1/admin/audit-logs', {
         params: {
           limit,
           offset,
@@ -45,20 +57,32 @@ export const adminAuditLogsService = {
         },
       });
 
-      const total = response.data.pagination?.total ?? 0;
+      let rawItems: RawAuditLogItem[] = [];
+      let total = 0;
+      let paginationData = null;
+
+      if (Array.isArray(response)) {
+        rawItems = response;
+        total = response.length;
+      } else if (response && typeof response === 'object') {
+        rawItems = response.items ?? response.data ?? [];
+        paginationData = response.pagination;
+        total = paginationData?.total ?? rawItems.length;
+      }
+
       const totalPages = Math.max(1, Math.ceil(total / limit));
 
       return {
-        items: (response.data.items ?? []).map(normalizeAuditLog),
-        pagination: response.data.pagination,
-        page: params.page ?? 1,
+        items: rawItems.map(normalizeAuditLog),
+        pagination: paginationData ?? { limit, offset, total },
+        page,
         totalPages,
       };
     } catch {
       return {
         items: [],
         pagination: { limit, offset: 0, total: 0 },
-        page: params.page ?? 1,
+        page,
         totalPages: 0,
       };
     }

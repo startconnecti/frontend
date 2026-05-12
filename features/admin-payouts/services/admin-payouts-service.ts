@@ -56,7 +56,27 @@ function normalizePayoutStatus(status?: string): AdminPayoutStatus {
   return 'pending';
 }
 
-function normalizePayout(item: RawPayoutListItem): AdminPayoutListItem {
+function normalizePayout(item: RawPayoutListItem | null | undefined): AdminPayoutListItem {
+  if (!item) {
+    return {
+      id: '',
+      tutorId: '',
+      tutorName: '-',
+      tutorEmail: '-',
+      amount: 0,
+      grossAmount: 0,
+      netAmount: 0,
+      platformCommission: 0,
+      paymentMethod: '-',
+      currency: 'USD',
+      status: 'pending',
+      note: null,
+      requestedAt: new Date(0).toISOString(),
+      processedAt: null,
+      updatedAt: null,
+    };
+  }
+
   const amount = item.amount ?? item.netAmount ?? 0;
   const grossAmount = item.grossAmount ?? amount;
   const platformCommission = item.platformCommission ?? (grossAmount - amount);
@@ -80,14 +100,25 @@ function normalizePayout(item: RawPayoutListItem): AdminPayoutListItem {
   };
 }
 
-function normalizePayoutsResponse(response: RawPayoutListResponse, page: number, limit: number): AdminPayoutListResponse {
-  const items = (response.items ?? response.data ?? []).map(normalizePayout);
-  const total = response.pagination?.total ?? response.total ?? 0;
+function normalizePayoutsResponse(response: any, page: number, limit: number): AdminPayoutListResponse {
+  let rawItems: RawPayoutListItem[] = [];
+  let total = 0;
+  let paginationData = null;
+
+  if (Array.isArray(response)) {
+    rawItems = response;
+    total = response.length;
+  } else if (response && typeof response === 'object') {
+    rawItems = response.items ?? response.data ?? [];
+    paginationData = response.pagination;
+    total = paginationData?.total ?? response.total ?? rawItems.length;
+  }
+
   const offset = (page - 1) * limit;
   const totalPages = Math.max(1, Math.ceil(total / limit));
 
   return {
-    items,
+    items: rawItems.map(normalizePayout),
     total,
     page,
     limit,
@@ -102,7 +133,7 @@ export const adminPayoutsService = {
   ): Promise<AdminPayoutListResponse> {
     const { keyword, status, page = 1, limit = 10 } = params;
 
-    const response = await adminApi.get<RawPayoutListResponse>(
+    const response = await adminApi.get<any>(
       '/api/v1/admin/payouts',
       {
         params: {

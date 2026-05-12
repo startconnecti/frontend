@@ -20,7 +20,19 @@ function normalizeSubjectStatus(status?: string): 'active' | 'inactive' {
   return 'active';
 }
 
-function normalizeSubject(item: RawSubjectItem): AdminSubjectListItem {
+function normalizeSubject(item: RawSubjectItem | null | undefined): AdminSubjectListItem {
+  if (!item) {
+    return {
+      id: '',
+      name: '-',
+      slug: '-',
+      description: '-',
+      status: 'inactive',
+      createdAt: new Date(0).toISOString(),
+      updatedAt: null,
+    };
+  }
+
   return {
     id: item.id ?? item.subjectId ?? '',
     name: item.name ?? '-',
@@ -34,13 +46,11 @@ function normalizeSubject(item: RawSubjectItem): AdminSubjectListItem {
 
 export const adminSubjectsService = {
   async listSubjects(params: AdminSubjectsQueryParams): Promise<AdminSubjectsListResponse> {
-    const offset = params.page && params.limit ? (params.page - 1) * params.limit : 0;
-    const limit = params.limit ?? 10;
+    const page = params.page && params.page > 0 ? params.page : 1;
+    const limit = params.limit && params.limit > 0 ? params.limit : 10;
+    const offset = (page - 1) * limit;
 
-    const response = await adminApi.get<{
-      items: RawSubjectItem[];
-      pagination: { limit: number; offset: number; total: number };
-    }>('/api/v1/admin/subjects', {
+    const response = await adminApi.get<any>('/api/v1/admin/subjects', {
       params: {
         limit,
         offset,
@@ -49,13 +59,25 @@ export const adminSubjectsService = {
       },
     });
 
-    const total = response.data.pagination?.total ?? 0;
+    let rawItems: RawSubjectItem[] = [];
+    let total = 0;
+    let paginationData = null;
+
+    if (Array.isArray(response)) {
+      rawItems = response;
+      total = response.length;
+    } else if (response && typeof response === 'object') {
+      rawItems = response.items ?? response.data ?? [];
+      paginationData = response.pagination;
+      total = paginationData?.total ?? rawItems.length;
+    }
+
     const totalPages = Math.max(1, Math.ceil(total / limit));
 
     return {
-      items: (response.data.items ?? []).map(normalizeSubject),
-      pagination: response.data.pagination ?? { limit, offset, total },
-      page: params.page ?? 1,
+      items: rawItems.map(normalizeSubject),
+      pagination: paginationData ?? { limit, offset, total },
+      page,
       totalPages,
     };
   },

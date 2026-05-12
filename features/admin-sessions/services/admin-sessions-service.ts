@@ -64,7 +64,28 @@ function normalizeSessionStatus(status?: string): AdminSessionStatus {
   return 'scheduled';
 }
 
-function normalizeSession(item: RawSessionListItem): AdminSessionListItem {
+function normalizeSession(item: RawSessionListItem | null | undefined): AdminSessionListItem {
+  if (!item) {
+    return {
+      id: '',
+      bookingId: '',
+      studentId: '',
+      studentName: '-',
+      studentEmail: '-',
+      tutorId: '',
+      tutorName: '-',
+      tutorEmail: '-',
+      subjectName: '-',
+      startTime: new Date(0).toISOString(),
+      endTime: new Date(0).toISOString(),
+      status: 'scheduled',
+      meetingUrl: null,
+      recordingUrl: null,
+      createdAt: new Date(0).toISOString(),
+      updatedAt: null,
+    };
+  }
+
   return {
     id: item.id ?? item.sessionId ?? '',
     bookingId: item.bookingId ?? '',
@@ -107,19 +128,29 @@ export const adminSessionsService = {
     const limit =
       params.limit && params.limit > 0 ? params.limit : PAGINATION.DEFAULT_PAGE_SIZE;
 
-    const response = await adminApi.get<RawSessionsListResponse>(
+    const response = await adminApi.get<any>(
       '/api/v1/admin/sessions',
       { params: buildParams(params) }
     );
 
-    const items = response.items ?? [];
-    const pagination = response.pagination;
-    const total = pagination?.total ?? items.length;
-    const responseLimit = pagination?.limit ?? limit;
-    const offset = pagination?.offset ?? (page - 1) * responseLimit;
+    let rawItems: RawSessionListItem[] = [];
+    let total = 0;
+    let paginationData = null;
+
+    if (Array.isArray(response)) {
+      rawItems = response;
+      total = response.length;
+    } else if (response && typeof response === 'object') {
+      rawItems = response.items ?? response.data ?? [];
+      paginationData = response.pagination;
+      total = paginationData?.total ?? rawItems.length;
+    }
+
+    const responseLimit = paginationData?.limit ?? limit;
+    const offset = paginationData?.offset ?? (page - 1) * responseLimit;
 
     return {
-      items: items.map(normalizeSession).filter((session) => session.id),
+      items: rawItems.map(normalizeSession).filter((session) => session.id),
       total,
       page,
       limit: responseLimit,

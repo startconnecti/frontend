@@ -81,7 +81,28 @@ function normalizePaymentMethod(method?: string): AdminPaymentMethod {
   return 'other';
 }
 
-function normalizePayment(item: RawPaymentListItem): AdminPaymentListItem {
+function normalizePayment(item: RawPaymentListItem | null | undefined): AdminPaymentListItem {
+  if (!item) {
+    return {
+      id: '',
+      bookingId: '',
+      studentId: '',
+      studentName: '-',
+      studentEmail: '-',
+      tutorId: '',
+      tutorName: '-',
+      tutorEmail: '-',
+      amount: 0,
+      currency: 'USD',
+      method: 'card',
+      status: 'pending',
+      transactionId: null,
+      createdAt: new Date(0).toISOString(),
+      paidAt: null,
+      updatedAt: null,
+    };
+  }
+
   return {
     id: item.id ?? item.paymentId ?? '',
     bookingId: item.bookingId ?? '',
@@ -124,18 +145,29 @@ export async function getAdminPayments(
     queryParams.method = params.method;
   }
 
-  const response = await adminApi.get<RawPaymentListResponse>('/api/v1/admin/payments', {
+  const response = await adminApi.get<any>('/api/v1/admin/payments', {
     params: queryParams,
   });
 
-  const items = (response.items ?? response.data ?? []).map(normalizePayment);
-  const total = response.total ?? response.pagination?.total ?? 0;
-  const responseLimit = limit;
-  const responseOffset = offset;
+  let rawItems: RawPaymentListItem[] = [];
+  let total = 0;
+  let paginationData = null;
+
+  if (Array.isArray(response)) {
+    rawItems = response;
+    total = response.length;
+  } else if (response && typeof response === 'object') {
+    rawItems = response.items ?? response.data ?? [];
+    paginationData = response.pagination;
+    total = paginationData?.total ?? response.total ?? rawItems.length;
+  }
+
+  const responseLimit = paginationData?.limit ?? limit;
+  const responseOffset = paginationData?.offset ?? offset;
   const totalPages = Math.max(1, Math.ceil(total / responseLimit));
 
   return {
-    items,
+    items: rawItems.map(normalizePayment),
     total,
     page,
     limit: responseLimit,
