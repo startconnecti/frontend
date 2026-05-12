@@ -44,7 +44,7 @@ export default function AdminDashboardPage() {
     <>
       <AdminPageHeader
         title="Dashboard"
-        description="Welcome back! Here&apos;s an overview of your platform."
+        description="Welcome back! Here&apos;s an overview of your platform. (Demo data for visualization purposes)"
       />
 
       {/* Stat Cards */}
