@@ -1,47 +1,101 @@
 'use client';
 
 import { useState } from 'react';
-import Link from 'next/link';
-import { Plus } from 'lucide-react';
 import { AdminPageHeader } from '@/components/admin/admin-page-header';
 import { AdminStatusBadge } from '@/components/admin/admin-status-badge';
-import { AdminTableActions } from '@/components/admin/admin-table-actions';
-import { AdminBulkActions } from '@/components/admin/admin-bulk-actions';
-import { AdminConfirmDialog } from '@/components/admin/admin-confirm-dialog';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Input } from '@/components/ui/input';
-import { Checkbox } from '@/components/ui/checkbox';
-import { mockPayouts, mockUsers } from '@/lib/admin/mock-data';
+import { Skeleton } from '@/components/ui/skeleton';
+import { PAGINATION } from '@/constants/pagination';
+import { useAdminPayoutsQuery } from '@/features/admin-payouts';
+
+function formatCurrency(amount: number, currency: string): string {
+  try {
+    return new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency: currency || 'USD',
+    }).format(amount);
+  } catch {
+    return `${amount} ${currency || 'USD'}`;
+  }
+}
+
+function formatDate(dateString: string): string {
+  try {
+    const date = new Date(dateString);
+    if (isNaN(date.getTime()) || date.getFullYear() === 1970) {
+      return '-';
+    }
+    return date.toLocaleString();
+  } catch {
+    return '-';
+  }
+}
 
 export default function PayoutsPage() {
   const [searchQuery, setSearchQuery] = useState('');
-  const [selectedRows, setSelectedRows] = useState<Set<string>>(new Set());
-  const [deleteId, setDeleteId] = useState<string | null>(null);
-  const [bulkDeleteIds, setBulkDeleteIds] = useState<string[] | null>(null);
+  const [statusFilter, setStatusFilter] = useState<'all' | 'pending' | 'processing' | 'paid' | 'failed' | 'cancelled'>('all');
+  const [page, setPage] = useState(1);
 
-  const filteredPayouts = mockPayouts.filter(payout => {
-    const tutor = mockUsers.find(u => u.id === payout.tutorId);
-    return tutor?.name.toLowerCase().includes(searchQuery.toLowerCase());
+  const { data: payoutsData, isLoading, isError } = useAdminPayoutsQuery({
+    keyword: searchQuery || undefined,
+    status: statusFilter === 'all' ? undefined : statusFilter,
+    page,
+    limit: PAGINATION.DEFAULT_PAGE_SIZE,
   });
 
-  const handleSelectRow = (id: string) => {
-    const newSelected = new Set(selectedRows);
-    if (newSelected.has(id)) {
-      newSelected.delete(id);
-    } else {
-      newSelected.add(id);
-    }
-    setSelectedRows(newSelected);
-  };
+  const statuses = ['all', 'pending', 'processing', 'paid', 'failed', 'cancelled'] as const;
 
-  const handleSelectAll = (checked: boolean) => {
-    if (checked) {
-      setSelectedRows(new Set(filteredPayouts.map(p => p.id)));
-    } else {
-      setSelectedRows(new Set());
+  const renderTableRows = () => {
+    if (isLoading) {
+      return Array.from({ length: 5 }).map((_, i) => (
+        <TableRow key={i}>
+          <TableCell><Skeleton className="h-4 w-20" /></TableCell>
+          <TableCell><Skeleton className="h-4 w-24" /></TableCell>
+          <TableCell><Skeleton className="h-4 w-24" /></TableCell>
+          <TableCell><Skeleton className="h-4 w-16" /></TableCell>
+          <TableCell><Skeleton className="h-4 w-20" /></TableCell>
+          <TableCell><Skeleton className="h-4 w-32" /></TableCell>
+        </TableRow>
+      ));
     }
+
+    if (isError || !payoutsData) {
+      return (
+        <TableRow>
+          <TableCell colSpan={6} className="h-24 text-center text-destructive">
+            Error loading payouts
+          </TableCell>
+        </TableRow>
+      );
+    }
+
+    if (payoutsData.items.length === 0) {
+      return (
+        <TableRow>
+          <TableCell colSpan={6} className="h-24 text-center text-muted-foreground">
+            No payouts found
+          </TableCell>
+        </TableRow>
+      );
+    }
+
+    return payoutsData.items.map(payout => (
+      <TableRow key={payout.id}>
+        <TableCell className="font-mono text-sm">{payout.id}</TableCell>
+        <TableCell>{payout.tutorName}</TableCell>
+        <TableCell className="font-semibold">{formatCurrency(payout.netAmount, payout.currency)}</TableCell>
+        <TableCell>
+          <AdminStatusBadge status={payout.status} />
+        </TableCell>
+        <TableCell>{payout.paymentMethod}</TableCell>
+        <TableCell className="text-sm text-muted-foreground">
+          {formatDate(payout.requestedAt)}
+        </TableCell>
+      </TableRow>
+    ));
   };
 
   return (
@@ -49,107 +103,84 @@ export default function PayoutsPage() {
       <AdminPageHeader
         title="Manage Payouts"
         description="View and manage tutor payouts."
-        action={
-          <Link href="/admin/payouts/create">
-            <Button className="gap-2">
-              <Plus className="h-4 w-4" />
-              Create Payout
-            </Button>
-          </Link>
-        }
-      />
-
-      <AdminBulkActions
-        selectedCount={selectedRows.size}
-        onClearSelection={() => setSelectedRows(new Set())}
-        onBulkDelete={() => setBulkDeleteIds(Array.from(selectedRows))}
       />
 
       <Card>
-        {/* Search Bar */}
-        <div className="border-b border-border px-6 py-4">
+        {/* Filters */}
+        <div className="border-b border-border px-6 py-4 space-y-4">
           <Input
-            placeholder="Search by tutor name..."
+            placeholder="Search by tutor name or ID..."
             value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
+            onChange={(e) => {
+              setSearchQuery(e.target.value);
+              setPage(1);
+            }}
             className="max-w-sm"
           />
+          <div className="flex gap-2 flex-wrap">
+            {statuses.map(status => (
+              <Button
+                key={status}
+                variant={statusFilter === status ? 'default' : 'outline'}
+                size="sm"
+                onClick={() => {
+                  setStatusFilter(status);
+                  setPage(1);
+                }}
+                className="capitalize"
+              >
+                {status}
+              </Button>
+            ))}
+          </div>
         </div>
 
         {/* Table */}
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead className="w-12">
-                <Checkbox
-                  checked={selectedRows.size === filteredPayouts.length && filteredPayouts.length > 0}
-                  onCheckedChange={(checked) => handleSelectAll(checked as boolean)}
-                />
-              </TableHead>
-              <TableHead>Payout ID</TableHead>
-              <TableHead>Tutor</TableHead>
-              <TableHead>Amount</TableHead>
-              <TableHead>Status</TableHead>
-              <TableHead>Payment Method</TableHead>
-              <TableHead>Requested At</TableHead>
-              <TableHead className="w-12">Actions</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {filteredPayouts.map(payout => {
-              const tutor = mockUsers.find(u => u.id === payout.tutorId);
-              return (
-                <TableRow key={payout.id}>
-                  <TableCell>
-                    <Checkbox
-                      checked={selectedRows.has(payout.id)}
-                      onCheckedChange={() => handleSelectRow(payout.id)}
-                    />
-                  </TableCell>
-                  <TableCell className="font-mono text-sm">{payout.id}</TableCell>
-                  <TableCell>{tutor?.name}</TableCell>
-                  <TableCell className="font-semibold">${payout.amount.toFixed(2)}</TableCell>
-                  <TableCell>
-                    <AdminStatusBadge status={payout.status} type="payout" />
-                  </TableCell>
-                  <TableCell>{payout.paymentMethod}</TableCell>
-                  <TableCell className="text-sm text-muted-foreground">
-                    {new Date(payout.requestedAt).toLocaleDateString()}
-                  </TableCell>
-                  <TableCell>
-                    <AdminTableActions
-                      resourceId={payout.id}
-                      basePath="/admin/payouts"
-                      onDelete={setDeleteId}
-                    />
-                  </TableCell>
-                </TableRow>
-              );
-            })}
-          </TableBody>
-        </Table>
+        <div className="overflow-x-auto">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Payout ID</TableHead>
+                <TableHead>Tutor</TableHead>
+                <TableHead>Amount</TableHead>
+                <TableHead>Status</TableHead>
+                <TableHead>Payment Method</TableHead>
+                <TableHead>Requested At</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {renderTableRows()}
+            </TableBody>
+          </Table>
+        </div>
+
+        {/* Pagination */}
+        {!isLoading && payoutsData && payoutsData.totalPages > 1 && (
+          <div className="border-t border-border px-6 py-4 flex items-center justify-between">
+            <p className="text-sm text-muted-foreground">
+              Page {payoutsData.page} of {payoutsData.totalPages}
+            </p>
+            <div className="flex gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setPage(Math.max(1, page - 1))}
+                disabled={page === 1}
+              >
+                Previous
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setPage(Math.min(payoutsData.totalPages, page + 1))}
+                disabled={page === payoutsData.totalPages}
+              >
+                Next
+              </Button>
+            </div>
+          </div>
+        )}
       </Card>
-
-      <AdminConfirmDialog
-        open={!!deleteId}
-        title="Delete Payout?"
-        description="This action cannot be undone."
-        onConfirm={() => {
-          setDeleteId(null);
-        }}
-        onCancel={() => setDeleteId(null)}
-      />
-
-      <AdminConfirmDialog
-        open={!!bulkDeleteIds}
-        title="Delete Selected Payouts?"
-        description={`This will delete ${bulkDeleteIds?.length || 0} payouts permanently.`}
-        onConfirm={() => {
-          setBulkDeleteIds(null);
-          setSelectedRows(new Set());
-        }}
-        onCancel={() => setBulkDeleteIds(null)}
-      />
     </>
   );
 }
