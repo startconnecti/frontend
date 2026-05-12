@@ -1,16 +1,25 @@
 'use client';
 
+import { useState } from 'react';
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
 import { ArrowLeft, Award, Calendar, Mail } from 'lucide-react';
+import { AdminConfirmDialog } from '@/components/admin/admin-confirm-dialog';
 import { AdminRecordNotFound } from '@/components/admin/admin-record-not-found';
 import { AdminStatusBadge } from '@/components/admin/admin-status-badge';
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Textarea } from '@/components/ui/textarea';
 import { ADMIN_ROUTES } from '@/constants/admin-routes';
-import { useAdminTutorDetailQuery } from '@/features/admin-tutors';
+import {
+  useAdminTutorDetailQuery,
+  useApproveTutorProfileMutation,
+  useRejectTutorProfileMutation,
+  useSuspendTutorProfileMutation,
+  useUnsuspendTutorProfileMutation,
+} from '@/features/admin-tutors';
 
 function TutorDetailSkeleton() {
   return (
@@ -50,11 +59,83 @@ export default function TutorDetailPage() {
   const params = useParams();
   const tutorProfileId = params.id as string;
 
+  const [approvalNote, setApprovalNote] = useState('');
+  const [rejectReason, setRejectReason] = useState('');
+  const [suspendReason, setSuspendReason] = useState('');
+  const [unsuspendNote, setUnsuspendNote] = useState('');
+
   const {
     data: tutor,
     isLoading,
     isError,
   } = useAdminTutorDetailQuery(tutorProfileId);
+
+  const approveMutation = useApproveTutorProfileMutation(tutorProfileId);
+  const rejectMutation = useRejectTutorProfileMutation(tutorProfileId);
+  const suspendMutation = useSuspendTutorProfileMutation(tutorProfileId);
+  const unsuspendMutation = useUnsuspendTutorProfileMutation(tutorProfileId);
+
+  const isMutating =
+    approveMutation.isPending ||
+    rejectMutation.isPending ||
+    suspendMutation.isPending ||
+    unsuspendMutation.isPending;
+
+  const handleApprove = () => {
+    approveMutation.mutate(
+      { note: approvalNote.trim() || undefined },
+      {
+        onSuccess: () => {
+          setApprovalNote('');
+        },
+      }
+    );
+  };
+
+  const handleReject = () => {
+    const reason = rejectReason.trim();
+
+    if (!reason) {
+      return;
+    }
+
+    rejectMutation.mutate(
+      { reason },
+      {
+        onSuccess: () => {
+          setRejectReason('');
+        },
+      }
+    );
+  };
+
+  const handleSuspend = () => {
+    const reason = suspendReason.trim();
+
+    if (!reason) {
+      return;
+    }
+
+    suspendMutation.mutate(
+      { reason },
+      {
+        onSuccess: () => {
+          setSuspendReason('');
+        },
+      }
+    );
+  };
+
+  const handleUnsuspend = () => {
+    unsuspendMutation.mutate(
+      { note: unsuspendNote.trim() || undefined },
+      {
+        onSuccess: () => {
+          setUnsuspendNote('');
+        },
+      }
+    );
+  };
 
   if (isLoading) {
     return (
@@ -212,29 +293,138 @@ export default function TutorDetailPage() {
 
         <div className="space-y-4">
           {tutor.profileStatus === 'pending' && (
-            <Card className="p-6">
-              <h3 className="mb-4 font-bold text-foreground">
-                Application Pending
-              </h3>
-              <p className="text-sm text-muted-foreground">
-                This tutor is waiting for admin review. Approve/reject actions
-                will be enabled after backend mutation endpoints are confirmed.
-              </p>
-            </Card>
+            <>
+              <Card className="p-6">
+                <h3 className="mb-4 font-bold text-foreground">
+                  Approve Application
+                </h3>
+                <p className="mb-4 text-sm text-muted-foreground">
+                  Approving this profile makes the tutor available on the platform.
+                </p>
+
+                <Textarea
+                  placeholder="Optional approval note..."
+                  value={approvalNote}
+                  onChange={(event) => setApprovalNote(event.target.value)}
+                  rows={3}
+                  disabled={isMutating}
+                />
+
+                <AdminConfirmDialog
+                  title="Approve Tutor?"
+                  description="This tutor will become visible and eligible to receive bookings."
+                  actionLabel={approveMutation.isPending ? 'Approving...' : 'Approve'}
+                  triggerLabel={approveMutation.isPending ? 'Approving...' : 'Approve Tutor'}
+                  triggerVariant="default"
+                  onConfirm={handleApprove}
+                />
+              </Card>
+
+              <Card className="p-6">
+                <h3 className="mb-4 font-bold text-foreground">
+                  Reject Application
+                </h3>
+                <p className="mb-4 text-sm text-muted-foreground">
+                  Provide a clear reason so the tutor can understand what to fix.
+                </p>
+
+                <Textarea
+                  placeholder="Required rejection reason..."
+                  value={rejectReason}
+                  onChange={(event) => setRejectReason(event.target.value)}
+                  rows={4}
+                  disabled={isMutating}
+                />
+
+                <div className="mt-3">
+                  <AdminConfirmDialog
+                    title="Reject Tutor?"
+                    description="This tutor profile will be rejected. The tutor may need to update and resubmit their profile."
+                    actionLabel={rejectMutation.isPending ? 'Rejecting...' : 'Reject'}
+                    actionVariant="destructive"
+                    triggerLabel={rejectMutation.isPending ? 'Rejecting...' : 'Reject Tutor'}
+                    triggerVariant="destructive"
+                    onConfirm={handleReject}
+                  />
+                </div>
+
+                {!rejectReason.trim() && (
+                  <p className="mt-2 text-xs text-muted-foreground">
+                    Rejection reason is required.
+                  </p>
+                )}
+              </Card>
+            </>
           )}
 
           {tutor.profileStatus === 'approved' && (
             <Card className="p-6">
-              <h3 className="mb-4 font-bold text-foreground">Account Active</h3>
-              <p className="text-sm text-muted-foreground">
-                This tutor is approved and visible on the platform.
+              <h3 className="mb-4 font-bold text-foreground">Suspend Tutor</h3>
+              <p className="mb-4 text-sm text-muted-foreground">
+                Suspending this tutor prevents them from receiving new bookings.
               </p>
+
+              <Textarea
+                placeholder="Required suspension reason..."
+                value={suspendReason}
+                onChange={(event) => setSuspendReason(event.target.value)}
+                rows={4}
+                disabled={isMutating}
+              />
+
+              <div className="mt-3">
+                <AdminConfirmDialog
+                  title="Suspend Tutor?"
+                  description="This tutor will be suspended and hidden from normal marketplace activity."
+                  actionLabel={suspendMutation.isPending ? 'Suspending...' : 'Suspend'}
+                  actionVariant="destructive"
+                  triggerLabel={suspendMutation.isPending ? 'Suspending...' : 'Suspend Tutor'}
+                  triggerVariant="destructive"
+                  onConfirm={handleSuspend}
+                />
+              </div>
+
+              {!suspendReason.trim() && (
+                <p className="mt-2 text-xs text-muted-foreground">
+                  Suspension reason is required.
+                </p>
+              )}
+            </Card>
+          )}
+
+          {tutor.profileStatus === 'suspended' && (
+            <Card className="p-6">
+              <h3 className="mb-4 font-bold text-foreground">Unsuspend Tutor</h3>
+              <p className="mb-4 text-sm text-muted-foreground">
+                Unsuspending this tutor allows them to operate again.
+              </p>
+
+              <Textarea
+                placeholder="Optional unsuspension note..."
+                value={unsuspendNote}
+                onChange={(event) => setUnsuspendNote(event.target.value)}
+                rows={3}
+                disabled={isMutating}
+              />
+
+              <div className="mt-3">
+                <AdminConfirmDialog
+                  title="Unsuspend Tutor?"
+                  description="This tutor will regain normal platform access."
+                  actionLabel={unsuspendMutation.isPending ? 'Unsuspending...' : 'Unsuspend'}
+                  triggerLabel={unsuspendMutation.isPending ? 'Unsuspending...' : 'Unsuspend Tutor'}
+                  triggerVariant="outline"
+                  onConfirm={handleUnsuspend}
+                />
+              </div>
             </Card>
           )}
 
           {tutor.profileStatus === 'rejected' && (
             <Card className="p-6">
-              <h3 className="mb-4 font-bold text-foreground">Application Rejected</h3>
+              <h3 className="mb-4 font-bold text-foreground">
+                Application Rejected
+              </h3>
               <p className="text-sm text-muted-foreground">
                 {tutor.approvalNote || 'No rejection note provided.'}
               </p>

@@ -6,6 +6,11 @@ import {
   AdminTutorProfileStatus,
   AdminTutorsListResponse,
   AdminTutorsQueryParams,
+  ApproveTutorProfileRequest,
+  RejectTutorProfileRequest,
+  SuspendTutorProfileRequest,
+  TutorProfileMutationResponse,
+  UnsuspendTutorProfileRequest,
 } from '../types';
 
 type AdminTutorsRequestParams = Record<string, string | number | boolean>;
@@ -47,7 +52,12 @@ interface RawTutorDetailResponse {
 }
 
 function isTutorStatus(status?: string): status is AdminTutorProfileStatus {
-  return status === 'pending' || status === 'approved' || status === 'rejected';
+  return (
+    status === 'pending' ||
+    status === 'approved' ||
+    status === 'rejected' ||
+    status === 'suspended'
+  );
 }
 
 function normalizeSubjects(subjects?: RawSubject[]) {
@@ -134,5 +144,45 @@ export const adminTutorsService = {
       approvalNote: response.tutorProfile.approvalNote ?? null,
       certifications: response.tutorProfile.certifications ?? [],
     };
+  },
+
+  async approveTutorProfile(
+    id: string,
+    payload: ApproveTutorProfileRequest
+  ): Promise<TutorProfileMutationResponse> {
+    return adminApi.post<TutorProfileMutationResponse, ApproveTutorProfileRequest>(
+      `/api/v1/admin/tutor-profiles/${id}/approve`,
+      payload
+    );
+  },
+
+  async rejectTutorProfile(
+    id: string,
+    payload: RejectTutorProfileRequest
+  ): Promise<TutorProfileMutationResponse> {
+    return adminApi.post<TutorProfileMutationResponse, RejectTutorProfileRequest>(
+      `/api/v1/admin/tutor-profiles/${id}/reject`,
+      payload
+    );
+  },
+
+  async suspendTutorProfile(
+    id: string,
+    payload: SuspendTutorProfileRequest
+  ): Promise<TutorProfileMutationResponse> {
+    return adminApi.post<TutorProfileMutationResponse, SuspendTutorProfileRequest>(
+      `/api/v1/admin/tutor-profiles/${id}/suspend`,
+      payload
+    );
+  },
+
+  async unsuspendTutorProfile(
+    id: string,
+    payload: UnsuspendTutorProfileRequest
+  ): Promise<TutorProfileMutationResponse> {
+    return adminApi.post<TutorProfileMutationResponse, UnsuspendTutorProfileRequest>(
+      `/api/v1/admin/tutor-profiles/${id}/unsuspend`,
+      payload
+    );
   },
 };

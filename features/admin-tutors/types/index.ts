@@ -1,4 +1,4 @@
-export type AdminTutorProfileStatus = 'pending' | 'approved' | 'rejected';
+export type AdminTutorProfileStatus = 'pending' | 'approved' | 'rejected' | 'suspended';
 
 export interface AdminTutorSubject {
   id: string;
@@ -44,4 +44,24 @@ export interface AdminTutorDetail extends AdminTutorListItem {
     url?: string;
     uploadedAt?: string;
   }>;
+}
+
+export interface ApproveTutorProfileRequest {
+  note?: string;
+}
+
+export interface RejectTutorProfileRequest {
+  reason: string;
+}
+
+export interface SuspendTutorProfileRequest {
+  reason: string;
+}
+
+export interface UnsuspendTutorProfileRequest {
+  note?: string;
+}
+
+export interface TutorProfileMutationResponse {
+  message: string;
 }
