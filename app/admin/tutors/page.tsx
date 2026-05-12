@@ -74,9 +74,7 @@ export default function TutorApprovalPage() {
     setSelected(newSelected);
   };
 
-  const handleBulkDelete = () => {
-    setSelected(new Set());
-  };
+
 
   return (
     <>
@@ -89,7 +87,6 @@ export default function TutorApprovalPage() {
         <AdminBulkActions
           selectedCount={selected.size}
           onClearSelection={() => setSelected(new Set())}
-          onBulkDelete={handleBulkDelete}
         />
 
         <div className="border-b border-border px-6 py-4">

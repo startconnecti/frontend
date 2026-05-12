@@ -13,6 +13,7 @@ interface AdminConfirmDialogProps {
   onCancel?: () => void;
   triggerLabel?: string;
   triggerVariant?: 'default' | 'destructive' | 'outline';
+  triggerDisabled?: boolean;
   children?: React.ReactNode;
 }
 
@@ -25,6 +26,7 @@ export function AdminConfirmDialog({
   onCancel,
   triggerLabel,
   triggerVariant = 'default',
+  triggerDisabled = false,
   children,
 }: AdminConfirmDialogProps) {
   const [open, setOpen] = useState(false);
@@ -42,10 +44,11 @@ export function AdminConfirmDialog({
   return (
     <>
       {children ? (
-        <div onClick={() => setOpen(true)}>{children}</div>
+        <div onClick={() => !triggerDisabled && setOpen(true)}>{children}</div>
       ) : (
         <Button
           variant={triggerVariant}
+          disabled={triggerDisabled}
           onClick={() => setOpen(true)}
         >
           {triggerLabel || 'Open'}

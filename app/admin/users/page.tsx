@@ -70,26 +70,19 @@ export default function UsersPage() {
     setSelected(newSelected);
   };
 
-  const handleBulkDelete = () => {
-    setSelected(new Set());
-  };
+
 
   return (
     <>
       <AdminPageHeader
         title="Users Management"
         description="Manage platform users and their accounts."
-        action={{
-          label: 'Create User',
-          href: ADMIN_ROUTES.USER_CREATE,
-        }}
       />
 
       <Card>
         <AdminBulkActions
           selectedCount={selected.size}
           onClearSelection={() => setSelected(new Set())}
-          onBulkDelete={handleBulkDelete}
         />
 
         <div className="border-b border-border px-6 py-4">
@@ -204,8 +197,8 @@ export default function UsersPage() {
                     <TableCell>
                       <AdminRowActions
                         viewHref={ADMIN_ROUTES.USER_DETAIL(user.id)}
-                        editHref={ADMIN_ROUTES.USER_EDIT(user.id)}
-                        onDelete={handleBulkDelete}
+                        showEdit={false}
+                        showDelete={false}
                       />
                     </TableCell>
                   </TableRow>
