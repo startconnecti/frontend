@@ -52,13 +52,16 @@ interface RawSessionsListResponse {
   };
 }
 
-function isSessionStatus(status?: string): status is AdminSessionStatus {
-  return (
-    status === 'scheduled' ||
-    status === 'ongoing' ||
-    status === 'completed' ||
-    status === 'cancelled'
-  );
+function normalizeSessionStatus(status?: string): AdminSessionStatus {
+  if (!status) return 'scheduled';
+  
+  const lowerStatus = status.toLowerCase();
+  if (lowerStatus === 'scheduled') return 'scheduled';
+  if (lowerStatus === 'ongoing' || lowerStatus === 'in_progress' || lowerStatus === 'active') return 'ongoing';
+  if (lowerStatus === 'completed' || lowerStatus === 'finished' || lowerStatus === 'done') return 'completed';
+  if (lowerStatus === 'cancelled') return 'cancelled';
+  
+  return 'scheduled';
 }
 
 function normalizeSession(item: RawSessionListItem): AdminSessionListItem {
@@ -74,7 +77,7 @@ function normalizeSession(item: RawSessionListItem): AdminSessionListItem {
     subjectName: item.subjectName ?? item.subject?.name ?? '-',
     startTime: item.startTime ?? new Date(0).toISOString(),
     endTime: item.endTime ?? new Date(0).toISOString(),
-    status: isSessionStatus(item.status) ? item.status : 'scheduled',
+    status: normalizeSessionStatus(item.status),
     meetingUrl: item.meetingUrl ?? item.joinLink ?? null,
     recordingUrl: item.recordingUrl ?? null,
     createdAt: item.createdAt ?? new Date(0).toISOString(),

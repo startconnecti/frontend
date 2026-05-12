@@ -11,6 +11,19 @@ import { Card } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useAdminBookingDetailQuery } from '@/features/admin-bookings';
 
+function formatDate(dateString: string): string {
+  try {
+    const date = new Date(dateString);
+    // Check for invalid or epoch dates
+    if (isNaN(date.getTime()) || date.getFullYear() === 1970) {
+      return '-';
+    }
+    return date.toLocaleString();
+  } catch {
+    return '-';
+  }
+}
+
 export default function BookingDetailPage() {
   const params = useParams();
   const bookingId = params.id as string;
@@ -140,14 +153,14 @@ export default function BookingDetailPage() {
                 <Calendar className="h-5 w-5 text-muted-foreground flex-shrink-0 mt-0.5" />
                 <div>
                   <p className="text-xs text-muted-foreground">Start Time</p>
-                  <p className="text-sm font-medium mt-1">{new Date(booking.startTime).toLocaleString()}</p>
+                  <p className="text-sm font-medium mt-1">{formatDate(booking.startTime)}</p>
                 </div>
               </div>
               <div className="flex items-start gap-3">
                 <Calendar className="h-5 w-5 text-muted-foreground flex-shrink-0 mt-0.5" />
                 <div>
                   <p className="text-xs text-muted-foreground">End Time</p>
-                  <p className="text-sm font-medium mt-1">{new Date(booking.endTime).toLocaleString()}</p>
+                  <p className="text-sm font-medium mt-1">{formatDate(booking.endTime)}</p>
                 </div>
               </div>
             </div>
@@ -178,7 +191,7 @@ export default function BookingDetailPage() {
         <div className="space-y-4">
           <Card className="p-6 bg-muted/50">
             <h4 className="mb-2 text-sm font-bold text-foreground">Booking Created</h4>
-            <p className="text-xs text-muted-foreground">{new Date(booking.createdAt).toLocaleString()}</p>
+            <p className="text-xs text-muted-foreground">{formatDate(booking.createdAt)}</p>
           </Card>
         </div>
       </div>

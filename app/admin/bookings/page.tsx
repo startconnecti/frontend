@@ -13,6 +13,18 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { PAGINATION } from '@/constants/pagination';
 import { useAdminBookingsQuery } from '@/features/admin-bookings';
 
+function formatDate(dateString: string): string {
+  try {
+    const date = new Date(dateString);
+    if (isNaN(date.getTime()) || date.getFullYear() === 1970) {
+      return '-';
+    }
+    return date.toLocaleString();
+  } catch {
+    return '-';
+  }
+}
+
 export default function BookingsPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<'all' | 'pending' | 'confirmed' | 'completed' | 'cancelled'>('all');
@@ -66,7 +78,7 @@ export default function BookingsPage() {
       <TableRow key={booking.id}>
         <TableCell className="font-mono text-sm">{booking.id}</TableCell>
         <TableCell>{booking.subjectName}</TableCell>
-        <TableCell className="text-sm">{new Date(booking.startTime).toLocaleString()}</TableCell>
+        <TableCell className="text-sm">{formatDate(booking.startTime)}</TableCell>
         <TableCell>
           <AdminStatusBadge status={booking.status} />
         </TableCell>

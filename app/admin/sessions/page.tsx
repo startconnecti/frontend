@@ -13,6 +13,18 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { PAGINATION } from '@/constants/pagination';
 import { useAdminSessionsQuery } from '@/features/admin-sessions';
 
+function formatDate(dateString: string): string {
+  try {
+    const date = new Date(dateString);
+    if (isNaN(date.getTime()) || date.getFullYear() === 1970) {
+      return '-';
+    }
+    return date.toLocaleString();
+  } catch {
+    return '-';
+  }
+}
+
 export default function SessionsPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<'all' | 'scheduled' | 'ongoing' | 'completed' | 'cancelled'>('all');
@@ -65,7 +77,7 @@ export default function SessionsPage() {
       <TableRow key={session.id}>
         <TableCell className="font-mono text-sm">{session.id}</TableCell>
         <TableCell>{session.subjectName}</TableCell>
-        <TableCell className="text-sm">{new Date(session.startTime).toLocaleString()}</TableCell>
+        <TableCell className="text-sm">{formatDate(session.startTime)}</TableCell>
         <TableCell>
           <AdminStatusBadge status={session.status} />
         </TableCell>
@@ -79,11 +91,9 @@ export default function SessionsPage() {
           )}
         </TableCell>
         <TableCell>
-          <Link href={`/admin/sessions/${session.id}`}>
-            <Button variant="ghost" size="sm">
-              <Eye className="h-4 w-4" />
-            </Button>
-          </Link>
+          <Button variant="ghost" size="sm" disabled title="Session details not available">
+            <Eye className="h-4 w-4" />
+          </Button>
         </TableCell>
       </TableRow>
     ));

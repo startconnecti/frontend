@@ -59,19 +59,28 @@ interface RawBookingDetailResponse {
   };
 }
 
-function isBookingStatus(status?: string): status is AdminBookingStatus {
-  return (
-    status === 'pending' ||
-    status === 'confirmed' ||
-    status === 'completed' ||
-    status === 'cancelled'
-  );
+function normalizeBookingStatus(status?: string): AdminBookingStatus {
+  if (!status) return 'pending';
+  
+  const lowerStatus = status.toLowerCase();
+  if (lowerStatus === 'pending' || lowerStatus === 'pending_payment') return 'pending';
+  if (lowerStatus === 'confirmed' || lowerStatus === 'approved') return 'confirmed';
+  if (lowerStatus === 'completed' || lowerStatus === 'finished') return 'completed';
+  if (lowerStatus === 'cancelled') return 'cancelled';
+  
+  return 'pending';
 }
 
-function isPaymentStatus(status?: string): status is AdminPaymentStatus {
-  return (
-    status === 'pending' || status === 'paid' || status === 'failed' || status === 'refunded'
-  );
+function normalizePaymentStatus(status?: string): AdminPaymentStatus {
+  if (!status) return 'pending';
+  
+  const lowerStatus = status.toLowerCase();
+  if (lowerStatus === 'pending') return 'pending';
+  if (lowerStatus === 'paid' || lowerStatus === 'succeeded' || lowerStatus === 'processing') return 'paid';
+  if (lowerStatus === 'failed') return 'failed';
+  if (lowerStatus === 'refunded' || lowerStatus === 'refunding') return 'refunded';
+  
+  return 'pending';
 }
 
 function normalizeBooking(item: RawBookingListItem): AdminBookingListItem {
@@ -86,8 +95,8 @@ function normalizeBooking(item: RawBookingListItem): AdminBookingListItem {
     subjectName: item.subjectName ?? item.subject?.name ?? '-',
     startTime: item.startTime ?? new Date(0).toISOString(),
     endTime: item.endTime ?? new Date(0).toISOString(),
-    status: isBookingStatus(item.status) ? item.status : 'pending',
-    paymentStatus: isPaymentStatus(item.paymentStatus) ? item.paymentStatus : 'pending',
+    status: normalizeBookingStatus(item.status),
+    paymentStatus: normalizePaymentStatus(item.paymentStatus),
     amount: item.amount ?? 0,
     createdAt: item.createdAt ?? new Date(0).toISOString(),
     updatedAt: item.updatedAt ?? null,
