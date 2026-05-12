@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
 import { ArrowLeft, Award, Calendar, Mail } from 'lucide-react';
@@ -13,6 +13,7 @@ import { Card } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Textarea } from '@/components/ui/textarea';
 import { ADMIN_ROUTES } from '@/constants/admin-routes';
+import { useToast } from '@/hooks/use-toast';
 import {
   useAdminTutorDetailQuery,
   useApproveTutorProfileMutation,
@@ -58,6 +59,7 @@ function TutorDetailSkeleton() {
 export default function TutorDetailPage() {
   const params = useParams();
   const tutorProfileId = params.id as string;
+  const { toast } = useToast();
 
   const [approvalNote, setApprovalNote] = useState('');
   const [rejectReason, setRejectReason] = useState('');
@@ -81,6 +83,82 @@ export default function TutorDetailPage() {
     suspendMutation.isPending ||
     unsuspendMutation.isPending;
 
+  useEffect(() => {
+    if (approveMutation.isSuccess) {
+      toast({
+        title: 'Success',
+        description: 'Tutor profile approved successfully.',
+      });
+    }
+  }, [approveMutation.isSuccess, toast]);
+
+  useEffect(() => {
+    if (approveMutation.isError) {
+      toast({
+        title: 'Error',
+        description: 'Failed to approve tutor profile.',
+        variant: 'destructive',
+      });
+    }
+  }, [approveMutation.isError, toast]);
+
+  useEffect(() => {
+    if (rejectMutation.isSuccess) {
+      toast({
+        title: 'Success',
+        description: 'Tutor profile rejected successfully.',
+      });
+    }
+  }, [rejectMutation.isSuccess, toast]);
+
+  useEffect(() => {
+    if (rejectMutation.isError) {
+      toast({
+        title: 'Error',
+        description: 'Failed to reject tutor profile.',
+        variant: 'destructive',
+      });
+    }
+  }, [rejectMutation.isError, toast]);
+
+  useEffect(() => {
+    if (suspendMutation.isSuccess) {
+      toast({
+        title: 'Success',
+        description: 'Tutor profile suspended successfully.',
+      });
+    }
+  }, [suspendMutation.isSuccess, toast]);
+
+  useEffect(() => {
+    if (suspendMutation.isError) {
+      toast({
+        title: 'Error',
+        description: 'Failed to suspend tutor profile.',
+        variant: 'destructive',
+      });
+    }
+  }, [suspendMutation.isError, toast]);
+
+  useEffect(() => {
+    if (unsuspendMutation.isSuccess) {
+      toast({
+        title: 'Success',
+        description: 'Tutor profile unsuspended successfully.',
+      });
+    }
+  }, [unsuspendMutation.isSuccess, toast]);
+
+  useEffect(() => {
+    if (unsuspendMutation.isError) {
+      toast({
+        title: 'Error',
+        description: 'Failed to unsuspend tutor profile.',
+        variant: 'destructive',
+      });
+    }
+  }, [unsuspendMutation.isError, toast]);
+
   const handleApprove = () => {
     approveMutation.mutate(
       { note: approvalNote.trim() || undefined },
@@ -96,6 +174,11 @@ export default function TutorDetailPage() {
     const reason = rejectReason.trim();
 
     if (!reason) {
+      toast({
+        title: 'Validation Error',
+        description: 'Rejection reason is required.',
+        variant: 'destructive',
+      });
       return;
     }
 
@@ -113,6 +196,11 @@ export default function TutorDetailPage() {
     const reason = suspendReason.trim();
 
     if (!reason) {
+      toast({
+        title: 'Validation Error',
+        description: 'Suspension reason is required.',
+        variant: 'destructive',
+      });
       return;
     }
 
@@ -310,14 +398,17 @@ export default function TutorDetailPage() {
                   disabled={isMutating}
                 />
 
-                <AdminConfirmDialog
-                  title="Approve Tutor?"
-                  description="This tutor will become visible and eligible to receive bookings."
-                  actionLabel={approveMutation.isPending ? 'Approving...' : 'Approve'}
-                  triggerLabel={approveMutation.isPending ? 'Approving...' : 'Approve Tutor'}
-                  triggerVariant="default"
-                  onConfirm={handleApprove}
-                />
+                <div className="mt-4">
+                  <AdminConfirmDialog
+                    title="Approve Tutor?"
+                    description="This tutor will become visible and eligible to receive bookings."
+                    actionLabel={approveMutation.isPending ? 'Approving...' : 'Approve'}
+                    triggerLabel={approveMutation.isPending ? 'Approving...' : 'Approve Tutor'}
+                    triggerVariant="default"
+                    triggerDisabled={approveMutation.isPending}
+                    onConfirm={handleApprove}
+                  />
+                </div>
               </Card>
 
               <Card className="p-6">
@@ -336,7 +427,7 @@ export default function TutorDetailPage() {
                   disabled={isMutating}
                 />
 
-                <div className="mt-3">
+                <div className="mt-4">
                   <AdminConfirmDialog
                     title="Reject Tutor?"
                     description="This tutor profile will be rejected. The tutor may need to update and resubmit their profile."
@@ -344,6 +435,7 @@ export default function TutorDetailPage() {
                     actionVariant="destructive"
                     triggerLabel={rejectMutation.isPending ? 'Rejecting...' : 'Reject Tutor'}
                     triggerVariant="destructive"
+                    triggerDisabled={!rejectReason.trim() || rejectMutation.isPending}
                     onConfirm={handleReject}
                   />
                 </div>
@@ -372,7 +464,7 @@ export default function TutorDetailPage() {
                 disabled={isMutating}
               />
 
-              <div className="mt-3">
+              <div className="mt-4">
                 <AdminConfirmDialog
                   title="Suspend Tutor?"
                   description="This tutor will be suspended and hidden from normal marketplace activity."
@@ -380,6 +472,7 @@ export default function TutorDetailPage() {
                   actionVariant="destructive"
                   triggerLabel={suspendMutation.isPending ? 'Suspending...' : 'Suspend Tutor'}
                   triggerVariant="destructive"
+                  triggerDisabled={!suspendReason.trim() || suspendMutation.isPending}
                   onConfirm={handleSuspend}
                 />
               </div>
@@ -407,13 +500,14 @@ export default function TutorDetailPage() {
                 disabled={isMutating}
               />
 
-              <div className="mt-3">
+              <div className="mt-4">
                 <AdminConfirmDialog
                   title="Unsuspend Tutor?"
                   description="This tutor will regain normal platform access."
                   actionLabel={unsuspendMutation.isPending ? 'Unsuspending...' : 'Unsuspend'}
                   triggerLabel={unsuspendMutation.isPending ? 'Unsuspending...' : 'Unsuspend Tutor'}
                   triggerVariant="outline"
+                  triggerDisabled={unsuspendMutation.isPending}
                   onConfirm={handleUnsuspend}
                 />
               </div>
