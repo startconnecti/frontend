@@ -41,7 +41,7 @@ export const adminAdminsService = {
       const response = await adminApi.get<{
         items: RawAdminItem[];
         pagination?: { limit: number; offset: number; total: number };
-      }>('/admin/admins', {
+      }>('/api/v1/admin/admins', {
         params: {
           limit,
           offset,

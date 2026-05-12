@@ -29,7 +29,7 @@ export const adminRolesService = {
       const response = await adminApi.get<{
         items: RawRoleItem[];
         pagination?: { limit: number; offset: number; total: number };
-      }>('/admin/roles', {
+      }>('/api/v1/admin/roles', {
         params: {
           limit,
           offset,

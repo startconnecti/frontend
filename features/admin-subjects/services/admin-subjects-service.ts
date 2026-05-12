@@ -40,7 +40,7 @@ export const adminSubjectsService = {
     const response = await adminApi.get<{
       items: RawSubjectItem[];
       pagination: { limit: number; offset: number; total: number };
-    }>('/admin/subjects', {
+    }>('/api/v1/admin/subjects', {
       params: {
         limit,
         offset,

@@ -1,4 +1,4 @@
-import { useAdminAuthStore } from '@/stores/admin-auth-store';
+import { useAdminAuthStore, type AdminAuthUser } from '@/stores/admin-auth-store';
 import { AdminApiError } from './errors';
 import { AdminApiErrorResponse, AdminApiSuccessResponse } from './types';
 
@@ -15,6 +15,7 @@ type AdminRequestBody =
 interface AdminRequestOptions extends RequestInit {
   params?: Record<string, string | number | boolean>;
   token?: string;
+  _isRetry?: boolean;
 }
 
 function buildAdminApiUrl(endpoint: string, params?: AdminRequestOptions['params']) {
@@ -113,12 +114,31 @@ function serializeAdminBody(body: AdminRequestBody | undefined): BodyInit | unde
   return JSON.stringify(body);
 }
 
+let refreshPromise: Promise<void> | null = null;
+
+const AUTH_ENDPOINTS = [
+  '/api/v1/admin/auth/login',
+  '/api/v1/admin/auth/refresh',
+  '/api/v1/admin/auth/logout',
+];
+
+interface RefreshResponseData {
+  accessToken?: string;
+  refreshToken?: string;
+  tokens?: {
+    accessToken: string;
+    refreshToken?: string;
+  };
+  admin?: unknown;
+}
+
 export async function adminRequest<T>(
   endpoint: string,
   options: AdminRequestOptions = {}
 ): Promise<T> {
-  const { params, token: providedToken, headers: customHeaders, ...restOptions } = options;
-  const token = providedToken ?? useAdminAuthStore.getState().accessToken;
+  const { params, token: providedToken, headers: customHeaders, _isRetry, ...restOptions } = options;
+  const authStore = useAdminAuthStore.getState();
+  const token = providedToken ?? authStore.accessToken;
   const url = buildAdminApiUrl(endpoint, params);
 
   const headers = new Headers(customHeaders);
@@ -141,8 +161,88 @@ export async function adminRequest<T>(
     const data = await parseAdminResponseBody(response);
 
     if (!response.ok) {
+      // Handle 401 Unauthorized
       if (response.status === 401) {
-        useAdminAuthStore.getState().logout();
+        const isAuthEndpoint = AUTH_ENDPOINTS.some(path => endpoint.includes(path));
+        
+        if (isAuthEndpoint || _isRetry) {
+          authStore.logout();
+          if (isAdminApiErrorResponse(data)) {
+            throw AdminApiError.fromResponse(data, response.status);
+          }
+          throw createAdminFallbackError(data, response.status);
+        }
+
+        // Handle concurrent refresh
+        if (!refreshPromise) {
+          refreshPromise = (async () => {
+            try {
+              const refreshToken = useAdminAuthStore.getState().refreshToken;
+              if (!refreshToken) {
+                throw new Error('No refresh token available');
+              }
+
+              // Use fetch directly to avoid recursion
+              const refreshUrl = buildAdminApiUrl('/api/v1/admin/auth/refresh');
+              const refreshResponse = await fetch(refreshUrl.toString(), {
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'application/json',
+                  'Accept': 'application/json',
+                },
+                body: JSON.stringify({ refreshToken }),
+              });
+
+              if (!refreshResponse.ok) {
+                throw new Error('Refresh token request failed');
+              }
+
+              const refreshData = await parseAdminResponseBody(refreshResponse);
+              
+              // Handle flexibile response shapes
+              let unwrappedData = refreshData as RefreshResponseData;
+              if (isAdminApiSuccessResponse<RefreshResponseData>(refreshData)) {
+                unwrappedData = refreshData.data;
+              }
+
+              const newAccessToken = unwrappedData.tokens?.accessToken ?? unwrappedData.accessToken;
+              const newRefreshToken = unwrappedData.tokens?.refreshToken ?? unwrappedData.refreshToken;
+              const adminData = unwrappedData.admin;
+
+              if (!newAccessToken) {
+                throw new Error('New access token not found in refresh response');
+              }
+
+              useAdminAuthStore.getState().setSession(
+                newAccessToken,
+                newRefreshToken,
+                adminData as AdminAuthUser
+              );
+            } catch (error) {
+              useAdminAuthStore.getState().logout();
+              throw error;
+            } finally {
+              refreshPromise = null;
+            }
+          })();
+        }
+
+        // Wait for refresh to complete (either this request or another one)
+        try {
+          await refreshPromise;
+        } catch (error) {
+          // Refresh failed, error already handled by logout in the promise
+          if (isAdminApiErrorResponse(data)) {
+            throw AdminApiError.fromResponse(data, response.status);
+          }
+          throw createAdminFallbackError(data, response.status);
+        }
+
+        // Retry the original request
+        return adminRequest<T>(endpoint, {
+          ...options,
+          _isRetry: true,
+        });
       }
 
       if (isAdminApiErrorResponse(data)) {

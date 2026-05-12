@@ -43,7 +43,7 @@ export const adminNotificationsService = {
       const response = await adminApi.get<{
         items: RawNotificationItem[];
         pagination?: { limit: number; offset: number; total: number };
-      }>('/admin/notifications', {
+      }>('/api/v1/admin/notifications', {
         params: {
           limit,
           offset,

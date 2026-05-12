@@ -37,7 +37,7 @@ export const adminAuditLogsService = {
       const response = await adminApi.get<{
         items: RawAuditLogItem[];
         pagination?: { limit: number; offset: number; total: number };
-      }>('/admin/audit-logs', {
+      }>('/api/v1/admin/audit-logs', {
         params: {
           limit,
           offset,

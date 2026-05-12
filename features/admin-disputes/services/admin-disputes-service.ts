@@ -121,7 +121,7 @@ export const adminDisputesService = {
     const { keyword, status, priority, page = 1, limit = 10 } = params;
 
     const response = await adminApi.get<RawDisputeListResponse>(
-      '/admin/disputes',
+      '/api/v1/admin/disputes',
       {
         params: {
           limit,

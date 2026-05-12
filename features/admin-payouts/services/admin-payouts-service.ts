@@ -103,7 +103,7 @@ export const adminPayoutsService = {
     const { keyword, status, page = 1, limit = 10 } = params;
 
     const response = await adminApi.get<RawPayoutListResponse>(
-      '/admin/payouts',
+      '/api/v1/admin/payouts',
       {
         params: {
           limit,

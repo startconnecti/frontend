@@ -22,6 +22,8 @@ interface AdminAuthState {
   logout: () => void;
   setHydrated: (isHydrated: boolean) => void;
   updateAdmin: (admin: Partial<AdminAuthUser>) => void;
+  setTokens: (accessToken: string, refreshToken?: string) => void;
+  setSession: (accessToken: string, refreshToken?: string, admin?: AdminAuthUser) => void;
 }
 
 export const useAdminAuthStore = create<AdminAuthState>()(
@@ -58,6 +60,22 @@ export const useAdminAuthStore = create<AdminAuthState>()(
       updateAdmin: (adminPatch) => {
         set((state) => ({
           admin: state.admin ? { ...state.admin, ...adminPatch } : null,
+        }));
+      },
+
+      setTokens: (accessToken, refreshToken) => {
+        set((state) => ({
+          accessToken,
+          refreshToken: refreshToken ?? state.refreshToken,
+        }));
+      },
+
+      setSession: (accessToken, refreshToken, admin) => {
+        set((state) => ({
+          accessToken,
+          refreshToken: refreshToken ?? state.refreshToken,
+          admin: admin ?? state.admin,
+          isAuthenticated: true,
         }));
       },
     }),
