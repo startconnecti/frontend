@@ -10,10 +10,9 @@ import { Input } from '@/components/ui/input';
 import { Skeleton } from '@/components/ui/skeleton';
 import { PAGINATION } from '@/constants/pagination';
 import { useAdminSubjectsQuery } from '@/features/admin-subjects';
-import { 
-  PlusIcon, 
-  EditIcon, 
-  MoreVerticalIcon, 
+import {
+  EditIcon,
+  MoreVerticalIcon,
   SearchIcon,
   FilterIcon
 } from 'lucide-react';
@@ -128,14 +127,7 @@ export default function SubjectsPage() {
       <AdminPageHeader
         title="Subjects Management"
         description="Manage available tutoring subjects and categories."
-        action={
-          <Button asChild className="gap-2">
-            <Link href={ADMIN_ROUTES.SUBJECT_CREATE}>
-              <PlusIcon className="h-4 w-4" />
-              Add Subject
-            </Link>
-          </Button>
-        }
+        action={{ label: 'Create Subject', href: ADMIN_ROUTES.SUBJECT_CREATE }}
       />
 
       <Card>

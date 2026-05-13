@@ -1,2 +1,3 @@
 export * from './types';
-export { useAdminSubjectsQuery } from './hooks/use-admin-subjects-query';
+export * from './hooks/use-admin-subjects-query';
+export { adminSubjectsService } from './services/admin-subjects-service';

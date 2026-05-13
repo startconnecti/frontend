@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { Menu } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 import { ADMIN_ROUTES } from '@/constants/admin-routes';
 
 const navigationItems = [
@@ -88,6 +88,9 @@ export function AdminSidebar() {
             </Button>
           </SheetTrigger>
           <SheetContent side="left" className="w-64 p-0">
+            <SheetHeader className="sr-only">
+              <SheetTitle>Admin Navigation</SheetTitle>
+            </SheetHeader>
             <SidebarContent />
           </SheetContent>
         </Sheet>

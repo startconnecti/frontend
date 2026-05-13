@@ -1,33 +1,33 @@
 'use client';
 
 import { AdminPageHeader } from '@/components/admin/admin-page-header';
-import { SubjectForm } from '@/features/admin-subjects/components/subject-form';
+import { SubjectForm, SubjectFormValues } from '@/features/admin-subjects/components/subject-form';
 import { Button } from '@/components/ui/button';
 import { ChevronLeftIcon, Loader2Icon } from 'lucide-react';
 import Link from 'next/link';
 import { ADMIN_ROUTES } from '@/constants/admin-routes';
 import { useParams, useRouter } from 'next/navigation';
 import { toast } from 'sonner';
-import { useAdminSubjectsQuery } from '@/features/admin-subjects';
-import { PAGINATION } from '@/constants/pagination';
+import { useAdminSubjectDetailQuery, useUpdateAdminSubjectMutation } from '@/features/admin-subjects';
 
 export default function SubjectEditPage() {
-  const { id } = useParams();
+  const params = useParams();
+  const id = params.id as string;
   const router = useRouter();
 
-  // We reuse the list query to find the specific subject by ID from the cache or fetch
-  // In a real app, we might have a specific useAdminSubjectQuery(id)
-  const { data: subjectsData, isLoading } = useAdminSubjectsQuery({
-    limit: PAGINATION.DEFAULT_PAGE_SIZE,
-    page: 1,
-  });
+  const { data: subject, isLoading, isError } = useAdminSubjectDetailQuery(id);
+  const updateMutation = useUpdateAdminSubjectMutation();
 
-  const subject = subjectsData?.items.find((s) => s.id === id);
-
-  const handleSubmit = async (values: any) => {
-    toast.info('Subject update API call placeholder', {
-      description: `This would call PATCH /api/v1/admin/subjects/${id} in production.`
-    });
+  const handleSubmit = async (values: SubjectFormValues) => {
+    try {
+      await updateMutation.mutateAsync({ id, data: values });
+      toast.success('Subject updated successfully');
+      router.push(ADMIN_ROUTES.SUBJECTS);
+    } catch (error) {
+      toast.error('Failed to update subject', {
+        description: error instanceof Error ? error.message : 'An unknown error occurred',
+      });
+    }
   };
 
   if (isLoading) {
@@ -38,11 +38,11 @@ export default function SubjectEditPage() {
     );
   }
 
-  if (!subject) {
+  if (isError || !subject) {
     return (
       <div className="text-center py-20">
         <h3 className="text-xl font-bold">Subject not found</h3>
-        <p className="text-muted-foreground mt-2">The subject ID you provided does not exist.</p>
+        <p className="text-muted-foreground mt-2">The subject ID you provided does not exist or an error occurred.</p>
         <Button asChild className="mt-6">
           <Link href={ADMIN_ROUTES.SUBJECTS}>Back to Subjects</Link>
         </Button>
@@ -67,7 +67,12 @@ export default function SubjectEditPage() {
       />
 
       <div className="max-w-3xl">
-        <SubjectForm initialValues={subject} onSubmit={handleSubmit} />
+        <SubjectForm
+          initialValues={subject}
+          onSubmit={handleSubmit}
+          isLoading={updateMutation.isPending}
+          isEditMode
+        />
       </div>
     </>
   );

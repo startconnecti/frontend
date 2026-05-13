@@ -7,9 +7,9 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { 
-  SearchIcon, 
-  EyeIcon, 
+import {
+  SearchIcon,
+  EyeIcon,
   FilterIcon,
   MessageSquareIcon
 } from 'lucide-react';
@@ -76,7 +76,7 @@ export default function ConversationsPage() {
       return (
         <TableRow>
           <TableCell colSpan={5} className="p-0">
-            <AdminEmptyState 
+            <AdminEmptyState
               icon={MessageSquareIcon}
               title="No conversations found"
               description="Monitor user interactions and moderate conversations."
@@ -91,7 +91,7 @@ export default function ConversationsPage() {
         <TableCell>
           <div className="flex flex-col gap-1">
             <div className="font-bold flex items-center gap-2">
-              {conv.participants[0]?.fullName || 'Unknown'} 
+              {conv.participants[0]?.fullName || 'Unknown'}
               <span className="text-muted-foreground text-xs font-normal">and</span>
               {conv.participants[1]?.fullName || 'Unknown'}
             </div>
@@ -117,10 +117,10 @@ export default function ConversationsPage() {
           </div>
         </TableCell>
         <TableCell>
-          <Badge 
+          <Badge
             variant={
-              conv.status === 'flagged' ? 'destructive' : 
-              conv.status === 'archived' ? 'outline' : 'default'
+              conv.status === 'flagged' ? 'destructive' :
+                conv.status === 'archived' ? 'outline' : 'default'
             }
             className="capitalize"
           >
@@ -152,8 +152,8 @@ export default function ConversationsPage() {
         <div className="flex flex-col sm:flex-row gap-4 items-center justify-between bg-card p-4 rounded-lg border">
           <div className="relative w-full sm:max-w-sm">
             <SearchIcon className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-            <Input 
-              placeholder="Search participants..." 
+            <Input
+              placeholder="Search participants..."
               className="pl-9"
               value={searchQuery}
               onChange={(e) => {

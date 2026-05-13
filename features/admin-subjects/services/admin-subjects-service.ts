@@ -8,15 +8,22 @@ interface RawSubjectItem {
   slug?: string;
   description?: string;
   status?: string;
+  isActive?: boolean;
   createdAt?: string;
   updatedAt?: string | null;
 }
 
-function normalizeSubjectStatus(status?: string): 'active' | 'inactive' {
-  if (!status) return 'active';
-  const lowerStatus = status.toLowerCase();
-  if (lowerStatus === 'active' || lowerStatus === 'enabled') return 'active';
-  if (lowerStatus === 'inactive' || lowerStatus === 'disabled') return 'inactive';
+function normalizeSubjectStatus(item: RawSubjectItem): 'active' | 'inactive' {
+  // Prefer explicit `status` field first
+  if (item.status) {
+    const s = item.status.toLowerCase();
+    if (s === 'active' || s === 'enabled') return 'active';
+    if (s === 'inactive' || s === 'disabled') return 'inactive';
+  }
+  // Fall back to boolean `isActive` (actual backend field)
+  if (typeof item.isActive === 'boolean') {
+    return item.isActive ? 'active' : 'inactive';
+  }
   return 'active';
 }
 
@@ -38,10 +45,41 @@ function normalizeSubject(item: RawSubjectItem | null | undefined): AdminSubject
     name: item.name ?? '-',
     slug: item.slug ?? '-',
     description: item.description ?? '-',
-    status: normalizeSubjectStatus(item.status),
+    status: normalizeSubjectStatus(item),
     createdAt: item.createdAt ?? new Date(0).toISOString(),
     updatedAt: item.updatedAt ?? null,
   };
+}
+
+/**
+ * Unwraps the raw API response to find the subject object.
+ * Handles shapes:
+ *   - { subject: {...} }
+ *   - { data: { subject: {...} } }
+ *   - { data: {...} }  (direct subject)
+ *   - {...}            (direct subject)
+ */
+function extractRawSubject(response: unknown): RawSubjectItem {
+  const res = response as Record<string, unknown>;
+
+  // { subject: {...} }  — what the actual backend returns
+  if (res?.subject && typeof res.subject === 'object') {
+    return res.subject as RawSubjectItem;
+  }
+
+  // { data: { subject: {...} } }
+  const data = res?.data as Record<string, unknown> | undefined;
+  if (data?.subject && typeof data.subject === 'object') {
+    return data.subject as RawSubjectItem;
+  }
+
+  // { data: {...} }  — direct subject inside data wrapper
+  if (data && typeof data === 'object' && data.id) {
+    return data as RawSubjectItem;
+  }
+
+  // Direct subject object
+  return res as RawSubjectItem;
 }
 
 export const adminSubjectsService = {
@@ -50,7 +88,7 @@ export const adminSubjectsService = {
     const limit = params.limit && params.limit > 0 ? params.limit : 10;
     const offset = (page - 1) * limit;
 
-    const response = await adminApi.get<any>('/api/v1/admin/subjects', {
+    const response = await adminApi.get<unknown>('/api/v1/admin/subjects', {
       params: {
         limit,
         offset,
@@ -59,16 +97,17 @@ export const adminSubjectsService = {
       },
     });
 
+    const res = response as Record<string, unknown>;
     let rawItems: RawSubjectItem[] = [];
     let total = 0;
     let paginationData = null;
 
-    if (Array.isArray(response)) {
-      rawItems = response;
-      total = response.length;
-    } else if (response && typeof response === 'object') {
-      rawItems = response.items ?? response.data ?? [];
-      paginationData = response.pagination;
+    if (Array.isArray(res)) {
+      rawItems = res as RawSubjectItem[];
+      total = rawItems.length;
+    } else if (res && typeof res === 'object') {
+      rawItems = (res.items as RawSubjectItem[]) ?? (res.data as RawSubjectItem[]) ?? [];
+      paginationData = res.pagination as { limit: number; offset: number; total: number } | null;
       total = paginationData?.total ?? rawItems.length;
     }
 
@@ -80,5 +119,44 @@ export const adminSubjectsService = {
       page,
       totalPages,
     };
+  },
+
+  async getSubjectById(id: string): Promise<AdminSubjectListItem> {
+    const response = await adminApi.get<unknown>(`/api/v1/admin/subjects/${id}`);
+    return normalizeSubject(extractRawSubject(response));
+  },
+
+  async createSubject(data: {
+    name: string;
+    slug: string;
+    description?: string;
+    status: string;
+  }): Promise<AdminSubjectListItem> {
+    // Backend uses `isActive`, map from our internal `status` field
+    const payload: Record<string, unknown> = {
+      name: data.name,
+      slug: data.slug,
+      ...(data.description !== undefined && { description: data.description }),
+      isActive: data.status === 'active',
+    };
+
+    const response = await adminApi.post<unknown>('/api/v1/admin/subjects', payload);
+    return normalizeSubject(extractRawSubject(response));
+  },
+
+  async updateSubject(
+    id: string,
+    data: { name?: string; slug?: string; description?: string; status?: string },
+  ): Promise<AdminSubjectListItem> {
+    // Backend uses `isActive`, map from our internal `status` field
+    const payload: Record<string, unknown> = {
+      ...(data.name !== undefined && { name: data.name }),
+      ...(data.slug !== undefined && { slug: data.slug }),
+      ...(data.description !== undefined && { description: data.description }),
+      ...(data.status !== undefined && { isActive: data.status === 'active' }),
+    };
+
+    const response = await adminApi.put<unknown>(`/api/v1/admin/subjects/${id}`, payload);
+    return normalizeSubject(extractRawSubject(response));
   },
 };

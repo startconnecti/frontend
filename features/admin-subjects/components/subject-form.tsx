@@ -1,5 +1,6 @@
 'use client';
 
+import { useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
@@ -26,7 +27,10 @@ import { Loader2Icon, SaveIcon } from 'lucide-react';
 
 const subjectSchema = z.object({
   name: z.string().min(2, 'Name must be at least 2 characters'),
-  slug: z.string().min(2, 'Slug must be at least 2 characters').regex(/^[a-z0-9-]+$/, 'Slug must be lowercase and contain only letters, numbers, and hyphens'),
+  slug: z
+    .string()
+    .min(2, 'Slug must be at least 2 characters')
+    .regex(/^[a-z0-9-]+$/, 'Slug must be lowercase and contain only letters, numbers, and hyphens'),
   description: z.string().optional(),
   status: z.enum(['active', 'inactive']),
 });
@@ -37,18 +41,32 @@ interface SubjectFormProps {
   initialValues?: Partial<SubjectFormValues>;
   onSubmit: (values: SubjectFormValues) => void;
   isLoading?: boolean;
+  /** Pass true when used for editing (changes button label) */
+  isEditMode?: boolean;
 }
 
-export function SubjectForm({ initialValues, onSubmit, isLoading }: SubjectFormProps) {
+export function SubjectForm({ initialValues, onSubmit, isLoading, isEditMode }: SubjectFormProps) {
   const form = useForm<SubjectFormValues>({
     resolver: zodResolver(subjectSchema),
     defaultValues: {
-      name: initialValues?.name || '',
-      slug: initialValues?.slug || '',
-      description: initialValues?.description || '',
-      status: initialValues?.status || 'active',
+      name: initialValues?.name ?? '',
+      slug: initialValues?.slug ?? '',
+      description: initialValues?.description ?? '',
+      status: initialValues?.status ?? 'active',
     },
   });
+
+  // When async initialValues arrive (edit mode), reset the form so fields populate.
+  useEffect(() => {
+    if (initialValues) {
+      form.reset({
+        name: initialValues.name ?? '',
+        slug: initialValues.slug ?? '',
+        description: initialValues.description ?? '',
+        status: initialValues.status ?? 'active',
+      });
+    }
+  }, [initialValues, form]);
 
   return (
     <Form {...form}>
@@ -92,10 +110,10 @@ export function SubjectForm({ initialValues, onSubmit, isLoading }: SubjectFormP
             <FormItem>
               <FormLabel>Description</FormLabel>
               <FormControl>
-                <Textarea 
-                  placeholder="Provide a brief description of what this subject covers..." 
+                <Textarea
+                  placeholder="Provide a brief description of what this subject covers..."
                   className="min-h-[100px]"
-                  {...field} 
+                  {...field}
                 />
               </FormControl>
               <FormMessage />
@@ -109,7 +127,8 @@ export function SubjectForm({ initialValues, onSubmit, isLoading }: SubjectFormP
           render={({ field }) => (
             <FormItem className="max-w-[200px]">
               <FormLabel>Status</FormLabel>
-              <Select onValueChange={field.onChange} defaultValue={field.value}>
+              {/* Use `value` + `onValueChange` so the select stays in sync after a reset */}
+              <Select onValueChange={field.onChange} value={field.value}>
                 <FormControl>
                   <SelectTrigger>
                     <SelectValue placeholder="Select status" />
@@ -132,7 +151,7 @@ export function SubjectForm({ initialValues, onSubmit, isLoading }: SubjectFormP
             ) : (
               <SaveIcon className="h-4 w-4" />
             )}
-            {initialValues ? 'Update Subject' : 'Create Subject'}
+            {isEditMode ? 'Update Subject' : 'Create Subject'}
           </Button>
         </div>
       </form>
