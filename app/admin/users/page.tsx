@@ -23,6 +23,8 @@ import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ADMIN_ROUTES } from '@/constants/admin-routes';
 import { AdminUserRole, useAdminUsersQuery } from '@/features/admin-users';
 import { PAGINATION } from '@/constants/pagination';
+import { AdminEmptyState } from '@/components/admin/admin-empty-state';
+import { UsersIcon, SearchIcon } from 'lucide-react';
 
 export default function UsersPage() {
   const [searchQuery, setSearchQuery] = useState('');
@@ -70,8 +72,6 @@ export default function UsersPage() {
     setSelected(newSelected);
   };
 
-
-
   return (
     <>
       <AdminPageHeader
@@ -86,16 +86,19 @@ export default function UsersPage() {
         />
 
         <div className="border-b border-border px-6 py-4">
-          <Input
-            placeholder="Search by name or email..."
-            value={searchQuery}
-            onChange={(event) => {
-              setSearchQuery(event.target.value);
-              setPage(1);
-              setSelected(new Set());
-            }}
-            className="max-w-sm"
-          />
+          <div className="relative max-w-sm">
+            <SearchIcon className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Input
+              placeholder="Search by name or email..."
+              value={searchQuery}
+              onChange={(event) => {
+                setSearchQuery(event.target.value);
+                setPage(1);
+                setSelected(new Set());
+              }}
+              className="pl-9"
+            />
+          </div>
         </div>
 
         <div className="border-b border-border">
@@ -136,17 +139,24 @@ export default function UsersPage() {
                 <TableHead>Status</TableHead>
                 <TableHead>Joined</TableHead>
                 <TableHead>Last Login</TableHead>
-                <TableHead>Actions</TableHead>
+                <TableHead className="text-right">Actions</TableHead>
               </TableRow>
             </TableHeader>
 
             <TableBody>
               {isLoading ? (
-                <TableRow>
-                  <TableCell colSpan={8} className="h-24 text-center text-muted-foreground">
-                    Loading users...
-                  </TableCell>
-                </TableRow>
+                Array.from({ length: 5 }).map((_, i) => (
+                  <TableRow key={i}>
+                    <TableCell><Checkbox disabled /></TableCell>
+                    <TableCell className="h-12"><div className="h-4 w-24 bg-muted animate-pulse rounded" /></TableCell>
+                    <TableCell><div className="h-4 w-32 bg-muted animate-pulse rounded" /></TableCell>
+                    <TableCell><div className="h-4 w-16 bg-muted animate-pulse rounded" /></TableCell>
+                    <TableCell><div className="h-4 w-16 bg-muted animate-pulse rounded" /></TableCell>
+                    <TableCell><div className="h-4 w-20 bg-muted animate-pulse rounded" /></TableCell>
+                    <TableCell><div className="h-4 w-20 bg-muted animate-pulse rounded" /></TableCell>
+                    <TableCell><div className="h-4 w-12 bg-muted animate-pulse rounded ml-auto" /></TableCell>
+                  </TableRow>
+                ))
               ) : isError ? (
                 <TableRow>
                   <TableCell colSpan={8} className="h-24 text-center text-destructive">
@@ -155,8 +165,12 @@ export default function UsersPage() {
                 </TableRow>
               ) : users.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={8} className="h-24 text-center text-muted-foreground">
-                    No users found
+                  <TableCell colSpan={8} className="p-0">
+                    <AdminEmptyState 
+                      icon={UsersIcon}
+                      title="No users found"
+                      description="We couldn't find any users matching your current filters."
+                    />
                   </TableCell>
                 </TableRow>
               ) : (
@@ -194,10 +208,11 @@ export default function UsersPage() {
                         : '-'}
                     </TableCell>
 
-                    <TableCell>
+                    <TableCell className="text-right">
                       <AdminRowActions
                         viewHref={ADMIN_ROUTES.USER_DETAIL(user.id)}
-                        showEdit={false}
+                        editHref={ADMIN_ROUTES.USER_EDIT(user.id)}
+                        showEdit={true}
                         showDelete={false}
                       />
                     </TableCell>

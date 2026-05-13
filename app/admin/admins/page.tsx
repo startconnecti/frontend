@@ -1,7 +1,13 @@
 'use client';
 
 import { useState } from 'react';
-import { Shield } from 'lucide-react';
+import { 
+  Shield, 
+  PlusIcon, 
+  MoreVerticalIcon, 
+  EditIcon, 
+  SearchIcon 
+} from 'lucide-react';
 import { AdminPageHeader } from '@/components/admin/admin-page-header';
 import { AdminStatusBadge } from '@/components/admin/admin-status-badge';
 import { Button } from '@/components/ui/button';
@@ -12,6 +18,16 @@ import { Input } from '@/components/ui/input';
 import { Skeleton } from '@/components/ui/skeleton';
 import { PAGINATION } from '@/constants/pagination';
 import { useAdminAdminsQuery } from '@/features/admin-admins';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import Link from 'next/link';
+import { ADMIN_ROUTES } from '@/constants/admin-routes';
 
 function formatDate(dateString: string): string {
   try {
@@ -44,6 +60,7 @@ export default function AdminsPage() {
           <TableCell><Skeleton className="h-4 w-20" /></TableCell>
           <TableCell><Skeleton className="h-4 w-16" /></TableCell>
           <TableCell><Skeleton className="h-4 w-32" /></TableCell>
+          <TableCell><Skeleton className="h-4 w-8" /></TableCell>
         </TableRow>
       ));
     }
@@ -51,7 +68,7 @@ export default function AdminsPage() {
     if (isError || !adminsData) {
       return (
         <TableRow>
-          <TableCell colSpan={5} className="h-24 text-center text-destructive">
+          <TableCell colSpan={6} className="h-24 text-center text-destructive">
             Error loading admins
           </TableCell>
         </TableRow>
@@ -61,7 +78,7 @@ export default function AdminsPage() {
     if (adminsData.items.length === 0) {
       return (
         <TableRow>
-          <TableCell colSpan={5} className="h-24 text-center text-muted-foreground">
+          <TableCell colSpan={6} className="h-24 text-center text-muted-foreground">
             No admin accounts found
           </TableCell>
         </TableRow>
@@ -73,7 +90,7 @@ export default function AdminsPage() {
         <TableCell className="font-medium">{admin.fullName}</TableCell>
         <TableCell className="text-sm">{admin.email}</TableCell>
         <TableCell>
-          <Badge variant="outline" className="flex w-fit gap-1">
+          <Badge variant="outline" className="flex w-fit gap-1 capitalize">
             <Shield className="h-3 w-3" />
             {admin.role.replace(/_/g, ' ')}
           </Badge>
@@ -82,6 +99,28 @@ export default function AdminsPage() {
           <AdminStatusBadge status={admin.status} />
         </TableCell>
         <TableCell className="text-sm text-muted-foreground">{formatDate(admin.createdAt)}</TableCell>
+        <TableCell className="text-right">
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" size="sm">
+                <MoreVerticalIcon className="h-4 w-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuLabel>Actions</DropdownMenuLabel>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem asChild>
+                <Link 
+                  href={ADMIN_ROUTES.ADMIN_EDIT(admin.id)}
+                  className="flex items-center gap-2 cursor-pointer"
+                >
+                  <EditIcon className="h-4 w-4" />
+                  Edit Account
+                </Link>
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </TableCell>
       </TableRow>
     ));
   };
@@ -91,20 +130,31 @@ export default function AdminsPage() {
       <AdminPageHeader
         title="Admin Accounts"
         description="Manage platform administrators and their permissions."
+        action={
+          <Button asChild className="gap-2">
+            <Link href={ADMIN_ROUTES.ADMIN_CREATE}>
+              <PlusIcon className="h-4 w-4" />
+              Add Admin
+            </Link>
+          </Button>
+        }
       />
 
       <Card>
         {/* Search */}
         <div className="border-b border-border px-6 py-4">
-          <Input
-            placeholder="Search by name or email..."
-            value={searchQuery}
-            onChange={(e) => {
-              setSearchQuery(e.target.value);
-              setPage(1);
-            }}
-            className="max-w-sm"
-          />
+          <div className="relative max-w-sm">
+            <SearchIcon className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Input
+              placeholder="Search by name or email..."
+              value={searchQuery}
+              onChange={(e) => {
+                setSearchQuery(e.target.value);
+                setPage(1);
+              }}
+              className="pl-9"
+            />
+          </div>
         </div>
 
         {/* Table */}
@@ -117,6 +167,7 @@ export default function AdminsPage() {
                 <TableHead>Role</TableHead>
                 <TableHead>Status</TableHead>
                 <TableHead>Created At</TableHead>
+                <TableHead className="text-right">Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>

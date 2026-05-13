@@ -30,7 +30,13 @@ export const ADMIN_ROUTES = {
   NOTIFICATION_EDIT: (id: string) => `/admin/notifications/${id}/edit`,
 
   SUBJECTS: '/admin/subjects',
+  SUBJECT_CREATE: '/admin/subjects/create',
+  SUBJECT_EDIT: (id: string) => `/admin/subjects/${id}/edit`,
+
   ADMINS: '/admin/admins',
+  ADMIN_CREATE: '/admin/admins/create',
+  ADMIN_EDIT: (id: string) => `/admin/admins/${id}/edit`,
+
   ROLES: '/admin/roles',
   AUDIT_LOGS: '/admin/audit-logs',
   AUDIT_LOG_DETAIL: (id: string) => `/admin/audit-logs/${id}`,

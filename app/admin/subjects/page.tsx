@@ -10,6 +10,23 @@ import { Input } from '@/components/ui/input';
 import { Skeleton } from '@/components/ui/skeleton';
 import { PAGINATION } from '@/constants/pagination';
 import { useAdminSubjectsQuery } from '@/features/admin-subjects';
+import { 
+  PlusIcon, 
+  EditIcon, 
+  MoreVerticalIcon, 
+  SearchIcon,
+  FilterIcon
+} from 'lucide-react';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import Link from 'next/link';
+import { ADMIN_ROUTES } from '@/constants/admin-routes';
 
 function formatDate(dateString: string): string {
   try {
@@ -46,6 +63,7 @@ export default function SubjectsPage() {
           <TableCell><Skeleton className="h-4 w-32" /></TableCell>
           <TableCell><Skeleton className="h-4 w-16" /></TableCell>
           <TableCell><Skeleton className="h-4 w-32" /></TableCell>
+          <TableCell><Skeleton className="h-4 w-8" /></TableCell>
         </TableRow>
       ));
     }
@@ -53,7 +71,7 @@ export default function SubjectsPage() {
     if (isError || !subjectsData) {
       return (
         <TableRow>
-          <TableCell colSpan={5} className="h-24 text-center text-destructive">
+          <TableCell colSpan={6} className="h-24 text-center text-destructive">
             Error loading subjects
           </TableCell>
         </TableRow>
@@ -63,7 +81,7 @@ export default function SubjectsPage() {
     if (subjectsData.items.length === 0) {
       return (
         <TableRow>
-          <TableCell colSpan={5} className="h-24 text-center text-muted-foreground">
+          <TableCell colSpan={6} className="h-24 text-center text-muted-foreground">
             No subjects found
           </TableCell>
         </TableRow>
@@ -79,6 +97,28 @@ export default function SubjectsPage() {
           <AdminStatusBadge status={subject.status} />
         </TableCell>
         <TableCell className="text-sm text-muted-foreground">{formatDate(subject.createdAt)}</TableCell>
+        <TableCell className="text-right">
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" size="sm">
+                <MoreVerticalIcon className="h-4 w-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuLabel>Actions</DropdownMenuLabel>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem asChild>
+                <Link 
+                  href={ADMIN_ROUTES.SUBJECT_EDIT(subject.id)}
+                  className="flex items-center gap-2 cursor-pointer"
+                >
+                  <EditIcon className="h-4 w-4" />
+                  Edit Subject
+                </Link>
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </TableCell>
       </TableRow>
     ));
   };
@@ -88,21 +128,33 @@ export default function SubjectsPage() {
       <AdminPageHeader
         title="Subjects Management"
         description="Manage available tutoring subjects and categories."
+        action={
+          <Button asChild className="gap-2">
+            <Link href={ADMIN_ROUTES.SUBJECT_CREATE}>
+              <PlusIcon className="h-4 w-4" />
+              Add Subject
+            </Link>
+          </Button>
+        }
       />
 
       <Card>
         {/* Filters */}
         <div className="border-b border-border px-6 py-4 space-y-4">
-          <Input
-            placeholder="Search subjects..."
-            value={searchQuery}
-            onChange={(e) => {
-              setSearchQuery(e.target.value);
-              setPage(1);
-            }}
-            className="max-w-sm"
-          />
-          <div className="flex gap-2 flex-wrap">
+          <div className="relative max-w-sm">
+            <SearchIcon className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Input
+              placeholder="Search subjects..."
+              value={searchQuery}
+              onChange={(e) => {
+                setSearchQuery(e.target.value);
+                setPage(1);
+              }}
+              className="pl-9"
+            />
+          </div>
+          <div className="flex gap-2 flex-wrap items-center">
+            <FilterIcon className="h-4 w-4 text-muted-foreground mr-2" />
             {statuses.map(status => (
               <Button
                 key={status}
@@ -130,6 +182,7 @@ export default function SubjectsPage() {
                 <TableHead>Description</TableHead>
                 <TableHead>Status</TableHead>
                 <TableHead>Created At</TableHead>
+                <TableHead className="text-right">Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
