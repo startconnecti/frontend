@@ -211,8 +211,7 @@ export default function UsersPage() {
                     <TableCell className="text-right">
                       <AdminRowActions
                         viewHref={ADMIN_ROUTES.USER_DETAIL(user.id)}
-                        editHref={ADMIN_ROUTES.USER_EDIT(user.id)}
-                        showEdit={true}
+                        showEdit={false}
                         showDelete={false}
                       />
                     </TableCell>

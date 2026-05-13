@@ -1,7 +1,8 @@
 'use client';
 
-import { useRouter } from 'next/navigation';
-import { Bell, LogOut, Search } from 'lucide-react';
+import { useRouter, usePathname } from 'next/navigation';
+import { useState, useEffect } from 'react';
+import { Bell, LogOut, Menu } from 'lucide-react';
 import { ADMIN_ROUTES } from '@/constants/admin-routes';
 import { adminApi } from '@/lib/admin-api/client';
 import { useAdminAuthStore } from '@/stores/admin-auth-store';
@@ -13,11 +14,8 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { Input } from '@/components/ui/input';
-
-interface AdminHeaderProps {
-  onSearch?: (query: string) => void;
-}
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
+import { SidebarContent } from './admin-sidebar';
 
 function getInitials(nameOrEmail?: string | null) {
   if (!nameOrEmail) {
@@ -33,10 +31,17 @@ function getInitials(nameOrEmail?: string | null) {
   return nameOrEmail.slice(0, 2).toUpperCase();
 }
 
-export function AdminHeader({ onSearch }: AdminHeaderProps) {
+export function AdminHeader() {
   const router = useRouter();
+  const pathname = usePathname();
   const admin = useAdminAuthStore((state) => state.admin);
   const logout = useAdminAuthStore((state) => state.logout);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+
+  // Close mobile menu when route changes
+  useEffect(() => {
+    setIsMobileMenuOpen(false);
+  }, [pathname]);
 
   const displayName = admin?.fullName || 'Admin User';
   const displayEmail = admin?.email || 'admin@connecti.com';
@@ -52,17 +57,25 @@ export function AdminHeader({ onSearch }: AdminHeaderProps) {
   };
 
   return (
-    <div className="border-b border-border bg-card px-6 py-4">
+    <div className="border-b border-border bg-card px-6 py-4 flex-shrink-0">
       <div className="flex items-center justify-between gap-4">
-        <div className="hidden flex-1 md:flex">
-          <div className="relative w-full max-w-sm">
-            <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-            <Input
-              placeholder="Search..."
-              className="pl-10"
-              onChange={(event) => onSearch?.(event.target.value)}
-            />
-          </div>
+        <div className="flex items-center gap-4">
+          <Sheet open={isMobileMenuOpen} onOpenChange={setIsMobileMenuOpen}>
+            <SheetTrigger asChild>
+              <Button variant="ghost" size="icon" className="lg:hidden">
+                <Menu className="h-6 w-6" />
+                <span className="sr-only">Toggle mobile menu</span>
+              </Button>
+            </SheetTrigger>
+            <SheetContent side="left" className="w-64 p-0">
+              <SheetHeader className="sr-only">
+                <SheetTitle>Admin Navigation</SheetTitle>
+              </SheetHeader>
+              <SidebarContent />
+            </SheetContent>
+          </Sheet>
+          {/* We can leave the left side empty as per requirements to replace fake search. 
+              The mobile trigger takes its place nicely on small screens. */}
         </div>
 
         <div className="flex items-center gap-4">
@@ -95,7 +108,7 @@ export function AdminHeader({ onSearch }: AdminHeaderProps) {
 
               <DropdownMenuItem
                 onClick={handleLogout}
-                className="text-destructive focus:text-destructive"
+                className="text-destructive focus:text-destructive cursor-pointer"
               >
                 <LogOut className="mr-2 h-4 w-4" />
                 Logout

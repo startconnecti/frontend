@@ -1,5 +1,5 @@
 export type AdminAccountStatus = 'active' | 'inactive' | 'suspended';
-export type AdminRole = 'super_admin' | 'admin' | 'moderator' | 'viewer';
+export type AdminRole = 'super_admin' | 'admin' | 'moderator' | 'finance' | 'support' | 'viewer';
 
 export interface AdminAccountListItem {
   id: string;

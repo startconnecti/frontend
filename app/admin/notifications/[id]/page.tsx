@@ -20,15 +20,27 @@ import Link from 'next/link';
 import { ADMIN_ROUTES } from '@/constants/admin-routes';
 
 export default function NotificationDetailPage() {
-  const { id } = useParams();
+  const params = useParams();
+  const id = params.id as string;
   const [isLoading, setIsLoading] = useState(true);
-  const [data, setData] = useState<any>(null);
+  const [data, setData] = useState<{
+    id: string;
+    title: string;
+    message: string;
+    type: string;
+    scope: string;
+    status: string;
+    createdAt: string;
+    sentCount: number;
+    openRate: string;
+    clickRate: string;
+  } | null>(null);
 
   useEffect(() => {
-    // Simulate fetching sent notification data
+    // Simulate fetching sent notification data — replace with real query when API is ready
     setTimeout(() => {
       setData({
-        id,
+        id: Array.isArray(id) ? id[0] : id,
         title: 'Platform Maintenance Notice',
         message: 'Dear users, we will be performing scheduled maintenance on June 1st from 02:00 to 04:00 UTC. The platform will be temporarily unavailable during this time.',
         type: 'warning',
@@ -65,15 +77,14 @@ export default function NotificationDetailPage() {
       <AdminPageHeader
         title="Announcement Details"
         description={`Delivery report for: ${data?.title}`}
-        action={
-          <div className="flex gap-2">
-            <Badge className="bg-green-500 h-8 px-3 gap-1">
-              <CheckCircle2Icon className="h-3 w-3" />
-              Successfully Delivered
-            </Badge>
-          </div>
-        }
-      />
+      >
+        <div className="flex gap-2">
+          <Badge className="bg-green-500 h-8 px-3 gap-1">
+            <CheckCircle2Icon className="h-3 w-3" />
+            Successfully Delivered
+          </Badge>
+        </div>
+      </AdminPageHeader>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="lg:col-span-2 space-y-6">
@@ -97,7 +108,7 @@ export default function NotificationDetailPage() {
               </div>
               <div>
                 <p className="text-xs text-muted-foreground mb-1">Sent Date</p>
-                <p className="text-sm font-medium">{new Date(data?.createdAt).toLocaleDateString()}</p>
+                <p className="text-sm font-medium">{data?.createdAt ? new Date(data.createdAt).toLocaleDateString() : '-'}</p>
               </div>
               <div>
                 <p className="text-xs text-muted-foreground mb-1">Sent By</p>
@@ -114,7 +125,7 @@ export default function NotificationDetailPage() {
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
               <div className="space-y-1">
                 <p className="text-sm text-muted-foreground">Total Recipients</p>
-                <p className="text-3xl font-bold">{data?.sentCount.toLocaleString()}</p>
+                <p className="text-3xl font-bold">{data?.sentCount?.toLocaleString() ?? '-'}</p>
                 <div className="flex items-center gap-1 text-[10px] text-green-600 font-bold">
                   <UsersIcon className="h-3 w-3" />
                   100% Reach

@@ -1,5 +1,6 @@
 'use client';
 
+import { useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
@@ -21,7 +22,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Loader2Icon, SaveIcon } from 'lucide-react';
+import { Loader2Icon, SaveIcon, AlertCircleIcon } from 'lucide-react';
 
 const adminAccountSchema = z.object({
   fullName: z.string().min(2, 'Full name must be at least 2 characters'),
@@ -37,19 +38,58 @@ interface AdminAccountFormProps {
   initialValues?: Partial<AdminAccountFormValues>;
   onSubmit: (values: AdminAccountFormValues) => void;
   isLoading?: boolean;
+  isEditMode?: boolean;
+  /** Backend field errors mapped by field name */
+  serverErrors?: Record<string, string>;
 }
 
-export function AdminAccountForm({ initialValues, onSubmit, isLoading }: AdminAccountFormProps) {
+export function AdminAccountForm({
+  initialValues,
+  onSubmit,
+  isLoading,
+  isEditMode,
+  serverErrors,
+}: AdminAccountFormProps) {
   const form = useForm<AdminAccountFormValues>({
     resolver: zodResolver(adminAccountSchema),
     defaultValues: {
-      fullName: initialValues?.fullName || '',
-      email: initialValues?.email || '',
-      role: initialValues?.role || 'viewer',
-      status: initialValues?.status || 'active',
+      fullName: initialValues?.fullName ?? '',
+      email: initialValues?.email ?? '',
+      role: initialValues?.role ?? 'viewer',
+      status: initialValues?.status ?? 'active',
       password: '',
     },
   });
+
+  // Hydrate form when async initialValues arrive (edit mode)
+  useEffect(() => {
+    if (initialValues) {
+      form.reset({
+        fullName: initialValues.fullName ?? '',
+        email: initialValues.email ?? '',
+        role: initialValues.role ?? 'viewer',
+        status: initialValues.status ?? 'active',
+        password: '',
+      });
+    }
+  }, [initialValues, form]);
+
+  // Map server-side errors onto form fields.
+  // 'root' key signals a global business error (no specific field).
+  useEffect(() => {
+    if (serverErrors) {
+      for (const [field, message] of Object.entries(serverErrors)) {
+        if (field === 'root') {
+          form.setError('root', { type: 'server', message });
+        } else {
+          form.setError(field as keyof AdminAccountFormValues, {
+            type: 'server',
+            message,
+          });
+        }
+      }
+    }
+  }, [serverErrors, form]);
 
   return (
     <Form {...form}>
@@ -91,7 +131,7 @@ export function AdminAccountForm({ initialValues, onSubmit, isLoading }: AdminAc
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Assign Role</FormLabel>
-                <Select onValueChange={field.onChange} defaultValue={field.value}>
+                <Select onValueChange={field.onChange} value={field.value}>
                   <FormControl>
                     <SelectTrigger>
                       <SelectValue placeholder="Select role" />
@@ -117,7 +157,7 @@ export function AdminAccountForm({ initialValues, onSubmit, isLoading }: AdminAc
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Account Status</FormLabel>
-                <Select onValueChange={field.onChange} defaultValue={field.value}>
+                <Select onValueChange={field.onChange} value={field.value}>
                   <FormControl>
                     <SelectTrigger>
                       <SelectValue placeholder="Select status" />
@@ -135,7 +175,7 @@ export function AdminAccountForm({ initialValues, onSubmit, isLoading }: AdminAc
           />
         </div>
 
-        {!initialValues && (
+        {!isEditMode && (
           <FormField
             control={form.control}
             name="password"
@@ -152,6 +192,14 @@ export function AdminAccountForm({ initialValues, onSubmit, isLoading }: AdminAc
           />
         )}
 
+        {/* Root / business-level error banner */}
+        {form.formState.errors.root?.message && (
+          <div className="flex items-center gap-2 rounded-md border border-destructive/40 bg-destructive/10 px-4 py-3 text-sm text-destructive">
+            <AlertCircleIcon className="h-4 w-4 shrink-0" />
+            <span>{form.formState.errors.root.message}</span>
+          </div>
+        )}
+
         <div className="flex justify-end pt-4">
           <Button type="submit" disabled={isLoading} className="gap-2">
             {isLoading ? (
@@ -159,7 +207,7 @@ export function AdminAccountForm({ initialValues, onSubmit, isLoading }: AdminAc
             ) : (
               <SaveIcon className="h-4 w-4" />
             )}
-            {initialValues ? 'Update Admin Account' : 'Create Admin Account'}
+            {isEditMode ? 'Update Admin Account' : 'Create Admin Account'}
           </Button>
         </div>
       </form>

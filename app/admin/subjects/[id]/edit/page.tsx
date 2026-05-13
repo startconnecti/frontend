@@ -1,5 +1,6 @@
 'use client';
 
+import { useState } from 'react';
 import { AdminPageHeader } from '@/components/admin/admin-page-header';
 import { SubjectForm, SubjectFormValues } from '@/features/admin-subjects/components/subject-form';
 import { Button } from '@/components/ui/button';
@@ -9,24 +10,47 @@ import { ADMIN_ROUTES } from '@/constants/admin-routes';
 import { useParams, useRouter } from 'next/navigation';
 import { toast } from 'sonner';
 import { useAdminSubjectDetailQuery, useUpdateAdminSubjectMutation } from '@/features/admin-subjects';
+import { AdminApiError } from '@/lib/admin-api/errors';
 
 export default function SubjectEditPage() {
   const params = useParams();
   const id = params.id as string;
   const router = useRouter();
+  const [serverErrors, setServerErrors] = useState<Record<string, string>>({});
 
   const { data: subject, isLoading, isError } = useAdminSubjectDetailQuery(id);
   const updateMutation = useUpdateAdminSubjectMutation();
 
   const handleSubmit = async (values: SubjectFormValues) => {
+    setServerErrors({});
     try {
       await updateMutation.mutateAsync({ id, data: values });
       toast.success('Subject updated successfully');
       router.push(ADMIN_ROUTES.SUBJECTS);
     } catch (error) {
-      toast.error('Failed to update subject', {
-        description: error instanceof Error ? error.message : 'An unknown error occurred',
-      });
+      if (AdminApiError.isAdminApiError(error)) {
+        const hasFieldErrors =
+          error.fieldErrors != null && Object.keys(error.fieldErrors).length > 0;
+
+        if (hasFieldErrors && error.fieldErrors) {
+          const mapped: Record<string, string> = {};
+          for (const [field, messages] of Object.entries(error.fieldErrors)) {
+            mapped[field] = Array.isArray(messages) ? messages[0] : messages;
+          }
+          setServerErrors(mapped);
+          toast.error('Failed to update subject', {
+            description: 'Please fix the highlighted fields and try again.',
+          });
+        } else {
+          // Business error — no specific field
+          setServerErrors({ root: error.message });
+          toast.error('Failed to update subject', { description: error.message });
+        }
+      } else {
+        toast.error('Failed to update subject', {
+          description: error instanceof Error ? error.message : 'An unknown error occurred',
+        });
+      }
     }
   };
 
@@ -72,6 +96,7 @@ export default function SubjectEditPage() {
           onSubmit={handleSubmit}
           isLoading={updateMutation.isPending}
           isEditMode
+          serverErrors={serverErrors}
         />
       </div>
     </>

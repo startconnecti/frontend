@@ -1,32 +1,18 @@
 'use client';
 
 import { useState } from 'react';
-import { 
-  Shield, 
-  PlusIcon, 
-  MoreVerticalIcon, 
-  EditIcon, 
-  SearchIcon 
-} from 'lucide-react';
+import { Shield, SearchIcon } from 'lucide-react';
 import { AdminPageHeader } from '@/components/admin/admin-page-header';
+import { AdminRowActions } from '@/components/admin/admin-row-actions';
 import { AdminStatusBadge } from '@/components/admin/admin-status-badge';
-import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Skeleton } from '@/components/ui/skeleton';
 import { PAGINATION } from '@/constants/pagination';
 import { useAdminAdminsQuery } from '@/features/admin-admins';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
-import Link from 'next/link';
 import { ADMIN_ROUTES } from '@/constants/admin-routes';
 
 function formatDate(dateString: string): string {
@@ -100,26 +86,13 @@ export default function AdminsPage() {
         </TableCell>
         <TableCell className="text-sm text-muted-foreground">{formatDate(admin.createdAt)}</TableCell>
         <TableCell className="text-right">
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="sm">
-                <MoreVerticalIcon className="h-4 w-4" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuLabel>Actions</DropdownMenuLabel>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem asChild>
-                <Link 
-                  href={ADMIN_ROUTES.ADMIN_EDIT(admin.id)}
-                  className="flex items-center gap-2 cursor-pointer"
-                >
-                  <EditIcon className="h-4 w-4" />
-                  Edit Account
-                </Link>
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
+          <AdminRowActions
+            viewHref={ADMIN_ROUTES.ADMIN_EDIT(admin.id)}
+            editHref={ADMIN_ROUTES.ADMIN_EDIT(admin.id)}
+            showView={false}
+            showEdit={true}
+            showDelete={false}
+          />
         </TableCell>
       </TableRow>
     ));
@@ -130,14 +103,7 @@ export default function AdminsPage() {
       <AdminPageHeader
         title="Admin Accounts"
         description="Manage platform administrators and their permissions."
-        action={
-          <Button asChild className="gap-2">
-            <Link href={ADMIN_ROUTES.ADMIN_CREATE}>
-              <PlusIcon className="h-4 w-4" />
-              Add Admin
-            </Link>
-          </Button>
-        }
+        action={{ label: 'Add Admin', href: ADMIN_ROUTES.ADMIN_CREATE }}
       />
 
       <Card>

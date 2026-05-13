@@ -118,7 +118,7 @@ let refreshPromise: Promise<void> | null = null;
 
 const AUTH_ENDPOINTS = [
   '/api/v1/admin/auth/login',
-  '/api/v1/admin/auth/refresh',
+  '/api/v1/admin/auth/token/refresh',
   '/api/v1/admin/auth/logout',
 ];
 
@@ -183,7 +183,7 @@ export async function adminRequest<T>(
               }
 
               // Use fetch directly to avoid recursion
-              const refreshUrl = buildAdminApiUrl('/api/v1/admin/auth/refresh');
+              const refreshUrl = buildAdminApiUrl('/api/v1/admin/auth/token/refresh');
               const refreshResponse = await fetch(refreshUrl.toString(), {
                 method: 'POST',
                 headers: {

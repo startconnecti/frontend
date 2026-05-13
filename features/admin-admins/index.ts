@@ -1,2 +1,3 @@
 export * from './types';
-export { useAdminAdminsQuery } from './hooks/use-admin-admins-query';
+export * from './hooks/use-admin-admins-query';
+export { adminAdminsService } from './services/admin-admins-service';

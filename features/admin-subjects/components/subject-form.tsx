@@ -23,7 +23,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Loader2Icon, SaveIcon } from 'lucide-react';
+import { Loader2Icon, SaveIcon, AlertCircleIcon } from 'lucide-react';
 
 const subjectSchema = z.object({
   name: z.string().min(2, 'Name must be at least 2 characters'),
@@ -43,9 +43,11 @@ interface SubjectFormProps {
   isLoading?: boolean;
   /** Pass true when used for editing (changes button label) */
   isEditMode?: boolean;
+  /** Backend field errors keyed by field name, e.g. { slug: 'Slug already exists' } */
+  serverErrors?: Record<string, string>;
 }
 
-export function SubjectForm({ initialValues, onSubmit, isLoading, isEditMode }: SubjectFormProps) {
+export function SubjectForm({ initialValues, onSubmit, isLoading, isEditMode, serverErrors }: SubjectFormProps) {
   const form = useForm<SubjectFormValues>({
     resolver: zodResolver(subjectSchema),
     defaultValues: {
@@ -56,7 +58,7 @@ export function SubjectForm({ initialValues, onSubmit, isLoading, isEditMode }: 
     },
   });
 
-  // When async initialValues arrive (edit mode), reset the form so fields populate.
+  // Hydrate form when async initialValues arrive (edit mode)
   useEffect(() => {
     if (initialValues) {
       form.reset({
@@ -67,6 +69,23 @@ export function SubjectForm({ initialValues, onSubmit, isLoading, isEditMode }: 
       });
     }
   }, [initialValues, form]);
+
+  // Map server-side errors onto form fields.
+  // Keys matching actual field names go under the field; 'root' is a global error.
+  useEffect(() => {
+    if (serverErrors) {
+      for (const [field, message] of Object.entries(serverErrors)) {
+        if (field === 'root') {
+          form.setError('root', { type: 'server', message });
+        } else {
+          form.setError(field as keyof SubjectFormValues, {
+            type: 'server',
+            message,
+          });
+        }
+      }
+    }
+  }, [serverErrors, form]);
 
   return (
     <Form {...form}>
@@ -143,6 +162,14 @@ export function SubjectForm({ initialValues, onSubmit, isLoading, isEditMode }: 
             </FormItem>
           )}
         />
+
+        {/* Root / business-level error banner */}
+        {form.formState.errors.root?.message && (
+          <div className="flex items-center gap-2 rounded-md border border-destructive/40 bg-destructive/10 px-4 py-3 text-sm text-destructive">
+            <AlertCircleIcon className="h-4 w-4 shrink-0" />
+            <span>{form.formState.errors.root.message}</span>
+          </div>
+        )}
 
         <div className="flex justify-end pt-4">
           <Button type="submit" disabled={isLoading} className="gap-2">

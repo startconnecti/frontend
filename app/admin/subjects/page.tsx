@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { AdminPageHeader } from '@/components/admin/admin-page-header';
+import { AdminRowActions } from '@/components/admin/admin-row-actions';
 import { AdminStatusBadge } from '@/components/admin/admin-status-badge';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
@@ -10,21 +11,7 @@ import { Input } from '@/components/ui/input';
 import { Skeleton } from '@/components/ui/skeleton';
 import { PAGINATION } from '@/constants/pagination';
 import { useAdminSubjectsQuery } from '@/features/admin-subjects';
-import {
-  EditIcon,
-  MoreVerticalIcon,
-  SearchIcon,
-  FilterIcon
-} from 'lucide-react';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
-import Link from 'next/link';
+import { SearchIcon, FilterIcon } from 'lucide-react';
 import { ADMIN_ROUTES } from '@/constants/admin-routes';
 
 function formatDate(dateString: string): string {
@@ -97,26 +84,14 @@ export default function SubjectsPage() {
         </TableCell>
         <TableCell className="text-sm text-muted-foreground">{formatDate(subject.createdAt)}</TableCell>
         <TableCell className="text-right">
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="sm">
-                <MoreVerticalIcon className="h-4 w-4" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuLabel>Actions</DropdownMenuLabel>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem asChild>
-                <Link 
-                  href={ADMIN_ROUTES.SUBJECT_EDIT(subject.id)}
-                  className="flex items-center gap-2 cursor-pointer"
-                >
-                  <EditIcon className="h-4 w-4" />
-                  Edit Subject
-                </Link>
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
+          {/* No Delete: backend DELETE not implemented. Edit is wired to real API. */}
+          <AdminRowActions
+            viewHref={ADMIN_ROUTES.SUBJECT_EDIT(subject.id)}
+            editHref={ADMIN_ROUTES.SUBJECT_EDIT(subject.id)}
+            showView={false}
+            showEdit={true}
+            showDelete={false}
+          />
         </TableCell>
       </TableRow>
     ));

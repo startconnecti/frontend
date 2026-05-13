@@ -1,31 +1,65 @@
 'use client';
 
+import { useState } from 'react';
 import { AdminPageHeader } from '@/components/admin/admin-page-header';
-import { AdminAccountForm } from '@/features/admin-admins/components/admin-account-form';
+import { AdminAccountForm, AdminAccountFormValues } from '@/features/admin-admins/components/admin-account-form';
 import { Button } from '@/components/ui/button';
 import { ChevronLeftIcon, Loader2Icon } from 'lucide-react';
 import Link from 'next/link';
 import { ADMIN_ROUTES } from '@/constants/admin-routes';
 import { useParams, useRouter } from 'next/navigation';
 import { toast } from 'sonner';
-import { useAdminAdminsQuery } from '@/features/admin-admins';
-import { PAGINATION } from '@/constants/pagination';
+import { useAdminAdminDetailQuery, useUpdateAdminAdminMutation } from '@/features/admin-admins';
+import { AdminApiError } from '@/lib/admin-api/errors';
 
 export default function AdminEditPage() {
-  const { id } = useParams();
+  const params = useParams();
+  const id = params.id as string;
   const router = useRouter();
+  const [serverErrors, setServerErrors] = useState<Record<string, string>>({});
 
-  const { data: adminsData, isLoading } = useAdminAdminsQuery({
-    limit: PAGINATION.DEFAULT_PAGE_SIZE,
-    page: 1,
-  });
+  const { data: admin, isLoading, isError } = useAdminAdminDetailQuery(id);
+  const updateMutation = useUpdateAdminAdminMutation();
 
-  const admin = adminsData?.items.find((a) => a.id === id);
+  const handleSubmit = async (values: AdminAccountFormValues) => {
+    setServerErrors({});
+    try {
+      await updateMutation.mutateAsync({
+        id,
+        data: {
+          fullName: values.fullName,
+          email: values.email,
+          role: values.role,
+          status: values.status,
+          ...(values.password ? { password: values.password } : {}),
+        },
+      });
+      toast.success('Admin account updated successfully');
+      router.push(ADMIN_ROUTES.ADMINS);
+    } catch (error) {
+      if (AdminApiError.isAdminApiError(error)) {
+        const hasFieldErrors =
+          error.fieldErrors != null && Object.keys(error.fieldErrors).length > 0;
 
-  const handleSubmit = async (values: any) => {
-    toast.info('Admin update API call placeholder', {
-      description: `This would call PATCH /api/v1/admin/admins/${id} in production.`
-    });
+        if (hasFieldErrors && error.fieldErrors) {
+          const mapped: Record<string, string> = {};
+          for (const [field, messages] of Object.entries(error.fieldErrors)) {
+            mapped[field] = Array.isArray(messages) ? messages[0] : messages;
+          }
+          setServerErrors(mapped);
+          toast.error('Failed to update admin account', {
+            description: 'Please fix the highlighted fields and try again.',
+          });
+        } else {
+          setServerErrors({ root: error.message });
+          toast.error('Failed to update admin account', { description: error.message });
+        }
+      } else {
+        toast.error('Failed to update admin account', {
+          description: error instanceof Error ? error.message : 'An unknown error occurred',
+        });
+      }
+    }
   };
 
   if (isLoading) {
@@ -36,11 +70,11 @@ export default function AdminEditPage() {
     );
   }
 
-  if (!admin) {
+  if (isError || !admin) {
     return (
       <div className="text-center py-20">
         <h3 className="text-xl font-bold">Admin account not found</h3>
-        <p className="text-muted-foreground mt-2">The admin ID you provided does not exist.</p>
+        <p className="text-muted-foreground mt-2">The admin ID you provided does not exist or an error occurred.</p>
         <Button asChild className="mt-6">
           <Link href={ADMIN_ROUTES.ADMINS}>Back to Admins</Link>
         </Button>
@@ -65,7 +99,13 @@ export default function AdminEditPage() {
       />
 
       <div className="max-w-3xl">
-        <AdminAccountForm initialValues={admin} onSubmit={handleSubmit} />
+        <AdminAccountForm
+          initialValues={admin as Partial<AdminAccountFormValues>}
+          onSubmit={handleSubmit}
+          isLoading={updateMutation.isPending}
+          isEditMode
+          serverErrors={serverErrors}
+        />
       </div>
     </>
   );

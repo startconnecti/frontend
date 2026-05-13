@@ -7,24 +7,16 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { 
-  PlusIcon, 
-  SearchIcon, 
-  BellIcon, 
-  SendIcon, 
-  ClockIcon, 
-  CheckCircle2Icon, 
+import {
+  SearchIcon,
+  BellIcon,
+  SendIcon,
+  ClockIcon,
+  CheckCircle2Icon,
   AlertCircleIcon,
-  MoreVerticalIcon,
-  EyeIcon,
   EditIcon
 } from 'lucide-react';
-import { 
-  DropdownMenu, 
-  DropdownMenuContent, 
-  DropdownMenuItem, 
-  DropdownMenuTrigger 
-} from '@/components/ui/dropdown-menu';
+import { AdminRowActions } from '@/components/admin/admin-row-actions';
 import Link from 'next/link';
 import { ADMIN_ROUTES } from '@/constants/admin-routes';
 
@@ -105,14 +97,7 @@ export default function NotificationsPage() {
       <AdminPageHeader
         title="Admin Notification Center"
         description="Broadcast announcements and manage system notifications."
-        action={
-          <Button asChild className="gap-2">
-            <Link href={ADMIN_ROUTES.NOTIFICATION_CREATE}>
-              <PlusIcon className="h-4 w-4" />
-              Create Announcement
-            </Link>
-          </Button>
-        }
+        action={{ label: 'Create Announcement', href: ADMIN_ROUTES.NOTIFICATION_CREATE }}
       />
 
       <div className="space-y-4">
@@ -159,33 +144,12 @@ export default function NotificationsPage() {
                     </div>
                   </TableCell>
                   <TableCell className="text-right">
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" size="sm">
-                          <MoreVerticalIcon className="h-4 w-4" />
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                        <DropdownMenuItem asChild>
-                          <Link href={`${ADMIN_ROUTES.NOTIFICATIONS}/${item.id}`} className="flex items-center gap-2 cursor-pointer">
-                            <EyeIcon className="h-4 w-4" />
-                            View Detail
-                          </Link>
-                        </DropdownMenuItem>
-                        <DropdownMenuItem asChild>
-                          <Link href={`${ADMIN_ROUTES.NOTIFICATIONS}/${item.id}/edit`} className="flex items-center gap-2 cursor-pointer">
-                            <EditIcon className="h-4 w-4" />
-                            Edit Draft
-                          </Link>
-                        </DropdownMenuItem>
-                        {item.status === 'draft' && (
-                          <DropdownMenuItem className="flex items-center gap-2 text-primary focus:text-primary">
-                            <SendIcon className="h-4 w-4" />
-                            Send Now
-                          </DropdownMenuItem>
-                        )}
-                      </DropdownMenuContent>
-                    </DropdownMenu>
+                    <AdminRowActions
+                      viewHref={ADMIN_ROUTES.NOTIFICATION_DETAIL(item.id)}
+                      editHref={item.status === 'draft' ? ADMIN_ROUTES.NOTIFICATION_EDIT(item.id) : undefined}
+                      showEdit={item.status === 'draft'}
+                      showDelete={false}
+                    />
                   </TableCell>
                 </TableRow>
               ))}

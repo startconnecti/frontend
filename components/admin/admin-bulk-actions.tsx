@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 interface AdminBulkActionsProps {
   selectedCount: number;
   onClearSelection: () => void;
-  onBulkDelete: () => void;
+  onBulkDelete?: () => void;
 }
 
 export function AdminBulkActions({ selectedCount, onClearSelection, onBulkDelete }: AdminBulkActionsProps) {
@@ -18,15 +18,17 @@ export function AdminBulkActions({ selectedCount, onClearSelection, onBulkDelete
         {selectedCount} selected
       </span>
       <div className="flex-1" />
-      <Button
-        variant="destructive"
-        size="sm"
-        onClick={onBulkDelete}
-        className="gap-2"
-      >
-        <Trash2 className="h-4 w-4" />
-        Bulk Delete
-      </Button>
+      {onBulkDelete && (
+        <Button
+          variant="destructive"
+          size="sm"
+          onClick={onBulkDelete}
+          className="gap-2"
+        >
+          <Trash2 className="h-4 w-4" />
+          Bulk Delete
+        </Button>
+      )}
       <Button
         variant="ghost"
         size="sm"
