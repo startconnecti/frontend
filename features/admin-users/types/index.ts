@@ -10,6 +10,7 @@ export interface AdminUser {
   status: AdminUserStatus;
   createdAt: string;
   updatedAt?: string | null;
+  deletedAt?: string | null;
   lastLoginAt?: string | null;
 }
 
@@ -32,10 +33,34 @@ export interface AdminUsersListResponse {
 
 export type AdminUserDetail = AdminUser & {
   phone?: string | null;
+  phoneNumber?: string | null;
   avatar?: string | null;
+  avatarUrl?: string | null;
   dateOfBirth?: string | null;
   gender?: string | null;
+  tutorProfileSummary?: AdminUserTutorProfileSummary | null;
 };
+
+export interface AdminUserTutorProfileSummary {
+  id?: string;
+  tutorProfileId?: string;
+  profileStatus?: string;
+  approvalStatus?: string;
+  hourlyRate?: number;
+  subjects?: Array<{ id: string; name: string }>;
+  bio?: string;
+  experienceText?: string;
+  approvalNote?: string | null;
+  certifications?: Array<{
+    id?: string;
+    name?: string;
+    issuer?: string;
+    url?: string;
+    uploadedAt?: string;
+  }>;
+  createdAt?: string;
+  updatedAt?: string;
+}
 
 export interface AdminUserMutationResponse {
   message: string;

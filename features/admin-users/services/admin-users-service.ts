@@ -8,6 +8,7 @@ import {
   AdminUserStatus,
   AdminUsersListResponse,
   AdminUsersQueryParams,
+  AdminUserTutorProfileSummary,
 } from '../types';
 
 type AdminUsersRequestParams = Record<string, string | number | boolean>;
@@ -22,6 +23,7 @@ interface RawAdminUserListItem {
   status?: string;
   createdAt?: string;
   updatedAt?: string;
+  deletedAt?: string | null;
   lastLoginAt?: string | null;
 }
 
@@ -37,10 +39,12 @@ interface RawAdminUsersListResponse {
 interface RawAdminUserDetailResponse {
   user?: RawAdminUserListItem & {
     phone?: string | null;
+    phoneNumber?: string | null;
     dob?: string | null;
     dateOfBirth?: string | null;
     gender?: string | null;
     avatar?: string | null;
+    avatarUrl?: string | null;
   };
   tutorProfileSummary?: unknown;
 }
@@ -63,6 +67,7 @@ function normalizeUser(item: RawAdminUserListItem | null | undefined): AdminUser
       status: 'inactive',
       createdAt: new Date(0).toISOString(),
       updatedAt: null,
+      deletedAt: null,
       lastLoginAt: null,
     };
   }
@@ -77,6 +82,7 @@ function normalizeUser(item: RawAdminUserListItem | null | undefined): AdminUser
     status: isAdminUserStatus(item.status) ? item.status : 'inactive',
     createdAt: item.createdAt ?? new Date(0).toISOString(),
     updatedAt: item.updatedAt ?? null,
+    deletedAt: item.deletedAt ?? null,
     lastLoginAt: item.lastLoginAt ?? null,
   };
 }
@@ -92,10 +98,13 @@ function normalizeUserDetail(response: RawAdminUserDetailResponse): AdminUserDet
 
   return {
     ...normalizedUser,
-    phone: rawUser.phone ?? null,
-    avatar: rawUser.avatar ?? null,
+    phone: rawUser.phoneNumber ?? rawUser.phone ?? null,
+    phoneNumber: rawUser.phoneNumber ?? rawUser.phone ?? null,
+    avatar: rawUser.avatarUrl ?? rawUser.avatar ?? null,
+    avatarUrl: rawUser.avatarUrl ?? rawUser.avatar ?? null,
     dateOfBirth: rawUser.dateOfBirth ?? rawUser.dob ?? null,
     gender: rawUser.gender ?? null,
+    tutorProfileSummary: (response.tutorProfileSummary as AdminUserTutorProfileSummary) || null,
   };
 }
 
