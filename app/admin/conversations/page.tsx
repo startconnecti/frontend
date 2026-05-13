@@ -9,106 +9,137 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { 
   SearchIcon, 
-  MessageSquareIcon, 
-  MoreVerticalIcon, 
   EyeIcon, 
-  ArchiveIcon, 
-  Trash2Icon,
-  FilterIcon
+  FilterIcon,
+  MessageSquareIcon
 } from 'lucide-react';
-import { 
-  DropdownMenu, 
-  DropdownMenuContent, 
-  DropdownMenuItem, 
-  DropdownMenuLabel, 
-  DropdownMenuSeparator, 
-  DropdownMenuTrigger 
-} from '@/components/ui/dropdown-menu';
 import Link from 'next/link';
 import { ADMIN_ROUTES } from '@/constants/admin-routes';
+import { useAdminConversationsQuery } from '@/features/admin-conversations';
+import { PAGINATION } from '@/constants/pagination';
+import { AdminEmptyState } from '@/components/admin/admin-empty-state';
+import { Skeleton } from '@/components/ui/skeleton';
 
-interface Conversation {
-  id: string;
-  participants: {
-    id: string;
-    name: string;
-    role: 'student' | 'tutor';
-  }[];
-  latestMessage: {
-    content: string;
-    senderId: string;
-    createdAt: string;
-  };
-  unreadCount: number;
-  status: 'active' | 'archived' | 'flagged';
-  lastActivityAt: string;
-}
-
-const MOCK_CONVERSATIONS: Conversation[] = [
-  {
-    id: '1',
-    participants: [
-      { id: 's1', name: 'John Doe', role: 'student' },
-      { id: 't1', name: 'Dr. Smith', role: 'tutor' }
-    ],
-    latestMessage: {
-      content: 'Thank you for the session today. It was very helpful!',
-      senderId: 's1',
-      createdAt: '2024-05-12T10:30:00Z'
-    },
-    unreadCount: 0,
-    status: 'active',
-    lastActivityAt: '2024-05-12T10:30:00Z'
-  },
-  {
-    id: '2',
-    participants: [
-      { id: 's2', name: 'Alice Wong', role: 'student' },
-      { id: 't2', name: 'Prof. Miller', role: 'tutor' }
-    ],
-    latestMessage: {
-      content: 'Can we reschedule our session to tomorrow?',
-      senderId: 's2',
-      createdAt: '2024-05-12T09:15:00Z'
-    },
-    unreadCount: 2,
-    status: 'flagged',
-    lastActivityAt: '2024-05-12T09:15:00Z'
-  },
-  {
-    id: '3',
-    participants: [
-      { id: 's3', name: 'Bob Johnson', role: 'student' },
-      { id: 't3', name: 'Sarah Wilson', role: 'tutor' }
-    ],
-    latestMessage: {
-      content: 'I have shared the meeting link in the booking details.',
-      senderId: 't3',
-      createdAt: '2024-05-11T16:45:00Z'
-    },
-    unreadCount: 0,
-    status: 'active',
-    lastActivityAt: '2024-05-11T16:45:00Z'
-  },
-  {
-    id: '4',
-    participants: [
-      { id: 's4', name: 'Emily Davis', role: 'student' },
-      { id: 't4', name: 'Michael Brown', role: 'tutor' }
-    ],
-    latestMessage: {
-      content: 'Payment has been confirmed for the next 5 sessions.',
-      senderId: 's4',
-      createdAt: '2024-05-10T11:20:00Z'
-    },
-    unreadCount: 0,
-    status: 'archived',
-    lastActivityAt: '2024-05-10T11:20:00Z'
+function formatDate(dateString: string): string {
+  try {
+    const date = new Date(dateString);
+    if (isNaN(date.getTime()) || date.getFullYear() === 1970) {
+      return '-';
+    }
+    return date.toLocaleString();
+  } catch {
+    return '-';
   }
-];
+}
 
 export default function ConversationsPage() {
   const [searchQuery, setSearchQuery] = useState('');
+  const [statusFilter, setStatusFilter] = useState<string>('all');
+  const [page, setPage] = useState(1);
+
+  const { data, isLoading, isError } = useAdminConversationsQuery({
+    keyword: searchQuery || undefined,
+    status: statusFilter === 'all' ? undefined : statusFilter,
+    page,
+    limit: PAGINATION.DEFAULT_PAGE_SIZE,
+  });
+
+  const statuses = ['all', 'active', 'archived', 'flagged', 'closed'] as const;
+
+  const conversations = data?.items || [];
+  const total = data?.total || 0;
+
+  const renderTableRows = () => {
+    if (isLoading) {
+      return Array.from({ length: 5 }).map((_, i) => (
+        <TableRow key={i}>
+          <TableCell><Skeleton className="h-10 w-48" /></TableCell>
+          <TableCell className="hidden md:table-cell"><Skeleton className="h-4 w-64" /></TableCell>
+          <TableCell><Skeleton className="h-6 w-20" /></TableCell>
+          <TableCell><Skeleton className="h-4 w-32" /></TableCell>
+          <TableCell><Skeleton className="h-8 w-8 ml-auto" /></TableCell>
+        </TableRow>
+      ));
+    }
+
+    if (isError) {
+      return (
+        <TableRow>
+          <TableCell colSpan={5} className="h-24 text-center text-destructive">
+            Failed to load conversations. Please try again.
+          </TableCell>
+        </TableRow>
+      );
+    }
+
+    if (conversations.length === 0) {
+      return (
+        <TableRow>
+          <TableCell colSpan={5} className="p-0">
+            <AdminEmptyState 
+              icon={MessageSquareIcon}
+              title="No conversations found"
+              description="Monitor user interactions and moderate conversations."
+            />
+          </TableCell>
+        </TableRow>
+      );
+    }
+
+    return conversations.map((conv) => (
+      <TableRow key={conv.id}>
+        <TableCell>
+          <div className="flex flex-col gap-1">
+            <div className="font-bold flex items-center gap-2">
+              {conv.participants[0]?.fullName || 'Unknown'} 
+              <span className="text-muted-foreground text-xs font-normal">and</span>
+              {conv.participants[1]?.fullName || 'Unknown'}
+            </div>
+            <div className="flex gap-2">
+              {conv.participants.map((p) => (
+                <Badge key={p.id} variant="secondary" className="text-[10px] h-4 px-1 capitalize">
+                  {p.role}
+                </Badge>
+              ))}
+            </div>
+          </div>
+        </TableCell>
+        <TableCell className="hidden md:table-cell max-w-[300px]">
+          <div className="text-sm truncate">
+            {conv.unreadCount > 0 && (
+              <span className="inline-flex items-center justify-center bg-primary text-primary-foreground text-[10px] font-bold rounded-full h-4 w-4 mr-2">
+                {conv.unreadCount}
+              </span>
+            )}
+            <span className={conv.unreadCount > 0 ? 'font-bold' : 'text-muted-foreground'}>
+              {conv.lastMessage?.content || 'No messages yet'}
+            </span>
+          </div>
+        </TableCell>
+        <TableCell>
+          <Badge 
+            variant={
+              conv.status === 'flagged' ? 'destructive' : 
+              conv.status === 'archived' ? 'outline' : 'default'
+            }
+            className="capitalize"
+          >
+            {conv.status}
+          </Badge>
+        </TableCell>
+        <TableCell className="text-sm text-muted-foreground">
+          {formatDate(conv.lastActivityAt)}
+        </TableCell>
+        <TableCell className="text-right">
+          <Button variant="ghost" size="sm" asChild>
+            <Link href={ADMIN_ROUTES.CONVERSATION_DETAIL(conv.id)}>
+              <EyeIcon className="h-4 w-4" />
+            </Link>
+          </Button>
+        </TableCell>
+      </TableRow>
+    ));
+  };
 
   return (
     <>
@@ -125,15 +156,30 @@ export default function ConversationsPage() {
               placeholder="Search participants..." 
               className="pl-9"
               value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
+              onChange={(e) => {
+                setSearchQuery(e.target.value);
+                setPage(1);
+              }}
             />
           </div>
           <div className="flex items-center gap-2 w-full sm:w-auto">
-            <Button variant="outline" size="sm" className="gap-2">
-              <FilterIcon className="h-4 w-4" />
-              Filters
-            </Button>
-            <Badge variant="outline">{MOCK_CONVERSATIONS.length} Conversations</Badge>
+            <div className="flex gap-2">
+              {statuses.map((s) => (
+                <Button
+                  key={s}
+                  variant={statusFilter === s ? 'default' : 'outline'}
+                  size="sm"
+                  className="capitalize"
+                  onClick={() => {
+                    setStatusFilter(s);
+                    setPage(1);
+                  }}
+                >
+                  {s}
+                </Button>
+              ))}
+            </div>
+            <Badge variant="outline">{total} Conversations</Badge>
           </div>
         </div>
 
@@ -149,83 +195,35 @@ export default function ConversationsPage() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {MOCK_CONVERSATIONS.map((conv) => (
-                <TableRow key={conv.id}>
-                  <TableCell>
-                    <div className="flex flex-col gap-1">
-                      <div className="font-bold flex items-center gap-2">
-                        {conv.participants[0].name} 
-                        <span className="text-muted-foreground text-xs font-normal">and</span>
-                        {conv.participants[1].name}
-                      </div>
-                      <div className="flex gap-2">
-                        <Badge variant="secondary" className="text-[10px] h-4 px-1">
-                          {conv.participants[0].role}
-                        </Badge>
-                        <Badge variant="secondary" className="text-[10px] h-4 px-1">
-                          {conv.participants[1].role}
-                        </Badge>
-                      </div>
-                    </div>
-                  </TableCell>
-                  <TableCell className="hidden md:table-cell max-w-[300px]">
-                    <div className="text-sm truncate">
-                      {conv.unreadCount > 0 && (
-                        <span className="inline-flex items-center justify-center bg-primary text-primary-foreground text-[10px] font-bold rounded-full h-4 w-4 mr-2">
-                          {conv.unreadCount}
-                        </span>
-                      )}
-                      <span className={conv.unreadCount > 0 ? 'font-bold' : 'text-muted-foreground'}>
-                        {conv.latestMessage.content}
-                      </span>
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <Badge 
-                      variant={
-                        conv.status === 'flagged' ? 'destructive' : 
-                        conv.status === 'archived' ? 'outline' : 'default'
-                      }
-                      className="capitalize"
-                    >
-                      {conv.status}
-                    </Badge>
-                  </TableCell>
-                  <TableCell className="text-sm text-muted-foreground">
-                    {new Date(conv.lastActivityAt).toLocaleString()}
-                  </TableCell>
-                  <TableCell className="text-right">
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" size="sm">
-                          <MoreVerticalIcon className="h-4 w-4" />
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                        <DropdownMenuLabel>Moderation</DropdownMenuLabel>
-                        <DropdownMenuSeparator />
-                        <DropdownMenuItem asChild>
-                          <Link href={`${ADMIN_ROUTES.CONVERSATIONS}/${conv.id}`} className="flex items-center gap-2 cursor-pointer">
-                            <EyeIcon className="h-4 w-4" />
-                            View Conversation
-                          </Link>
-                        </DropdownMenuItem>
-                        <DropdownMenuItem className="flex items-center gap-2 text-amber-600 focus:text-amber-600">
-                          <ArchiveIcon className="h-4 w-4" />
-                          Archive
-                        </DropdownMenuItem>
-                        <DropdownMenuSeparator />
-                        <DropdownMenuItem className="flex items-center gap-2 text-destructive focus:text-destructive">
-                          <Trash2Icon className="h-4 w-4" />
-                          Delete
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  </TableCell>
-                </TableRow>
-              ))}
+              {renderTableRows()}
             </TableBody>
           </Table>
+
+          {!isLoading && data && data.totalPages > 1 && (
+            <div className="border-t border-border px-6 py-4 flex items-center justify-between">
+              <p className="text-sm text-muted-foreground">
+                Page {data.page} of {data.totalPages}
+              </p>
+              <div className="flex gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setPage(Math.max(1, page - 1))}
+                  disabled={page === 1}
+                >
+                  Previous
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setPage(Math.min(data.totalPages, page + 1))}
+                  disabled={page === data.totalPages}
+                >
+                  Next
+                </Button>
+              </div>
+            </div>
+          )}
         </Card>
       </div>
     </>
