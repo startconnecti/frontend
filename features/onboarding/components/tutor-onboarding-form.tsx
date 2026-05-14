@@ -109,7 +109,17 @@ export function TutorOnboardingForm() {
     setCurrentStep((prev) => Math.max(prev - 1, 0));
   };
 
-  const updateUser = useAuthStore((state) => state.updateUser);
+  const { user, updateUser, logout } = useAuthStore();
+  const isTutorReady = user?.role === 'tutor' && (user.onboardingCompleted || user.hasTutorProfile);
+
+  const handleSkipAndExit = () => {
+    if (isTutorReady) {
+      router.push(ROUTES.TUTOR_DASHBOARD);
+    } else {
+      logout();
+      router.push(ROUTES.LOGIN);
+    }
+  };
   const handleSubmit = async () => {
     if (validateStep(currentStep)) {
       try {
@@ -183,8 +193,8 @@ export function TutorOnboardingForm() {
 
         <CardFooter className="border-t bg-muted/10 p-6 flex items-center justify-between">
           <div className="flex gap-2">
-            <Button variant="ghost" asChild>
-              <Link href={ROUTES.TUTOR_DASHBOARD}>Skip & Exit</Link>
+            <Button variant="ghost" onClick={handleSkipAndExit}>
+              {isTutorReady ? 'Go to Dashboard' : 'Skip & Logout'}
             </Button>
             {currentStep > 0 && (
               <Button variant="outline" onClick={handleBack}>

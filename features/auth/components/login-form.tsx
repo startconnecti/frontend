@@ -56,7 +56,8 @@ export function LoginForm() {
       if (response.user.role === 'student') {
         router.push(response.user.onboardingCompleted ? ROUTES.STUDENT_DASHBOARD : ROUTES.ONBOARDING_STUDENT);
       } else {
-        router.push(response.user.onboardingCompleted ? ROUTES.TUTOR_DASHBOARD : ROUTES.ONBOARDING_TUTOR);
+        const isTutorReady = response.user.onboardingCompleted || response.user.hasTutorProfile;
+        router.push(isTutorReady ? ROUTES.TUTOR_DASHBOARD : ROUTES.ONBOARDING_TUTOR);
       }
     } catch (err) {
       setFormErrors(err, form.setError);

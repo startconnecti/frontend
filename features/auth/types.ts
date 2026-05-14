@@ -17,6 +17,8 @@ export interface AuthUser {
   phoneNumber?: string;
   gender?: Gender;
   dateOfBirth?: string;
+  hasTutorProfile?: boolean;
+  tutorProfileStatus?: string | null;
 }
 
 export interface LoginRequest {

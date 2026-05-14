@@ -40,22 +40,32 @@ export function RouteGuard({
     }
 
     // 3. Onboarding Check
-    if (requireOnboarding && user && !user.onboardingCompleted) {
-      // Check if already on onboarding page to avoid loop
-      const onboardingPath = user.role === 'tutor' ? ROUTES.ONBOARDING_TUTOR : ROUTES.ONBOARDING_STUDENT;
-      if (pathname !== onboardingPath) {
-        router.push(onboardingPath);
+    if (requireOnboarding && user) {
+      const isStudentIncomplete = user.role === 'student' && !user.onboardingCompleted;
+      const isTutorIncomplete = user.role === 'tutor' && !user.onboardingCompleted && !user.hasTutorProfile;
+      
+      if (isStudentIncomplete || isTutorIncomplete) {
+        // Check if already on onboarding page to avoid loop
+        const onboardingPath = user.role === 'tutor' ? ROUTES.ONBOARDING_TUTOR : ROUTES.ONBOARDING_STUDENT;
+        if (pathname !== onboardingPath) {
+          router.push(onboardingPath);
+        }
+        return;
       }
-      return;
     }
 
     // 4. Prevent Re-onboarding if already completed
-    if (user?.onboardingCompleted) {
-      const onboardingPathStudent = ROUTES.ONBOARDING_STUDENT;
-      const onboardingPathTutor = ROUTES.ONBOARDING_TUTOR;
-      if (pathname === onboardingPathStudent || pathname === onboardingPathTutor) {
-        const dashboard = user.role === 'tutor' ? ROUTES.TUTOR_DASHBOARD : ROUTES.STUDENT_DASHBOARD;
-        router.push(dashboard);
+    if (user) {
+      const isStudentComplete = user.role === 'student' && user.onboardingCompleted;
+      const isTutorComplete = user.role === 'tutor' && (user.onboardingCompleted || user.hasTutorProfile);
+      
+      if (isStudentComplete || isTutorComplete) {
+        const onboardingPathStudent = ROUTES.ONBOARDING_STUDENT;
+        const onboardingPathTutor = ROUTES.ONBOARDING_TUTOR;
+        if (pathname === onboardingPathStudent || pathname === onboardingPathTutor) {
+          const dashboard = user.role === 'tutor' ? ROUTES.TUTOR_DASHBOARD : ROUTES.STUDENT_DASHBOARD;
+          router.push(dashboard);
+        }
       }
     }
   }, [isHydrated, isAuthenticated, user, allowedRole, requireOnboarding, pathname, router]);
@@ -70,7 +80,15 @@ export function RouteGuard({
 
   // Final check for role before rendering children to avoid flash of content
   if (allowedRole && user?.role !== allowedRole) return null;
-  if (requireOnboarding && user && !user.onboardingCompleted && pathname !== (user.role === 'tutor' ? ROUTES.ONBOARDING_TUTOR : ROUTES.ONBOARDING_STUDENT)) return null;
+  if (requireOnboarding && user) {
+    const isStudentIncomplete = user.role === 'student' && !user.onboardingCompleted;
+    const isTutorIncomplete = user.role === 'tutor' && !user.onboardingCompleted && !user.hasTutorProfile;
+    if (isStudentIncomplete || isTutorIncomplete) {
+      if (pathname !== (user.role === 'tutor' ? ROUTES.ONBOARDING_TUTOR : ROUTES.ONBOARDING_STUDENT)) {
+        return null;
+      }
+    }
+  }
 
   return <>{children}</>;
 }
