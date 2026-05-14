@@ -51,7 +51,6 @@ export function RegisterOtpForm({ email, role, onBack }: RegisterOtpFormProps) {
       const response = await verifyMutation.mutateAsync({
         email,
         otp: values.otp,
-        role,
       });
 
       // Update global auth store

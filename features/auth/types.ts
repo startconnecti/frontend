@@ -47,7 +47,6 @@ export interface RegisterCredentialsRequest {
 export interface VerifyRegisterOtpRequest {
   email: string;
   otp: string;
-  role: UserRole;
 }
 
 export interface StudentProfileSetupRequest {
