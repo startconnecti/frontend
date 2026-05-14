@@ -17,8 +17,6 @@ export function PublicFooter() {
             <h4 className="text-sm font-semibold uppercase tracking-wider">Company</h4>
             <ul className="space-y-2">
               <li><Link href="#" className="text-sm text-muted-foreground hover:text-primary">About</Link></li>
-              <li><Link href="#" className="text-sm text-muted-foreground hover:text-primary">Blog</Link></li>
-              <li><Link href="#" className="text-sm text-muted-foreground hover:text-primary">Careers</Link></li>
             </ul>
           </div>
           <div className="space-y-4">
@@ -37,7 +35,7 @@ export function PublicFooter() {
           </div>
         </div>
         <div className="mt-12 border-t pt-8 text-center text-sm text-muted-foreground">
-          <p>&copy; 2024 Connecti. All rights reserved.</p>
+          <p>&copy; 2026 Connecti. All rights reserved.</p>
         </div>
       </div>
     </footer>

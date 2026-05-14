@@ -19,9 +19,9 @@ export function StudentOnboardingPage() {
 
         <Card className="border-border/60 shadow-xl shadow-primary/5 rounded-3xl overflow-hidden">
           <CardHeader className="bg-primary/5 border-b border-primary/10 pb-6">
-            <CardTitle className="text-xl">Personal Information</CardTitle>
+            <CardTitle className="text-xl">Learning Preferences</CardTitle>
             <CardDescription>
-              This information helps us personalize your experience and improve tutor matches.
+              Tell us about the subjects you want to master and your learning goals.
             </CardDescription>
           </CardHeader>
           <CardContent className="pt-8">

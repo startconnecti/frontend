@@ -11,7 +11,7 @@ import { SORT_OPTIONS } from '../constants';
 import { TutorSortOption } from '../types';
 
 interface TutorSortSelectProps {
-  value: TutorSortOption;
+  value?: TutorSortOption;
   onChange: (value: TutorSortOption) => void;
 }
 

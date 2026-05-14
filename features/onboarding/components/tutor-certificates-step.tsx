@@ -16,7 +16,7 @@ export function TutorCertificatesStep({ data, onChange, errors }: StepProps) {
     const newCert: TutorOnboardingCertificate = {
       title: '',
       issuer: '',
-      issuedAt: '',
+      year: new Date().getFullYear(),
       fileName: '',
     };
     onChange({ certificates: [...data.certificates, newCert] });
@@ -26,9 +26,9 @@ export function TutorCertificatesStep({ data, onChange, errors }: StepProps) {
     onChange({ certificates: data.certificates.filter((_, i) => i !== index) });
   };
 
-  const updateCertificate = (index: number, field: keyof TutorOnboardingCertificate, value: string) => {
+  const updateCertificate = (index: number, field: keyof TutorOnboardingCertificate, value: string | number) => {
     const newCerts = [...data.certificates];
-    newCerts[index] = { ...newCerts[index], [field]: value };
+    newCerts[index] = { ...newCerts[index], [field]: value } as TutorOnboardingCertificate;
     onChange({ certificates: newCerts });
   };
 
@@ -86,11 +86,11 @@ export function TutorCertificatesStep({ data, onChange, errors }: StepProps) {
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <label className="text-[10px] font-bold uppercase text-muted-foreground">Date Issued</label>
+                  <label className="text-[10px] font-bold uppercase text-muted-foreground">Year Issued</label>
                   <Input 
-                    type="date" 
-                    value={cert.issuedAt} 
-                    onChange={(e) => updateCertificate(index, 'issuedAt', e.target.value)} 
+                    type="number" 
+                    value={cert.year} 
+                    onChange={(e) => updateCertificate(index, 'year', parseInt(e.target.value) || new Date().getFullYear())} 
                   />
                 </div>
                 <div className="space-y-2">

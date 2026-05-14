@@ -13,13 +13,6 @@ export function TutorReviewSubmitStep({ data }: StepProps) {
     <div className="space-y-6">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div className="space-y-4">
-          <Section title="Personal" items={[
-            { label: 'Name', value: data.fullName },
-            { label: 'Gender', value: data.gender },
-            { label: 'Phone', value: data.phoneNumber || 'Not provided' },
-            { label: 'DOB', value: data.dateOfBirth || 'Not provided' },
-          ]} />
-          
           <Section title="Rate & Subjects" items={[
             { label: 'Hourly Rate', value: `$${data.hourlyRate}/hr` },
             { label: 'Subjects', value: data.subjects.length > 0 ? (

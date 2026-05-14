@@ -69,7 +69,10 @@ export function Hero() {
 
           {/* CTA Buttons */}
           <div className="flex flex-wrap gap-4 pt-4">
-            <button className="flex items-center gap-2 px-6 py-3 rounded-lg bg-primary text-primary-foreground hover:opacity-90 transition-opacity font-medium text-base">
+            <button 
+              onClick={() => document.getElementById('discover')?.scrollIntoView({ behavior: 'smooth' })}
+              className="flex items-center gap-2 px-6 py-3 rounded-lg bg-primary text-primary-foreground hover:opacity-90 transition-opacity font-medium text-base"
+            >
               Find a Mentor
               <ArrowRight className="w-4 h-4" />
             </button>

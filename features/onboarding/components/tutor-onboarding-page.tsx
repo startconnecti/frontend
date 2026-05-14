@@ -10,17 +10,17 @@ import { useAuthStore } from '@/stores/auth-store';
 import { useRouter } from 'next/navigation';
 
 export function TutorOnboardingPage() {
-  const { user, logout } = useAuthStore();
+  const { user, logout, updateUser } = useAuthStore();
   const router = useRouter();
   
-  const isTutorReady = user?.role === 'tutor' && (user.onboardingCompleted || user.hasTutorProfile);
+  const isTutorReady = user?.role === 'tutor' && (user.onboardingCompleted || user.hasProfile || user.tutorProfileStatus);
 
   const handleLeave = () => {
     if (isTutorReady) {
       router.push(ROUTES.TUTOR_DASHBOARD);
     } else {
-      logout();
-      router.push(ROUTES.LOGIN);
+      updateUser({ onboardingSkipped: true });
+      router.push(ROUTES.TUTOR_DASHBOARD);
     }
   };
 
@@ -43,8 +43,8 @@ export function TutorOnboardingPage() {
               </>
             ) : (
               <>
-                <LogOut className="h-4 w-4" />
-                Logout
+                <ArrowLeft className="h-4 w-4" />
+                Skip for now
               </>
             )}
           </Button>

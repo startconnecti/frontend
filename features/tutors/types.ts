@@ -41,22 +41,30 @@ export interface Tutor {
   feedbacks: Feedback[];
 }
 
-export type TutorSortOption = 
-  | 'recommended' 
-  | 'highest_rating' 
-  | 'lowest_price' 
-  | 'highest_price' 
-  | 'most_reviewed' 
+export type TutorSortOption =
+  | 'recommended'
+  | 'highest_rating'
+  | 'lowest_price'
+  | 'highest_price'
+  | 'most_reviewed'
   | 'newest';
+
+export interface Subject {
+  id: string;
+  name: string;
+  slug?: string;
+  status?: string;
+  isActive?: boolean;
+}
 
 export interface TutorFilters {
   keyword?: string;
-  subject?: string;
+  subjectId?: string;
   minPrice?: number;
   maxPrice?: number;
   minRating?: number;
   availabilityDay?: string;
-  sortBy: TutorSortOption;
+  sortBy?: TutorSortOption;
   page?: number;
   limit?: number;
 }

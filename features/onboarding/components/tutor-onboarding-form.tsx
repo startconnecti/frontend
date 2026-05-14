@@ -8,13 +8,13 @@ import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
 import { ROUTES } from '@/constants/routes';
-import { TutorOnboardingRequest } from '../types';
+import { TutorProfileSetupRequest } from '@/features/auth/types';
 import { ONBOARDING_CONSTANTS } from '../constants';
+
 import { TutorOnboardingStepper } from './tutor-onboarding-stepper';
 import { useAuthStore } from '@/stores/auth-store';
 import { useCompleteTutorOnboardingMutation } from '../hooks/use-complete-tutor-onboarding-mutation';
 
-import { TutorPersonalStep } from './tutor-personal-step';
 import { TutorTeachingProfileStep } from './tutor-teaching-profile-step';
 import { TutorSubjectsRateStep } from './tutor-subjects-rate-step';
 import { TutorCertificatesStep } from './tutor-certificates-step';
@@ -22,7 +22,6 @@ import { TutorAvailabilityStep } from './tutor-availability-step';
 import { TutorReviewSubmitStep } from './tutor-review-submit-step';
 
 const STEPS = [
-  { title: 'Personal', icon: User },
   { title: 'Profile', icon: GraduationCap },
   { title: 'Rate', icon: DollarSign },
   { title: 'Certificates', icon: Award },
@@ -36,11 +35,7 @@ export function TutorOnboardingForm() {
   const [errors, setErrors] = useState<Record<string, string>>({});
   const onboardingMutation = useCompleteTutorOnboardingMutation();
   
-  const [formData, setFormData] = useState<TutorOnboardingRequest>({
-    fullName: '',
-    phoneNumber: '',
-    dateOfBirth: '',
-    gender: 'undisclosed',
+  const [formData, setFormData] = useState<TutorProfileSetupRequest>({
     bio: '',
     experienceText: '',
     yearsOfExperience: 0,
@@ -51,7 +46,7 @@ export function TutorOnboardingForm() {
     requestNote: '',
   });
 
-  const updateFormData = (newData: Partial<TutorOnboardingRequest>) => {
+  const updateFormData = (newData: Partial<TutorProfileSetupRequest>) => {
     setFormData((prev) => ({ ...prev, ...newData }));
     // Clear errors for fields being updated
     if (errors) {
@@ -65,29 +60,24 @@ export function TutorOnboardingForm() {
     const newErrors: Record<string, string> = {};
 
     if (step === 0) {
-      if (!formData.fullName.trim()) newErrors.fullName = 'Full name is required';
-      if (!formData.gender) newErrors.gender = 'Gender is required';
-    }
-
-    if (step === 1) {
       if (formData.bio.length < ONBOARDING_CONSTANTS.BIO_MIN_LENGTH) {
         newErrors.bio = `Bio must be at least ${ONBOARDING_CONSTANTS.BIO_MIN_LENGTH} characters`;
       }
       if (formData.yearsOfExperience < 0) newErrors.yearsOfExperience = 'Years of experience cannot be negative';
     }
 
-    if (step === 2) {
+    if (step === 1) {
       if (formData.subjects.length === 0) newErrors.subjects = 'Please select at least one subject';
       if (formData.hourlyRate <= 0) newErrors.hourlyRate = 'Hourly rate must be greater than 0';
     }
 
-    if (step === 3) {
+    if (step === 2) {
       formData.certificates.forEach((cert, i) => {
         if (!cert.title.trim()) newErrors[`cert_${i}_title`] = 'Title is required';
       });
     }
 
-    if (step === 4) {
+    if (step === 3) {
       formData.weeklyAvailability.forEach((avail, i) => {
         if (avail.startTime >= avail.endTime) {
           newErrors[`avail_${i}`] = 'Start time must be before end time';
@@ -110,14 +100,14 @@ export function TutorOnboardingForm() {
   };
 
   const { user, updateUser, logout } = useAuthStore();
-  const isTutorReady = user?.role === 'tutor' && (user.onboardingCompleted || user.hasTutorProfile);
+  const isTutorReady = user?.role === 'tutor' && (user.onboardingCompleted || user.hasProfile || user.tutorProfileStatus);
 
   const handleSkipAndExit = () => {
     if (isTutorReady) {
       router.push(ROUTES.TUTOR_DASHBOARD);
     } else {
-      logout();
-      router.push(ROUTES.LOGIN);
+      updateUser({ onboardingSkipped: true });
+      router.push(ROUTES.TUTOR_DASHBOARD);
     }
   };
   const handleSubmit = async () => {
@@ -133,9 +123,8 @@ export function TutorOnboardingForm() {
 
   const isStepInvalid = useMemo(() => {
     // Basic reactive validation for UI state
-    if (currentStep === 0) return !formData.fullName.trim();
-    if (currentStep === 1) return formData.bio.length < ONBOARDING_CONSTANTS.BIO_MIN_LENGTH;
-    if (currentStep === 2) return formData.subjects.length === 0 || formData.hourlyRate <= 0;
+    if (currentStep === 0) return formData.bio.length < ONBOARDING_CONSTANTS.BIO_MIN_LENGTH;
+    if (currentStep === 1) return formData.subjects.length === 0 || formData.hourlyRate <= 0;
     return false;
   }, [currentStep, formData]);
 
@@ -183,18 +172,17 @@ export function TutorOnboardingForm() {
         </CardHeader>
         
         <CardContent className="pt-8 flex-1">
-          {currentStep === 0 && <TutorPersonalStep data={formData} onChange={updateFormData} errors={errors} />}
-          {currentStep === 1 && <TutorTeachingProfileStep data={formData} onChange={updateFormData} errors={errors} />}
-          {currentStep === 2 && <TutorSubjectsRateStep data={formData} onChange={updateFormData} errors={errors} />}
-          {currentStep === 3 && <TutorCertificatesStep data={formData} onChange={updateFormData} errors={errors} />}
-          {currentStep === 4 && <TutorAvailabilityStep data={formData} onChange={updateFormData} errors={errors} />}
-          {currentStep === 5 && <TutorReviewSubmitStep data={formData} onChange={updateFormData} />}
+          {currentStep === 0 && <TutorTeachingProfileStep data={formData} onChange={updateFormData} errors={errors} />}
+          {currentStep === 1 && <TutorSubjectsRateStep data={formData} onChange={updateFormData} errors={errors} />}
+          {currentStep === 2 && <TutorCertificatesStep data={formData} onChange={updateFormData} errors={errors} />}
+          {currentStep === 3 && <TutorAvailabilityStep data={formData} onChange={updateFormData} errors={errors} />}
+          {currentStep === 4 && <TutorReviewSubmitStep data={formData} onChange={updateFormData} />}
         </CardContent>
 
         <CardFooter className="border-t bg-muted/10 p-6 flex items-center justify-between">
           <div className="flex gap-2">
             <Button variant="ghost" onClick={handleSkipAndExit}>
-              {isTutorReady ? 'Go to Dashboard' : 'Skip & Logout'}
+              {isTutorReady ? 'Go to Dashboard' : 'Skip for now'}
             </Button>
             {currentStep > 0 && (
               <Button variant="outline" onClick={handleBack}>

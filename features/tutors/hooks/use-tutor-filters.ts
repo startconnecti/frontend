@@ -3,7 +3,7 @@ import { TutorFilters, TutorSortOption } from '../types';
 
 const initialFilters: TutorFilters = {
   keyword: '',
-  subject: 'all',
+  subjectId: undefined,
   minPrice: undefined,
   maxPrice: undefined,
   minRating: undefined,

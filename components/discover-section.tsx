@@ -1,52 +1,33 @@
 'use client';
 
-import { Search } from 'lucide-react';
+import { Search, Loader2, AlertCircle } from 'lucide-react';
 import { MentorCard } from './mentor-card';
 import { useState } from 'react';
-
-const mentorsData = [
-  {
-    name: 'Sarah Chen',
-    title: 'Harvard MBA, Stanford GSB',
-    expertise: ['MBA Admissions', 'Career Coaching', 'Leadership'],
-    rating: 4.9,
-    reviews: 87,
-    bio: 'Helped 50+ students gain admission to top MBA programs. Expert in application strategy.',
-  },
-  {
-    name: 'Marcus Johnson',
-    title: 'Fulbright Scholar, Oxford',
-    expertise: ['Scholarships', 'Academic Excellence', 'Career Path'],
-    rating: 4.8,
-    reviews: 62,
-    bio: 'Fulbright scholarship recipient. Mentors students on scholarship strategy and planning.',
-  },
-  {
-    name: 'Elena Rodriguez',
-    title: 'GMAT Expert, Test Prep Coach',
-    expertise: ['GMAT', 'GRE', 'Test Strategy'],
-    rating: 5.0,
-    reviews: 54,
-    bio: 'Specialized in standardized test prep. Average student score improvement: 120 points.',
-  },
-  {
-    name: 'James Park',
-    title: 'IELTS Specialist, Language Coach',
-    expertise: ['IELTS', 'Language Learning', 'Communication'],
-    rating: 4.7,
-    reviews: 43,
-    bio: 'Expert English language coach. Specializes in IELTS and academic writing.',
-  },
-];
-
-const categories = ['All', 'Scholarships', 'MBA Admissions', 'Career Coaching', 'GMAT', 'GRE', 'IELTS', 'SAT'];
+import Link from 'next/link';
+import { useTutorsQuery } from '@/features/tutors/hooks/use-tutors-query';
+import { useSubjectsQuery } from '@/features/tutors/hooks/use-subjects-query';
+import { TutorFilters } from '@/features/tutors/types';
 
 export function DiscoverSection() {
   const [searchTerm, setSearchTerm] = useState('');
-  const [selectedCategory, setSelectedCategory] = useState('All');
+  const [selectedSubjectId, setSelectedSubjectId] = useState('all');
+
+  const { data: subjects = [], isLoading: isSubjectsLoading } = useSubjectsQuery();
+  const categories = isSubjectsLoading
+    ? [{ id: 'all', name: 'All' }]
+    : [{ id: 'all', name: 'All' }, ...subjects];
+
+  const filters: TutorFilters = {
+    keyword: searchTerm || undefined,
+    subjectId: selectedSubjectId === 'all' ? undefined : selectedSubjectId,
+    sortBy: 'recommended',
+    limit: 4,
+  };
+
+  const { data: tutors = [], isLoading: isTutorsLoading, isError, refetch } = useTutorsQuery(filters);
 
   return (
-    <section className="py-16 bg-background">
+    <section id="discover" className="py-16 bg-background scroll-mt-20">
       <div className="mx-auto max-w-4xl px-6">
         {/* Header */}
         <div className="mb-12">
@@ -79,31 +60,67 @@ export function DiscoverSection() {
         <div className="mb-10 flex flex-wrap gap-2">
           {categories.map(category => (
             <button
-              key={category}
-              onClick={() => setSelectedCategory(category)}
-              className={`text-sm px-4 py-2 rounded-full transition-all font-medium ${
-                selectedCategory === category
-                  ? 'bg-primary text-primary-foreground'
-                  : 'bg-muted text-foreground hover:bg-border'
-              }`}
+              key={category.id}
+              onClick={() => setSelectedSubjectId(category.id)}
+              className={`text-sm px-4 py-2 rounded-full transition-all font-medium ${selectedSubjectId === category.id
+                ? 'bg-primary text-primary-foreground'
+                : 'bg-muted text-foreground hover:bg-border'
+                }`}
             >
-              {category}
+              {category.name}
             </button>
           ))}
         </div>
 
-        {/* Mentors Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-10">
-          {mentorsData.map(mentor => (
-            <MentorCard key={mentor.name} {...mentor} />
-          ))}
-        </div>
+        {/* Mentors Content */}
+        {isTutorsLoading ? (
+          <div className="flex flex-col items-center justify-center py-20 gap-4">
+            <Loader2 className="h-8 w-8 animate-spin text-primary" />
+            <p className="text-muted-foreground font-medium">Finding mentors...</p>
+          </div>
+        ) : isError ? (
+          <div className="flex flex-col items-center justify-center py-12 px-6 rounded-3xl bg-rose-50 border border-rose-100 text-center gap-4">
+            <AlertCircle className="h-10 w-10 text-rose-600" />
+            <div className="space-y-1">
+              <h3 className="font-bold text-rose-900">Unable to load mentors</h3>
+              <p className="text-sm text-rose-700">Something went wrong while connecting to our server.</p>
+            </div>
+            <button
+              onClick={() => refetch()}
+              className="px-6 py-2 rounded-xl bg-white border border-rose-200 text-rose-700 font-bold text-sm hover:bg-rose-50 transition-colors"
+            >
+              Try Again
+            </button>
+          </div>
+        ) : tutors.length === 0 ? (
+          <div className="text-center py-20 px-6 rounded-3xl border border-dashed border-border/60">
+            <h3 className="text-lg font-bold text-secondary mb-2">No mentors found</h3>
+            <p className="text-muted-foreground max-w-xs mx-auto">Try adjusting your filters or search keywords to find more experts.</p>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-10">
+            {tutors.map(tutor => (
+              <MentorCard
+                key={tutor.id}
+                name={tutor.fullName}
+                title={`${tutor.yearsOfExperience}+ years of experience`}
+                expertise={tutor.subjects}
+                rating={tutor.averageRating}
+                reviews={tutor.reviewCount}
+                bio={tutor.bio || tutor.experienceText}
+              />
+            ))}
+          </div>
+        )}
 
         {/* View All Button */}
         <div className="text-center">
-          <button className="px-8 py-3 rounded-lg border border-primary text-primary hover:bg-primary hover:text-primary-foreground transition-all font-medium">
+          <Link
+            href="/discover"
+            className="inline-block px-8 py-3 rounded-lg border border-primary text-primary hover:bg-primary hover:text-primary-foreground transition-all font-medium"
+          >
             View All Mentors
-          </button>
+          </Link>
         </div>
       </div>
     </section>

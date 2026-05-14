@@ -18,6 +18,8 @@ function normalizeAuthUser(user: any): AuthUser {
     avatarUrl: user.avatarUrl ?? user.avatar ?? undefined,
     phoneNumber: user.phoneNumber ?? user.phone ?? undefined,
     onboardingCompleted: Boolean(user.onboardingCompleted),
+    onboardingSkipped: Boolean(user.onboardingSkipped),
+    hasProfile: user.hasProfile ?? user.hasTutorProfile ?? false,
   };
 }
 

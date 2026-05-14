@@ -5,6 +5,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { Loader2, CheckCircle2 } from 'lucide-react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 
 import { setFormErrors } from '@/lib/api/query-utils';
 import { Button } from '@/components/ui/button';
@@ -29,13 +30,10 @@ import {
 import { ROUTES } from '@/constants/routes';
 import { GENDER_OPTIONS, ONBOARDING_CONSTANTS } from '../constants';
 import { useAuthStore } from '@/stores/auth-store';
+import { StudentProfileSetupRequest } from '@/features/auth/types';
 import { useCompleteStudentOnboardingMutation } from '../hooks/use-complete-student-onboarding-mutation';
 
 const studentOnboardingSchema = z.object({
-  fullName: z.string().min(2, 'Full name must be at least 2 characters'),
-  phoneNumber: z.string().optional(),
-  dateOfBirth: z.string().optional(),
-  gender: z.enum(['male', 'female', 'other', 'undisclosed']),
   interestedSubjects: z.string().min(1, 'Please enter at least one subject'),
   learningGoal: z.string().max(ONBOARDING_CONSTANTS.LEARNING_GOAL_MAX_LENGTH, `Maximum ${ONBOARDING_CONSTANTS.LEARNING_GOAL_MAX_LENGTH} characters`).optional(),
 });
@@ -43,15 +41,12 @@ const studentOnboardingSchema = z.object({
 type StudentOnboardingFormValues = z.infer<typeof studentOnboardingSchema>;
 
 export function StudentOnboardingForm() {
+  const router = useRouter();
   const onboardingMutation = useCompleteStudentOnboardingMutation();
 
   const form = useForm<StudentOnboardingFormValues>({
     resolver: zodResolver(studentOnboardingSchema),
     defaultValues: {
-      fullName: '',
-      phoneNumber: '',
-      dateOfBirth: '',
-      gender: 'undisclosed',
       interestedSubjects: '',
       learningGoal: '',
     },
@@ -60,9 +55,9 @@ export function StudentOnboardingForm() {
   const updateUser = useAuthStore((state) => state.updateUser);
   const onSubmit = async (values: StudentOnboardingFormValues) => {
     try {
-      const payload = {
-        ...values,
-        interestedSubjects: values.interestedSubjects.split(',').map(s => s.trim()).filter(Boolean)
+      const payload: StudentProfileSetupRequest = {
+        interestedSubjects: values.interestedSubjects.split(',').map(s => s.trim()).filter(Boolean),
+        learningGoal: values.learningGoal
       };
       await onboardingMutation.mutateAsync(payload as any);
       updateUser({ onboardingCompleted: true });
@@ -97,77 +92,6 @@ export function StudentOnboardingForm() {
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <FormField
-            control={form.control}
-            name="fullName"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Full Name</FormLabel>
-                <FormControl>
-                  <Input placeholder="John Doe" {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          <FormField
-            control={form.control}
-            name="gender"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Gender</FormLabel>
-                <Select onValueChange={field.onChange} defaultValue={field.value}>
-                  <FormControl>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select gender" />
-                    </SelectTrigger>
-                  </FormControl>
-                  <SelectContent>
-                    {GENDER_OPTIONS.map((option) => (
-                      <SelectItem key={option.value} value={option.value}>
-                        {option.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <FormField
-            control={form.control}
-            name="phoneNumber"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Phone Number (Optional)</FormLabel>
-                <FormControl>
-                  <Input placeholder="+1 234 567 890" {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          <FormField
-            control={form.control}
-            name="dateOfBirth"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Date of Birth (Optional)</FormLabel>
-                <FormControl>
-                  <Input type="date" {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-        </div>
-
         <FormField
           control={form.control}
           name="interestedSubjects"
@@ -227,10 +151,13 @@ export function StudentOnboardingForm() {
             variant="outline" 
             size="lg" 
             className="flex-1"
-            asChild
+            onClick={() => {
+              updateUser({ onboardingSkipped: true });
+              router.push(ROUTES.STUDENT_DASHBOARD);
+            }}
             disabled={onboardingMutation.isPending}
           >
-            <Link href={ROUTES.STUDENT_DASHBOARD}>Skip for now</Link>
+            Skip for now
           </Button>
         </div>
       </form>

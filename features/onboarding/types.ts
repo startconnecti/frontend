@@ -1,10 +1,6 @@
 export type Gender = 'male' | 'female' | 'other' | 'undisclosed';
 
 export interface StudentOnboardingRequest {
-  fullName: string;
-  phoneNumber?: string;
-  dateOfBirth?: string;
-  gender: Gender;
   interestedSubjects?: string[];
   learningGoal?: string;
 }
@@ -17,7 +13,7 @@ export interface StudentOnboardingResponse {
 export interface TutorOnboardingCertificate {
   title: string;
   issuer: string;
-  issuedAt: string;
+  year: number;
   fileName?: string;
 }
 
@@ -28,10 +24,6 @@ export interface TutorOnboardingAvailability {
 }
 
 export interface TutorOnboardingRequest {
-  fullName: string;
-  phoneNumber?: string;
-  dateOfBirth?: string;
-  gender: Gender;
   bio: string;
   experienceText: string;
   yearsOfExperience: number;

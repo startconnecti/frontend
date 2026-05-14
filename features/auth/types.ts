@@ -14,10 +14,11 @@ export interface AuthUser {
   avatarUrl?: string;
   approvalStatus?: TutorApprovalStatus;
   onboardingCompleted: boolean;
+  onboardingSkipped?: boolean;
   phoneNumber?: string;
   gender?: Gender;
   dateOfBirth?: string;
-  hasTutorProfile?: boolean;
+  hasProfile?: boolean;
   tutorProfileStatus?: string | null;
 }
 
@@ -36,6 +37,10 @@ export interface RegisterCredentialsRequest {
   email: string;
   password?: string;
   role: UserRole;
+  fullName: string;
+  phoneNumber?: string;
+  dateOfBirth?: string;
+  gender: Gender;
 }
 
 export interface VerifyRegisterOtpRequest {
@@ -45,15 +50,19 @@ export interface VerifyRegisterOtpRequest {
 }
 
 export interface StudentProfileSetupRequest {
-  fullName: string;
-  phoneNumber: string;
-  gender: Gender;
+  interestedSubjects: string[];
+  learningGoal?: string;
 }
 
-export interface TutorProfileSetupRequest extends StudentProfileSetupRequest {
+export interface TutorProfileSetupRequest {
   bio: string;
-  subjects: string[];
+  experienceText: string;
+  yearsOfExperience: number;
   hourlyRate: number;
+  subjects: string[];
+  certificates: Array<{ title: string; issuer: string; year: number }>;
+  weeklyAvailability: Array<{ dayOfWeek: string; startTime: string; endTime: string }>;
+  requestNote?: string;
 }
 
 export interface ForgotPasswordRequest {

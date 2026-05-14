@@ -31,8 +31,8 @@ export function TutorFilterPanel({ filters, updateFilter, resetFilters }: TutorF
       <div className="space-y-3">
         <Label className="text-sm font-bold uppercase tracking-wider text-muted-foreground">Subject</Label>
         <Select 
-          value={filters.subject} 
-          onValueChange={(val) => updateFilter('subject', val)}
+          value={filters.subjectId || 'all'} 
+          onValueChange={(val) => updateFilter('subjectId', val === 'all' ? undefined : val)}
         >
           <SelectTrigger>
             <SelectValue placeholder="All Subjects" />
@@ -40,7 +40,7 @@ export function TutorFilterPanel({ filters, updateFilter, resetFilters }: TutorF
           <SelectContent>
             <SelectItem value="all">All Subjects</SelectItem>
             {subjects.map((subject) => (
-              <SelectItem key={subject} value={subject}>{subject}</SelectItem>
+              <SelectItem key={subject.id} value={subject.id}>{subject.name}</SelectItem>
             ))}
           </SelectContent>
         </Select>

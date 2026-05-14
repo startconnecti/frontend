@@ -17,15 +17,27 @@ import {
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { GENDER_OPTIONS } from '../../onboarding/constants';
 import { AUTH_CONSTANTS } from '../constants';
 import { useRegisterCredentialsMutation } from '../hooks/use-register-credentials-mutation';
 import { AuthAlert } from './auth-alert';
-import { UserRole } from '../types';
+import { UserRole, Gender } from '../types';
 
 const registerSchema = z.object({
   role: z.enum(['student', 'tutor']),
   fullName: z.string().min(2, 'Full name must be at least 2 characters'),
   email: z.string().min(1, 'Email is required').email('Invalid email address'),
+  phoneNumber: z.string().optional(),
+  dateOfBirth: z.string().min(1, 'Date of birth is required'),
+  gender: z.enum(['male', 'female', 'other', 'undisclosed']),
+  avatar: z.any().optional(),
   password: z.string().min(AUTH_CONSTANTS.MIN_PASSWORD_LENGTH, `Password must be at least ${AUTH_CONSTANTS.MIN_PASSWORD_LENGTH} characters`),
   confirmPassword: z.string().min(1, 'Please confirm your password'),
 }).refine((data) => data.password === data.confirmPassword, {
@@ -48,6 +60,10 @@ export function RegisterCredentialsForm({ onSuccess }: RegisterCredentialsFormPr
       role: 'student',
       fullName: '',
       email: '',
+      phoneNumber: '',
+      dateOfBirth: '',
+      gender: 'undisclosed',
+      avatar: undefined,
       password: '',
       confirmPassword: '',
     },
@@ -59,7 +75,15 @@ export function RegisterCredentialsForm({ onSuccess }: RegisterCredentialsFormPr
         email: values.email,
         password: values.password,
         role: values.role as UserRole,
+        fullName: values.fullName,
+        phoneNumber: values.phoneNumber,
+        dateOfBirth: values.dateOfBirth,
+        gender: values.gender as Gender,
       });
+
+      // TODO: If values.avatar exists, upload it after OTP verification 
+      // where the access token becomes available.
+      
       onSuccess(values);
     } catch (err) {
       setFormErrors(err, form.setError);
@@ -116,14 +140,90 @@ export function RegisterCredentialsForm({ onSuccess }: RegisterCredentialsFormPr
             )}
           />
 
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <FormField
+              control={form.control}
+              name="fullName"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Full Name</FormLabel>
+                  <FormControl>
+                    <Input placeholder="John Doe" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="gender"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Gender</FormLabel>
+                  <Select onValueChange={field.onChange} defaultValue={field.value}>
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select gender" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      {GENDER_OPTIONS.map((option) => (
+                        <SelectItem key={option.value} value={option.value}>
+                          {option.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <FormField
+              control={form.control}
+              name="phoneNumber"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Phone Number</FormLabel>
+                  <FormControl>
+                    <Input placeholder="+1 234 567 890" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="dateOfBirth"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Date of Birth</FormLabel>
+                  <FormControl>
+                    <Input type="date" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </div>
+
           <FormField
             control={form.control}
-            name="fullName"
-            render={({ field }) => (
+            name="avatar"
+            render={({ field: { value, onChange, ...field } }) => (
               <FormItem>
-                <FormLabel>Full Name</FormLabel>
+                <FormLabel>Avatar (Optional)</FormLabel>
                 <FormControl>
-                  <Input placeholder="John Doe" {...field} />
+                  <Input 
+                    type="file" 
+                    accept="image/*" 
+                    onChange={(e) => onChange(e.target.files?.[0])}
+                    {...field} 
+                  />
                 </FormControl>
                 <FormMessage />
               </FormItem>

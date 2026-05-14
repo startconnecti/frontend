@@ -15,8 +15,6 @@ export function Footer() {
             <h4 className="font-semibold mb-4">Company</h4>
             <ul className="space-y-2 text-sm opacity-75">
               <li><a href="#" className="hover:opacity-100 transition-opacity">About</a></li>
-              <li><a href="#" className="hover:opacity-100 transition-opacity">Blog</a></li>
-              <li><a href="#" className="hover:opacity-100 transition-opacity">Careers</a></li>
             </ul>
           </div>
           <div>
@@ -36,7 +34,7 @@ export function Footer() {
           </div>
         </div>
         <div className="border-t border-card/20 pt-8 text-center text-sm opacity-75">
-          <p>&copy; 2024 Connecti. All rights reserved.</p>
+          <p>&copy; 2026 Connecti. All rights reserved.</p>
         </div>
       </div>
     </footer>
