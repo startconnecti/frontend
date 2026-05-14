@@ -22,6 +22,7 @@ import {
 } from '@/components/ui/select';
 import { ProfileSettings, UpdateProfileRequest } from '../types';
 import { useUpdateProfileSettingsMutation } from '../hooks/use-update-profile-settings-mutation';
+import { setFormErrors } from '@/lib/api/query-utils';
 
 const profileSchema = z.object({
   fullName: z.string().min(2, 'Name must be at least 2 characters'),
@@ -47,8 +48,12 @@ export function ProfileSettingsForm({ initialData }: ProfileSettingsFormProps) {
     },
   });
 
-  const onSubmit = (values: UpdateProfileRequest) => {
-    updateMutation.mutate(values);
+  const onSubmit = async (values: UpdateProfileRequest) => {
+    try {
+      await updateMutation.mutateAsync(values);
+    } catch (err) {
+      setFormErrors(err, form.setError);
+    }
   };
 
   return (

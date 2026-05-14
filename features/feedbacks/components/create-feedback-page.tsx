@@ -19,16 +19,6 @@ export function CreateFeedbackPage() {
   const [isSuccess, setIsSuccess] = useState(false);
   
   const { data: session, isLoading, isError } = useSessionDetailQuery(sessionId);
-  const mutation = useCreateFeedbackMutation();
-
-  const handleFeedbackSubmit = (values: { rating: number; comment?: string }) => {
-    mutation.mutate({
-      sessionId,
-      ...values,
-    }, {
-      onSuccess: () => setIsSuccess(true),
-    });
-  };
 
   if (isLoading) {
     return (
@@ -146,8 +136,8 @@ export function CreateFeedbackPage() {
         </div>
         <CardContent className="p-8">
           <FeedbackForm 
-            onSubmit={handleFeedbackSubmit} 
-            isSubmitting={mutation.isPending} 
+            sessionId={sessionId}
+            onSuccess={() => setIsSuccess(true)} 
           />
         </CardContent>
       </Card>

@@ -9,6 +9,25 @@ type RequestBody = object | string | number | boolean | null;
 interface RequestOptions extends RequestInit {
   params?: Record<string, string | number | boolean | undefined>;
   token?: string;
+  _isRetry?: boolean;
+}
+
+let refreshPromise: Promise<void> | null = null;
+
+const AUTH_ENDPOINTS = [
+  '/api/v1/auth/login',
+  '/api/v1/auth/token/refresh',
+  '/api/v1/auth/register',
+];
+
+interface RefreshResponseData {
+  accessToken?: string;
+  refreshToken?: string;
+  tokens?: {
+    accessToken: string;
+    refreshToken?: string;
+  };
+  user?: any;
 }
 
 function buildApiUrl(endpoint: string, params?: RequestOptions['params']) {
@@ -109,7 +128,7 @@ export async function request<T>(
   endpoint: string,
   options: RequestOptions = {}
 ): Promise<T> {
-  const { params, token: providedToken, headers: customHeaders, ...restOptions } = options;
+  const { params, token: providedToken, headers: customHeaders, _isRetry, ...restOptions } = options;
   const token = providedToken ?? useAuthStore.getState().accessToken;
   const url = buildApiUrl(endpoint, params);
 
@@ -134,7 +153,80 @@ export async function request<T>(
 
     if (!response.ok) {
       if (response.status === 401) {
-        useAuthStore.getState().logout();
+        const isAuthEndpoint = AUTH_ENDPOINTS.some(path => endpoint.includes(path));
+
+        if (isAuthEndpoint || _isRetry) {
+          useAuthStore.getState().logout();
+          if (isApiErrorResponse(data)) {
+            throw ApiError.fromResponse(data, response.status);
+          }
+          throw createFallbackApiError(data, response.status);
+        }
+
+        if (!refreshPromise) {
+          refreshPromise = (async () => {
+            try {
+              const refreshToken = useAuthStore.getState().refreshToken;
+              if (!refreshToken) {
+                throw new Error('No refresh token available');
+              }
+
+              const refreshUrl = buildApiUrl('/api/v1/auth/token/refresh');
+              const refreshResponse = await fetch(refreshUrl.toString(), {
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'application/json',
+                  'Accept': 'application/json',
+                },
+                body: JSON.stringify({ refreshToken }),
+              });
+
+              if (!refreshResponse.ok) {
+                throw new Error('Refresh token request failed');
+              }
+
+              const refreshData = await parseResponseBody(refreshResponse);
+              
+              let unwrappedData = refreshData as RefreshResponseData;
+              if (isApiSuccessResponse<RefreshResponseData>(refreshData)) {
+                unwrappedData = refreshData.data;
+              }
+
+              const newAccessToken = unwrappedData.tokens?.accessToken ?? unwrappedData.accessToken;
+              const newRefreshToken = unwrappedData.tokens?.refreshToken ?? unwrappedData.refreshToken;
+              const userData = unwrappedData.user ?? useAuthStore.getState().user;
+
+              if (!newAccessToken) {
+                throw new Error('New access token not found in refresh response');
+              }
+
+              useAuthStore.getState().setAuth(
+                userData,
+                newAccessToken,
+                newRefreshToken ?? refreshToken
+              );
+            } catch (error) {
+              useAuthStore.getState().logout();
+              throw error;
+            } finally {
+              refreshPromise = null;
+            }
+          })();
+        }
+
+        try {
+          await refreshPromise;
+        } catch (error) {
+          if (isApiErrorResponse(data)) {
+            throw ApiError.fromResponse(data, response.status);
+          }
+          throw createFallbackApiError(data, response.status);
+        }
+
+        return request<T>(endpoint, {
+          ...options,
+          _isRetry: true,
+        });
       }
 
       if (isApiErrorResponse(data)) {

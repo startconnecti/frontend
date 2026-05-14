@@ -16,17 +16,21 @@ import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 
+import { setFormErrors } from '@/lib/api/query-utils';
+import { useCreateFeedbackMutation } from '../hooks/use-create-feedback-mutation';
+
 const feedbackSchema = z.object({
   rating: z.number().min(1, 'Rating is required').max(5),
   comment: z.string().max(1000, 'Comment is too long').optional(),
 });
 
 interface FeedbackFormProps {
-  onSubmit: (values: z.infer<typeof feedbackSchema>) => void;
-  isSubmitting: boolean;
+  sessionId: string;
+  onSuccess: () => void;
 }
 
-export function FeedbackForm({ onSubmit, isSubmitting }: FeedbackFormProps) {
+export function FeedbackForm({ sessionId, onSuccess }: FeedbackFormProps) {
+  const mutation = useCreateFeedbackMutation();
   const form = useForm<z.infer<typeof feedbackSchema>>({
     resolver: zodResolver(feedbackSchema),
     defaultValues: {
@@ -34,6 +38,20 @@ export function FeedbackForm({ onSubmit, isSubmitting }: FeedbackFormProps) {
       comment: '',
     },
   });
+
+  const onSubmit = async (values: z.infer<typeof feedbackSchema>) => {
+    try {
+      await mutation.mutateAsync({
+        sessionId,
+        ...values,
+      });
+      onSuccess();
+    } catch (err) {
+      setFormErrors(err, form.setError);
+    }
+  };
+
+  const isSubmitting = mutation.isPending;
 
   const rating = form.watch('rating');
 

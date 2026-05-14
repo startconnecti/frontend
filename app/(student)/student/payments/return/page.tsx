@@ -7,6 +7,7 @@ import { PageContainer } from '@/components/shared';
 import { Button } from '@/components/ui/button';
 import { ROUTES } from '@/constants/routes';
 import { useQueryClient } from '@tanstack/react-query';
+import { usePaymentDetailQuery } from '@/features/payments/hooks/use-payment-detail-query';
 
 function PaymentReturnContent() {
   const router = useRouter();
@@ -14,23 +15,28 @@ function PaymentReturnContent() {
   const queryClient = useQueryClient();
   
   const paymentId = searchParams.get('paymentId') || searchParams.get('vnp_TxnRef') || searchParams.get('orderId');
+  const { data: payment, isError } = usePaymentDetailQuery(paymentId as string);
 
   useEffect(() => {
-    if (paymentId) {
-      // Invalidate relevant queries to ensure the status is fresh when we redirect
-      queryClient.invalidateQueries({ queryKey: ['payment-detail', paymentId] });
+    if (isError) {
+      // If we can't find it yet, just stay and let the detail page handle it if they click back
+      return;
+    }
+
+    if (payment && payment.status !== 'pending' && payment.status !== 'processing') {
+      // Status is final, invalidate everything and redirect
+      queryClient.invalidateQueries({ queryKey: ['payment-detail', payment.id] });
       queryClient.invalidateQueries({ queryKey: ['payments'] });
       queryClient.invalidateQueries({ queryKey: ['student-dashboard'] });
       queryClient.invalidateQueries({ queryKey: ['sessions'] });
 
-      // Short delay to allow backend to process the webhook if any
       const timer = setTimeout(() => {
-        router.push(ROUTES.STUDENT.PAYMENT_DETAIL(paymentId));
-      }, 2000);
+        router.push(ROUTES.STUDENT.PAYMENT_DETAIL(payment.id));
+      }, 1500); // Small delay to let user see success state if we added it
 
       return () => clearTimeout(timer);
     }
-  }, [paymentId, router, queryClient]);
+  }, [payment, isError, router, queryClient]);
 
   if (!paymentId) {
     return (

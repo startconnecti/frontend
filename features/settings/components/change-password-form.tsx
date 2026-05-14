@@ -16,6 +16,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useChangePasswordMutation } from '../hooks/use-change-password-mutation';
 import { ChangePasswordRequest } from '../types';
+import { setFormErrors } from '@/lib/api/query-utils';
 
 const passwordSchema = z.object({
   currentPassword: z.string().min(1, 'Current password is required'),
@@ -37,10 +38,13 @@ export function ChangePasswordForm() {
     },
   });
 
-  const onSubmit = (values: ChangePasswordRequest) => {
-    mutation.mutate(values, {
-      onSuccess: () => form.reset(),
-    });
+  const onSubmit = async (values: ChangePasswordRequest) => {
+    try {
+      await mutation.mutateAsync(values);
+      form.reset();
+    } catch (err) {
+      setFormErrors(err, form.setError);
+    }
   };
 
   return (
