@@ -34,12 +34,13 @@ export interface LoginResponse {
 }
 
 export interface RegisterCredentialsRequest {
-  email: string;
-  password?: string;
   role: UserRole;
-  fullName: string;
-  phoneNumber?: string;
-  dateOfBirth?: string;
+  email: string;
+  full_name: string;
+  password?: string;
+  confirm_password?: string;
+  phone?: string;
+  dob?: string;
   gender: Gender;
 }
 

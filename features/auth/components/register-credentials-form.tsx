@@ -72,12 +72,13 @@ export function RegisterCredentialsForm({ onSuccess }: RegisterCredentialsFormPr
   const onSubmit = async (values: RegisterFormValues) => {
     try {
       await registerMutation.mutateAsync({
-        email: values.email,
-        password: values.password,
         role: values.role as UserRole,
-        fullName: values.fullName,
-        phoneNumber: values.phoneNumber,
-        dateOfBirth: values.dateOfBirth,
+        email: values.email,
+        full_name: values.fullName,
+        password: values.password,
+        confirm_password: values.confirmPassword,
+        phone: values.phoneNumber,
+        dob: values.dateOfBirth, // date input value is already YYYY-MM-DD
         gender: values.gender as Gender,
       });
 
@@ -86,7 +87,17 @@ export function RegisterCredentialsForm({ onSuccess }: RegisterCredentialsFormPr
       
       onSuccess(values);
     } catch (err) {
-      setFormErrors(err, form.setError);
+      // Remap backend snake_case field names to camelCase form field names
+      const FIELD_MAP: Record<string, string> = {
+        full_name: 'fullName',
+        confirm_password: 'confirmPassword',
+        phone: 'phoneNumber',
+        dob: 'dateOfBirth',
+      };
+      setFormErrors(err, (field, error) => {
+        const mapped = FIELD_MAP[field as string] ?? field;
+        form.setError(mapped as any, error);
+      });
     }
   };
 
