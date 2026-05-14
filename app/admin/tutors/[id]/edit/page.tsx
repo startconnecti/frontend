@@ -62,7 +62,7 @@ export default function EditTutorPage() {
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label htmlFor="name">Name</Label>
-              <Input id="name" defaultValue={tutor.name || ''} />
+              <Input id="name" defaultValue={tutor.fullName || ''} />
             </div>
             <div className="space-y-2">
               <Label htmlFor="email">Email</Label>
@@ -81,14 +81,14 @@ export default function EditTutorPage() {
               <Input id="hourlyRate" type="number" defaultValue={tutor.hourlyRate || 0} />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="experience">Years of Experience</Label>
-              <Input id="experience" type="number" defaultValue={tutor.experience || 0} />
+              <Label htmlFor="experience">Experience</Label>
+              <Input id="experience" defaultValue={tutor.experienceText || ''} />
             </div>
           </div>
 
           <div className="space-y-2">
             <Label htmlFor="subjects">Subjects (comma-separated)</Label>
-            <Input id="subjects" defaultValue={Array.isArray(tutor.subjects) ? tutor.subjects.join(', ') : ''} />
+            <Input id="subjects" defaultValue={(tutor.subjects || []).map(s => s.name).join(', ')} />
           </div>
 
           <div className="flex gap-2 pt-4">

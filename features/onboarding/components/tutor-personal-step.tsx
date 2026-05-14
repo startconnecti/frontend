@@ -3,7 +3,7 @@
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { GENDER_OPTIONS } from '../constants';
-import { TutorOnboardingRequest } from '../types';
+import { TutorOnboardingRequest, Gender } from '../types';
 
 interface StepProps {
   data: TutorOnboardingRequest;

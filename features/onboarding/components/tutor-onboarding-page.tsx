@@ -30,7 +30,6 @@ export function TutorOnboardingPage() {
         <SectionHeader 
           title="Become a Connecti Tutor" 
           description="Fill out your professional profile and application to start teaching on our platform."
-          align="center"
         />
 
         <TutorOnboardingForm />

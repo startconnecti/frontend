@@ -179,7 +179,7 @@ export default function TutorApprovalPage() {
                     <TableCell className="text-sm">{tutor.email}</TableCell>
 
                     <TableCell className="text-sm">
-                      {tutor.subjects.length > 0
+                      {tutor.subjects && tutor.subjects.length > 0
                         ? tutor.subjects.slice(0, 2).map((subject) => subject.name).join(', ')
                         : '-'}
                     </TableCell>

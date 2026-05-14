@@ -1,5 +1,5 @@
 import { adminApi } from '@/lib/admin-api/client';
-import type { AdminRoleItem, AdminRolesListResponse, AdminRolesQueryParams } from '../types';
+import type { AdminRoleItem, AdminRolesListResponse, AdminRolesQueryParams, RolePermissions } from '../types';
 
 interface RawRoleItem {
   id?: string;
@@ -15,7 +15,7 @@ function normalizeRole(item: RawRoleItem): AdminRoleItem {
     id: item.id ?? item.roleId ?? '',
     name: item.name ?? '-',
     description: item.description ?? '-',
-    permissions: item.permissions ?? {},
+    permissions: (item.permissions as unknown as RolePermissions) ?? {},
     createdAt: item.createdAt ?? new Date(0).toISOString(),
   };
 }
@@ -38,8 +38,8 @@ export const adminRolesService = {
       });
 
       return {
-        items: (response.data.items ?? []).map(normalizeRole),
-        pagination: response.data.pagination,
+        items: (response.items ?? []).map(normalizeRole),
+        pagination: response.pagination,
       };
     } catch {
       return {

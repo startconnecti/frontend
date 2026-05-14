@@ -9,7 +9,7 @@ interface TutorProfileAvailabilityProps {
 }
 
 export function TutorProfileAvailability({ slots }: TutorProfileAvailabilityProps) {
-  if (slots.length === 0) return null;
+  if (!slots || slots.length === 0) return null;
 
   // Group slots by day
   const groupedSlots = slots.reduce((acc, slot) => {

@@ -1,4 +1,4 @@
-import { UserRole } from './auth';
+import { UserRole } from '@/features/auth/types';
 
 export type UserStatus = 'active' | 'blocked' | 'suspended';
 

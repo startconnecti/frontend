@@ -11,6 +11,7 @@ import { useAuthStore } from '@/stores/auth-store';
 import { Tutor, AvailabilitySlot } from '../types';
 import { Booking } from '@/features/bookings/types';
 import { useCreatePaymentMutation } from '@/features/payments/hooks/use-create-payment-mutation';
+import { useCreateBookingMutation } from '@/features/bookings/hooks/use-create-booking-mutation';
 import { PaymentMethod } from '@/features/payments/types';
 import { 
   Select, 
@@ -169,7 +170,7 @@ export function TutorBookingSummaryCard({ tutor }: TutorBookingSummaryCardProps)
                 <SelectValue placeholder="Select subject" />
               </SelectTrigger>
               <SelectContent className="rounded-xl">
-                {tutor.subjects.map(s => (
+                {(tutor.subjects || []).map(s => (
                   <SelectItem key={s} value={s}>{s}</SelectItem>
                 ))}
               </SelectContent>
@@ -183,12 +184,12 @@ export function TutorBookingSummaryCard({ tutor }: TutorBookingSummaryCardProps)
                 <SelectValue placeholder="Select a slot" />
               </SelectTrigger>
               <SelectContent className="rounded-xl">
-                {tutor.availabilitySlots.map((slot, i) => (
+                {(tutor.availabilitySlots || []).map((slot, i) => (
                   <SelectItem key={i} value={i.toString()}>
                     <span className="capitalize">{slot.dayOfWeek || slot.day}</span>: {slot.startTime} - {slot.endTime}
                   </SelectItem>
                 ))}
-                {tutor.availabilitySlots.length === 0 && (
+                {(!tutor.availabilitySlots || tutor.availabilitySlots.length === 0) && (
                   <SelectItem value="none" disabled>No availability listed</SelectItem>
                 )}
               </SelectContent>

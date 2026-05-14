@@ -28,6 +28,7 @@ export interface Tutor {
   fullName: string;
   avatarUrl?: string;
   bio: string;
+  experienceText: string;
   subjects: string[];
   hourlyRate: number;
   yearsOfExperience: number;

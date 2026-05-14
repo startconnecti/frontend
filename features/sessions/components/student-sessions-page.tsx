@@ -5,7 +5,6 @@ import { useRouter } from 'next/navigation';
 import { Search, Calendar } from 'lucide-react';
 
 import { PageContainer, SectionHeader, ListState } from '@/components/shared';
-import { SessionCard } from '@/components/client/tutor-card'; // Wait, I just checked components/client/tutor-card.tsx earlier, but I saw session-card.tsx there too.
 import { SessionCard as ClientSessionCard } from '@/components/client/session-card';
 import { Button } from '@/components/ui/button';
 import { ROUTES } from '@/constants/routes';
@@ -17,7 +16,7 @@ import { SessionFilterTabs } from './session-filter-tabs';
 export function StudentSessionsPage() {
   const router = useRouter();
   const [filters, setFilters] = useState<SessionFilters>({ status: 'all' });
-  const { data: sessions = [], isLoading, isError, refetch } = useStudentSessionsQuery(filters);
+  const { data: sessions = [], isLoading, isError, error, refetch } = useStudentSessionsQuery(filters);
 
   const handleStatusChange = (status: SessionStatus | 'all') => {
     setFilters({ status });
@@ -45,7 +44,7 @@ export function StudentSessionsPage() {
 
       <ListState
         isLoading={isLoading}
-        isError={isError}
+        error={error as Error}
         isEmpty={sessions.length === 0}
         emptyTitle="No sessions found"
         emptyDescription="You don't have any sessions matching the selected filter."

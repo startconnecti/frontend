@@ -11,7 +11,7 @@ import { useFavoriteTutorsQuery } from '../hooks/use-favorite-tutors-query';
 import { useRemoveFavoriteTutorMutation } from '../hooks/use-remove-favorite-tutor-mutation';
 
 export function StudentFavoritesPage() {
-  const { data: favorites = [], isLoading, isError, refetch } = useFavoriteTutorsQuery();
+  const { data: favorites = [], isLoading, isError, error, refetch } = useFavoriteTutorsQuery();
   const removeMutation = useRemoveFavoriteTutorMutation();
 
   const handleRemove = (favoriteId: string) => {
@@ -37,7 +37,7 @@ export function StudentFavoritesPage() {
 
       <ListState
         isLoading={isLoading}
-        isError={isError}
+        error={error as Error}
         isEmpty={favorites.length === 0}
         emptyTitle="No favorite tutors yet"
         emptyDescription="Start exploring the marketplace and heart the tutors you'd like to work with."

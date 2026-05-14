@@ -41,7 +41,7 @@ export function TutorProfileHeader({
               <ShieldCheck className="h-6 w-6 text-primary fill-primary/10" />
             </div>
             <div className="flex flex-wrap gap-2 pt-1">
-              {subjects?.map(s => (
+              {(subjects || [])?.map(s => (
                 <Badge key={s} variant="secondary" className="bg-primary/5 text-primary hover:bg-primary/10 border-none px-3">
                   {s}
                 </Badge>

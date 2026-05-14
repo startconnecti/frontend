@@ -15,7 +15,6 @@ export function StudentOnboardingPage() {
         <SectionHeader 
           title="Complete your student profile" 
           description="Tell us a bit more about yourself so we can match you with the perfect tutors."
-          align="center"
         />
 
         <Card className="border-border/60 shadow-xl shadow-primary/5 rounded-3xl overflow-hidden">

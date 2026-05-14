@@ -6,12 +6,28 @@ import {
   VerifyRegisterOtpRequest,
   ForgotPasswordRequest,
   VerifyForgotPasswordOtpRequest,
-  ResetPasswordRequest
+  ResetPasswordRequest,
+  AuthUser
 } from '../types';
+
+function normalizeAuthUser(user: any): AuthUser {
+  if (!user) return user;
+  return {
+    ...user,
+    fullName: user.fullName ?? user.name ?? '-',
+    avatarUrl: user.avatarUrl ?? user.avatar ?? undefined,
+    phoneNumber: user.phoneNumber ?? user.phone ?? undefined,
+    onboardingCompleted: Boolean(user.onboardingCompleted),
+  };
+}
 
 export const authService = {
   async login(request: LoginRequest): Promise<LoginResponse> {
-    return api.post<LoginResponse>('/api/v1/auth/login', request);
+    const response = await api.post<LoginResponse>('/api/v1/auth/login', request);
+    return {
+      ...response,
+      user: normalizeAuthUser(response.user),
+    };
   },
 
   async registerCredentials(request: RegisterCredentialsRequest): Promise<boolean> {
@@ -20,7 +36,11 @@ export const authService = {
   },
 
   async verifyRegisterOtp(request: VerifyRegisterOtpRequest): Promise<LoginResponse> {
-    return api.post<LoginResponse>('/api/v1/auth/register/verify-otp', request);
+    const response = await api.post<LoginResponse>('/api/v1/auth/register/verify-otp', request);
+    return {
+      ...response,
+      user: normalizeAuthUser(response.user),
+    };
   },
 
   async requestForgotPassword(request: ForgotPasswordRequest): Promise<boolean> {

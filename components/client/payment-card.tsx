@@ -21,6 +21,7 @@ export function PaymentCard({
   date,
   description,
   status,
+  type = 'outbound',
   method,
   onViewReceipt
 }: PaymentCardProps) {

@@ -6,14 +6,13 @@ const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL ?? '';
 
 type AdminRequestBody =
   | object
-  | Array<unknown>
   | string
   | number
   | boolean
   | null;
 
 interface AdminRequestOptions extends RequestInit {
-  params?: Record<string, string | number | boolean>;
+  params?: Record<string, string | number | boolean | undefined>;
   token?: string;
   _isRetry?: boolean;
 }

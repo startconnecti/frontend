@@ -8,7 +8,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 
 export function TutorReviewsPage() {
-  const { data, isLoading, isError, refetch } = useTutorReviewsQuery();
+  const { data, isLoading, isError, error, refetch } = useTutorReviewsQuery();
 
   return (
     <PageContainer className="py-8 space-y-10">
@@ -78,8 +78,8 @@ export function TutorReviewsPage() {
 
         <ListState
           isLoading={isLoading}
-          isError={isError}
-          isEmpty={data?.reviews.length === 0}
+          error={error as Error}
+          isEmpty={!data?.reviews || data.reviews.length === 0}
           emptyTitle="No reviews yet"
           emptyDescription="You haven't received any reviews from students yet. Complete sessions to start gathering feedback."
           onRetry={() => refetch()}

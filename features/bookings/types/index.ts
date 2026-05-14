@@ -16,5 +16,6 @@ export interface Booking {
   endTime: string;
   status: 'pending' | 'confirmed' | 'cancelled' | 'completed';
   amount: number;
+  paymentId?: string;
   createdAt: string;
 }

@@ -324,8 +324,8 @@ export default function TutorDetailPage() {
                 </p>
 
                 <div className="flex flex-wrap gap-2">
-                  {tutor.subjects.length > 0 ? (
-                    tutor.subjects.map((subject) => (
+                  {(tutor.subjects || []).length > 0 ? (
+                    (tutor.subjects || []).map((subject) => (
                       <Badge key={subject.id} variant="secondary">
                         {subject.name}
                       </Badge>
@@ -346,9 +346,9 @@ export default function TutorDetailPage() {
           <Card className="p-6">
             <h3 className="mb-4 text-lg font-bold">Certificates</h3>
 
-            {tutor.certifications.length > 0 ? (
+            {(tutor.certifications || []).length > 0 ? (
               <div className="space-y-3">
-                {tutor.certifications.map((certification, index) => (
+                {(tutor.certifications || []).map((certification, index) => (
                   <div
                     key={certification.id ?? `${certification.name}-${index}`}
                     className="flex items-start gap-3 rounded-lg border border-border p-3"

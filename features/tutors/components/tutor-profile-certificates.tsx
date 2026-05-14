@@ -9,7 +9,7 @@ interface TutorProfileCertificatesProps {
 }
 
 export function TutorProfileCertificates({ certificates }: TutorProfileCertificatesProps) {
-  if (certificates.length === 0) return null;
+  if (!certificates || certificates.length === 0) return null;
 
   return (
     <div className="space-y-4">

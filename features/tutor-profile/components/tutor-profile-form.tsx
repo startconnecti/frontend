@@ -20,6 +20,7 @@ import { TutorProfile, UpdateTutorProfileRequest } from '../types';
 import { useUpdateTutorProfileMutation } from '../hooks/use-update-tutor-profile-mutation';
 import { Badge } from '@/components/ui/badge';
 import { GraduationCap, Info } from 'lucide-react';
+import { setFormErrors } from '@/lib/api/query-utils';
 
 const tutorProfileSchema = z.object({
   fullName: z.string().min(2, 'Name must be at least 2 characters'),
@@ -51,8 +52,12 @@ export function TutorProfileForm({ initialData }: TutorProfileFormProps) {
     },
   });
 
-  const onSubmit = (values: UpdateTutorProfileRequest) => {
-    updateMutation.mutate(values);
+  const onSubmit = async (values: UpdateTutorProfileRequest) => {
+    try {
+      await updateMutation.mutateAsync(values);
+    } catch (err) {
+      setFormErrors(err, form.setError);
+    }
   };
 
   return (

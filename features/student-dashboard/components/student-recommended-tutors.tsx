@@ -28,13 +28,13 @@ export function StudentRecommendedTutors({ tutors }: StudentRecommendedTutorsPro
             key={tutor.id} 
             id={tutor.id}
             name={tutor.fullName}
-            title={tutor.title}
+            title={tutor.experienceText}
             expertise={tutor.subjects}
-            rating={tutor.rating}
+            rating={tutor.averageRating}
             reviews={tutor.reviewCount}
             hourlyRate={tutor.hourlyRate}
             bio={tutor.bio}
-            avatar={tutor.avatar}
+            avatar={tutor.avatarUrl}
           />
         ))}
       </div>

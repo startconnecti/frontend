@@ -5,7 +5,7 @@ import { useStudentFeedbacksQuery } from '../hooks/use-student-feedbacks-query';
 import { ReviewList } from './review-list';
 
 export function StudentFeedbacksPage() {
-  const { data: feedbacks = [], isLoading, isError, refetch } = useStudentFeedbacksQuery();
+  const { data: feedbacks = [], isLoading, isError, error, refetch } = useStudentFeedbacksQuery();
 
   return (
     <PageContainer className="py-8 space-y-8">
@@ -16,7 +16,7 @@ export function StudentFeedbacksPage() {
 
       <ListState
         isLoading={isLoading}
-        isError={isError}
+        error={error as Error}
         isEmpty={feedbacks.length === 0}
         emptyTitle="No feedbacks yet"
         emptyDescription="You haven't submitted any feedbacks for your sessions yet."

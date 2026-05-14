@@ -12,8 +12,10 @@ interface AdminConfirmDialogProps {
   onConfirm: () => void;
   onCancel?: () => void;
   triggerLabel?: string;
-  triggerVariant?: 'default' | 'destructive' | 'outline';
+  triggerVariant?: 'default' | 'destructive' | 'outline' | 'ghost';
   triggerDisabled?: boolean;
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
   children?: React.ReactNode;
 }
 
@@ -27,9 +29,21 @@ export function AdminConfirmDialog({
   triggerLabel,
   triggerVariant = 'default',
   triggerDisabled = false,
+  open: controlledOpen,
+  onOpenChange: setControlledOpen,
   children,
 }: AdminConfirmDialogProps) {
-  const [open, setOpen] = useState(false);
+  const [uncontrolledOpen, setUncontrolledOpen] = useState(false);
+  
+  const isControlled = controlledOpen !== undefined;
+  const open = isControlled ? controlledOpen : uncontrolledOpen;
+  const setOpen = (newOpen: boolean) => {
+    if (isControlled) {
+      setControlledOpen?.(newOpen);
+    } else {
+      setUncontrolledOpen(newOpen);
+    }
+  };
 
   const handleConfirm = () => {
     onConfirm();

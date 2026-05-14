@@ -13,7 +13,7 @@ import { SessionFilterTabs } from './session-filter-tabs';
 export function TutorSessionsPage() {
   const router = useRouter();
   const [filters, setFilters] = useState<SessionFilters>({ status: 'all' });
-  const { data: sessions = [], isLoading, isError, refetch } = useTutorSessionsQuery(filters);
+  const { data: sessions = [], isLoading, isError, error, refetch } = useTutorSessionsQuery(filters);
 
   const handleStatusChange = (status: SessionStatus | 'all') => {
     setFilters({ status });
@@ -35,7 +35,7 @@ export function TutorSessionsPage() {
 
       <ListState
         isLoading={isLoading}
-        isError={isError}
+        error={error as Error}
         isEmpty={sessions.length === 0}
         emptyTitle="No sessions found"
         emptyDescription="You don't have any sessions matching the selected filter."

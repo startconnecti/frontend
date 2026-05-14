@@ -18,7 +18,7 @@ export function NotificationsPage() {
     type: 'all',
   });
 
-  const { data: notifications = [], isLoading, isError, refetch } = useNotificationsQuery(filters);
+  const { data: notifications = [], isLoading, isError, error, refetch } = useNotificationsQuery(filters);
   const markReadMutation = useMarkNotificationReadMutation();
   const markAllReadMutation = useMarkAllNotificationsReadMutation();
 
@@ -61,7 +61,7 @@ export function NotificationsPage() {
 
       <ListState
         isLoading={isLoading}
-        isError={isError}
+        error={error as Error}
         isEmpty={notifications.length === 0}
         emptyTitle="No notifications"
         emptyDescription="You're all caught up! There are no notifications to show right now."

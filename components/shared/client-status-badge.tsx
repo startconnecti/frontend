@@ -71,10 +71,11 @@ const statusMap: Record<AllStatuses, StatusConfig> = {
 
 interface ClientStatusBadgeProps {
   status: AllStatuses;
+  type?: string;
   className?: string;
 }
 
-export function ClientStatusBadge({ status, className }: ClientStatusBadgeProps) {
+export function ClientStatusBadge({ status, type, className }: ClientStatusBadgeProps) {
   const config = statusMap[status] || { label: status, variant: 'outline' };
   
   let badgeVariant: 'default' | 'secondary' | 'destructive' | 'outline' = 'outline';

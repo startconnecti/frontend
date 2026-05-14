@@ -6,6 +6,7 @@ import * as z from 'zod';
 import { Loader2, CheckCircle2 } from 'lucide-react';
 import Link from 'next/link';
 
+import { setFormErrors } from '@/lib/api/query-utils';
 import { Button } from '@/components/ui/button';
 import {
   Form,
@@ -35,7 +36,7 @@ const studentOnboardingSchema = z.object({
   phoneNumber: z.string().optional(),
   dateOfBirth: z.string().optional(),
   gender: z.enum(['male', 'female', 'other', 'undisclosed']),
-  interestedSubjects: z.string().transform(val => val.split(',').map(s => s.trim()).filter(Boolean)),
+  interestedSubjects: z.string().min(1, 'Please enter at least one subject'),
   learningGoal: z.string().max(ONBOARDING_CONSTANTS.LEARNING_GOAL_MAX_LENGTH, `Maximum ${ONBOARDING_CONSTANTS.LEARNING_GOAL_MAX_LENGTH} characters`).optional(),
 });
 
@@ -51,7 +52,7 @@ export function StudentOnboardingForm() {
       phoneNumber: '',
       dateOfBirth: '',
       gender: 'undisclosed',
-      interestedSubjects: [] as unknown as string, // Hack for RHF input
+      interestedSubjects: '',
       learningGoal: '',
     },
   });
@@ -59,10 +60,14 @@ export function StudentOnboardingForm() {
   const updateUser = useAuthStore((state) => state.updateUser);
   const onSubmit = async (values: StudentOnboardingFormValues) => {
     try {
-      await onboardingMutation.mutateAsync(values);
+      const payload = {
+        ...values,
+        interestedSubjects: values.interestedSubjects.split(',').map(s => s.trim()).filter(Boolean)
+      };
+      await onboardingMutation.mutateAsync(payload as any);
       updateUser({ onboardingCompleted: true });
     } catch (err) {
-      // Error handled by mutation
+      setFormErrors(err, form.setError);
     }
   };
 

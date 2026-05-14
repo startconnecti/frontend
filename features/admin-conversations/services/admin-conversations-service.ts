@@ -83,37 +83,49 @@ function normalizeListResponse<T>(
   normalizer: (item: Record<string, unknown>) => T,
   defaultLimit = 10
 ): { items: T[]; total: number; page: number; limit: number; totalPages: number } {
-  const res = response as Record<string, unknown>;
+  const res = response as Record<string, unknown> | null;
   let rawItems: Record<string, unknown>[] = [];
   let total = 0;
   let page = 1;
   let limit = defaultLimit;
 
-  if (Array.isArray(res)) {
-    rawItems = res as unknown as Record<string, unknown>[];
+  if (!res) {
+    // Return empty state if response is null/undefined
+  } else if (Array.isArray(res)) {
+    rawItems = res as Record<string, unknown>[];
     total = rawItems.length;
-  } else if (res?.items && Array.isArray(res.items)) {
-    rawItems = res.items as Record<string, unknown>[];
-    total = (res.total as number) ?? rawItems.length;
-    page = (res.page as number) ?? 1;
-    limit = (res.limit as number) ?? defaultLimit;
-  } else if ((res?.data as any)?.items && Array.isArray((res?.data as any)?.items)) {
-    const data = res.data as Record<string, unknown>;
-    rawItems = data.items as Record<string, unknown>[];
-    total = (data.total as number) ?? rawItems.length;
-    page = (data.page as number) ?? (res.page as number) ?? 1;
-    limit = (data.limit as number) ?? (res.limit as number) ?? defaultLimit;
-  } else if (res?.data && Array.isArray(res.data)) {
-    rawItems = res.data as Record<string, unknown>[];
-    total = (res.total as number) ?? rawItems.length;
-    page = (res.page as number) ?? 1;
-    limit = (res.limit as number) ?? defaultLimit;
+  } else {
+    // Extract data payload if enveloped
+    const dataPayload = res.data && typeof res.data === 'object' ? (res.data as Record<string, unknown>) : res;
+    
+    if (Array.isArray(dataPayload.items)) {
+      rawItems = dataPayload.items as Record<string, unknown>[];
+    } else if (Array.isArray(dataPayload)) {
+      rawItems = dataPayload as Record<string, unknown>[];
+    } else if (Array.isArray(res.items)) {
+      rawItems = res.items as Record<string, unknown>[];
+    }
+
+    total = Number(dataPayload.total ?? res.total ?? rawItems.length) || rawItems.length;
+    page = Number(dataPayload.page ?? res.page ?? 1) || 1;
+    limit = Number(dataPayload.limit ?? res.limit ?? defaultLimit) || defaultLimit;
   }
 
-  const items = rawItems.map(normalizer);
-  const totalPages = Math.ceil(total / limit) || 1;
+  const totalPages = Math.max(1, Math.ceil(total / limit) || 1);
 
-  return { items, total, page, limit, totalPages };
+  return {
+    items: rawItems.map((item) => {
+      try {
+        return normalizer(item);
+      } catch (e) {
+        return null as unknown as T;
+      }
+    }).filter(Boolean),
+    total,
+    page,
+    limit,
+    totalPages,
+  };
 }
 
 export const adminConversationsService = {

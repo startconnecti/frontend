@@ -10,5 +10,12 @@ export function usePaymentDetailQuery(id: string) {
     enabled: !!id,
     refetchOnWindowFocus: true,
     staleTime: 1000 * 30, // 30 seconds
+    refetchInterval: (query) => {
+      const data = query.state.data;
+      if (data && data.status === 'pending') {
+        return 2000;
+      }
+      return false;
+    },
   });
 }

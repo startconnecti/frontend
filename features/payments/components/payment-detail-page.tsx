@@ -14,7 +14,7 @@ export function PaymentDetailPage() {
   const params = useParams();
   const router = useRouter();
   const id = params.id as string;
-  const { data: payment, isLoading, isError } = usePaymentDetailQuery(id);
+  const { data: payment, isLoading, isError, refetch } = usePaymentDetailQuery(id);
 
   if (isLoading) {
     return (

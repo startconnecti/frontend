@@ -20,7 +20,7 @@ export function TutorProfileReviews({ feedbacks, averageRating }: TutorProfileRe
         </div>
       </div>
 
-      {feedbacks.length === 0 ? (
+      {!feedbacks || feedbacks.length === 0 ? (
         <div className="p-8 rounded-2xl border border-dashed border-border/60 text-center">
           <p className="text-sm text-muted-foreground italic">This tutor hasn't received any reviews yet.</p>
         </div>

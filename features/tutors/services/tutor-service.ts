@@ -46,20 +46,33 @@ function buildTutorQueryParams(filters: TutorFilters): TutorQueryParams {
   return params;
 }
 
+function normalizeTutor(tutor: any): Tutor {
+  if (!tutor) return tutor;
+  return {
+    ...tutor,
+    fullName: tutor.fullName ?? tutor.name ?? '-',
+    avatarUrl: tutor.avatarUrl ?? tutor.avatar ?? undefined,
+    subjects: Array.isArray(tutor.subjects) ? tutor.subjects : [],
+    certificates: Array.isArray(tutor.certificates) ? tutor.certificates : [],
+    availabilitySlots: Array.isArray(tutor.availabilitySlots) ? tutor.availabilitySlots : [],
+    feedbacks: Array.isArray(tutor.feedbacks) ? tutor.feedbacks : [],
+    hourlyRate: Number(tutor.hourlyRate) || 0,
+    averageRating: Number(tutor.averageRating) || 0,
+    reviewCount: Number(tutor.reviewCount) || 0,
+    yearsOfExperience: Number(tutor.yearsOfExperience) || 0,
+  };
+}
+
 function normalizeTutorListResponse(response: TutorListResponse): Tutor[] {
+  let rawItems: Tutor[] = [];
+  
   if (Array.isArray(response)) {
-    return response;
+    rawItems = response;
+  } else if (response && typeof response === 'object') {
+    rawItems = response.items ?? response.data ?? [];
   }
 
-  if (Array.isArray(response.items)) {
-    return response.items;
-  }
-
-  if (Array.isArray(response.data)) {
-    return response.data;
-  }
-
-  return [];
+  return rawItems.map(normalizeTutor);
 }
 
 function normalizeSubjectResponse(response: SubjectResponse): string[] {
@@ -90,7 +103,8 @@ export const tutorService = {
 
   async getTutorById(id: string, publicOnly = false): Promise<Tutor | null> {
     try {
-      const tutor = await api.get<Tutor>(`/api/v1/tutors/${id}`);
+      const response = await api.get<any>(`/api/v1/tutors/${id}`);
+      const tutor = normalizeTutor(response);
 
       if (publicOnly && (tutor.approvalStatus !== 'approved' || !tutor.isPublic)) {
         return null;

@@ -16,7 +16,7 @@ import { PaymentFilterTabs } from './payment-filter-tabs';
 export function StudentPaymentsPage() {
   const router = useRouter();
   const [filters, setFilters] = useState<PaymentFilters>({ status: 'all' });
-  const { data: payments = [], isLoading, isError, refetch } = useStudentPaymentsQuery(filters);
+  const { data: payments = [], isLoading, isError, error, refetch } = useStudentPaymentsQuery(filters);
 
   const handleStatusChange = (status: PaymentStatus | 'all') => {
     setFilters({ status });
@@ -44,7 +44,7 @@ export function StudentPaymentsPage() {
 
       <ListState
         isLoading={isLoading}
-        isError={isError}
+        error={error as Error}
         isEmpty={payments.length === 0}
         emptyTitle="No payments found"
         emptyDescription="You don't have any transactions matching the selected filter."
