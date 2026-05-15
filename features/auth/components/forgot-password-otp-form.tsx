@@ -17,6 +17,7 @@ import {
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { useVerifyForgotPasswordOtpMutation } from '../hooks/use-forgot-password-verify-otp-mutation';
+import { useResendForgotPasswordOtpMutation } from '../hooks/use-resend-forgot-password-otp-mutation';
 import { AuthAlert } from './auth-alert';
 
 const otpSchema = z.object({
@@ -33,6 +34,7 @@ interface ForgotPasswordOtpFormProps {
 
 export function ForgotPasswordOtpForm({ email, onSuccess, onBack }: ForgotPasswordOtpFormProps) {
   const verifyMutation = useVerifyForgotPasswordOtpMutation();
+  const resendMutation = useResendForgotPasswordOtpMutation();
 
   const form = useForm<OtpFormValues>({
     resolver: zodResolver(otpSchema),
@@ -109,19 +111,19 @@ export function ForgotPasswordOtpForm({ email, onSuccess, onBack }: ForgotPasswo
             <Button 
               type="button" 
               variant="ghost" 
-              className="w-full gap-2 text-xs text-muted-foreground"
-              disabled={verifyMutation.isPending}
+              className="w-full h-11 gap-2 text-base font-bold text-muted-foreground border-2 border-dashed border-muted hover:border-primary/30 hover:bg-muted/30 hover:text-foreground transition-all"
+              disabled={verifyMutation.isPending || resendMutation.isPending}
+              onClick={() => resendMutation.mutate({ email })}
             >
-              <RefreshCw className="h-3 w-3" />
-              Resend code (Simulated)
+              <RefreshCw className={`h-4 w-4 ${resendMutation.isPending ? 'animate-spin' : ''}`} />
+              {resendMutation.isPending ? 'Sending...' : 'Resend code'}
             </Button>
           </div>
 
           <Button 
             type="button" 
             variant="outline" 
-            size="sm" 
-            className="w-full gap-2"
+            className="w-full h-11 text-base font-bold gap-2 border-2 hover:bg-accent hover:text-accent-foreground transition-all"
             onClick={onBack}
             disabled={verifyMutation.isPending}
           >

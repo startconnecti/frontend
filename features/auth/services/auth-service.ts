@@ -7,6 +7,7 @@ import {
   ForgotPasswordRequest,
   VerifyForgotPasswordOtpRequest,
   ResetPasswordRequest,
+  ResendOtpByEmailRequest,
   AuthUser
 } from '../types';
 
@@ -58,5 +59,13 @@ export const authService = {
   async resetPassword(request: ResetPasswordRequest): Promise<boolean> {
     await api.post('/api/v1/auth/forgot-password/reset-password', request);
     return true;
+  },
+  
+  async resendRegisterOtp(request: ResendOtpByEmailRequest): Promise<{ message?: string }> {
+    return api.post<{ message?: string }>('/api/v1/auth/register/resend-otp', request);
+  },
+
+  async resendForgotPasswordOtp(request: ResendOtpByEmailRequest): Promise<{ message?: string }> {
+    return api.post<{ message?: string }>('/api/v1/auth/forgot-password/resend-otp', request);
   }
 };

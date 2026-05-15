@@ -80,4 +80,8 @@ export interface ResetPasswordRequest {
   password?: string;
 }
 
+export interface ResendOtpByEmailRequest {
+  email: string;
+}
+
 export type { ApiError as AuthError };

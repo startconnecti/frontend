@@ -71,7 +71,7 @@ export function RegisterPage() {
       </Card>
 
       <div className="text-center">
-        <Button variant="ghost" size="sm" className="gap-2 text-muted-foreground" asChild>
+        <Button variant="ghost" className="w-full h-11 gap-2 text-base font-bold text-muted-foreground border-2 border-transparent hover:border-muted hover:bg-muted/10 hover:text-foreground transition-all" asChild>
           <Link href={ROUTES.DISCOVER}>
             <ArrowLeft className="h-4 w-4" />
             Back to Tutors
