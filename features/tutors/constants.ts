@@ -10,12 +10,12 @@ export const TUTOR_QUERY_KEYS = {
 };
 
 export const SORT_OPTIONS: { label: string; value: TutorSortOption }[] = [
-  { label: 'Recommended', value: 'recommended' },
-  { label: 'Highest Rating', value: 'highest_rating' },
-  { label: 'Lowest Price', value: 'lowest_price' },
-  { label: 'Highest Price', value: 'highest_price' },
-  { label: 'Most Reviewed', value: 'most_reviewed' },
+  { label: 'Rate: High to Low', value: 'rate_high' },
+  { label: 'Rate: Low to High', value: 'rate_low' },
   { label: 'Newest', value: 'newest' },
+  { label: 'Oldest', value: 'oldest' },
+  { label: 'Price: High to Low', value: 'price_high' },
+  { label: 'Price: Low to High', value: 'price_low' },
 ];
 
 export const AVAILABILITY_DAYS = [

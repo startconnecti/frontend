@@ -108,8 +108,8 @@ export function TutorFilterPanel({ filters, updateFilter, resetFilters }: TutorF
       <div className="space-y-3">
         <Label className="text-sm font-bold uppercase tracking-wider text-muted-foreground">Availability</Label>
         <Select 
-          value={filters.availabilityDay} 
-          onValueChange={(val) => updateFilter('availabilityDay', val)}
+          value={filters.availabilityDay ?? 'all'} 
+          onValueChange={(val) => updateFilter('availabilityDay', val === 'all' ? undefined : val)}
         >
           <SelectTrigger>
             <SelectValue placeholder="Any day" />

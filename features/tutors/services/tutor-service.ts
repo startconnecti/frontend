@@ -1,4 +1,5 @@
 import { api } from '@/lib/api/client';
+import { ListResponse } from '@/lib/api/types';
 import { Tutor, TutorFilters, Subject } from '../types';
 
 type TutorListResponse =
@@ -7,6 +8,13 @@ type TutorListResponse =
     items?: Tutor[];
     data?: Tutor[];
     total?: number;
+    limit?: number;
+    offset?: number;
+    pagination?: {
+      total?: number;
+      limit?: number;
+      offset?: number;
+    };
     meta?: unknown;
   };
 
@@ -36,8 +44,17 @@ function buildTutorQueryParams(filters: TutorFilters): TutorQueryParams {
   const params: TutorQueryParams = {};
 
   Object.entries(filters).forEach(([key, value]) => {
-    // Exclude sortBy as it is not currently supported by the backend tutors API
-    if (value === undefined || value === null || value === '' || key === 'sortBy') {
+    if (value === undefined || value === null || value === '' || key === 'page') {
+      return;
+    }
+
+    if (key === 'sortBy') {
+      if (value !== 'recommended') params.sortedBy = value;
+      return;
+    }
+
+    if (key === 'availabilityDay') {
+      if (value !== 'all') params.availableDay = value;
       return;
     }
 
@@ -81,6 +98,27 @@ function normalizeTutorListResponse(response: TutorListResponse): Tutor[] {
   return rawItems.map(normalizeTutor);
 }
 
+function normalizeTutorListPage(response: TutorListResponse, filters: TutorFilters): ListResponse<Tutor> {
+  const items = normalizeTutorListResponse(response);
+
+  if (Array.isArray(response)) {
+    return {
+      items,
+      total: response.length,
+      limit: filters.limit ?? response.length,
+      offset: filters.offset ?? 0,
+    };
+  }
+
+  const pagination = response?.pagination;
+  return {
+    items,
+    total: response?.total ?? pagination?.total ?? items.length,
+    limit: response?.limit ?? pagination?.limit ?? filters.limit ?? items.length,
+    offset: response?.offset ?? pagination?.offset ?? filters.offset ?? 0,
+  };
+}
+
 function normalizeSubjectResponse(response: any): Subject[] {
   let rawSubjects: any[] = [];
 
@@ -122,37 +160,42 @@ function normalizeSubjectResponse(response: any): Subject[] {
 }
 
 export const tutorService = {
-  async getTutors(filters: TutorFilters): Promise<Tutor[]> {
+  async getTutorList(filters: TutorFilters): Promise<ListResponse<Tutor>> {
     const params = buildTutorQueryParams(filters);
     const response = await api.get<TutorListResponse>('/api/v1/tutors', { params });
+    const page = normalizeTutorListPage(response, filters);
 
-    let tutors = normalizeTutorListResponse(response);
+    let tutors = page.items.filter((tutor) => tutor.approvalStatus === 'approved' && tutor.isPublic);
 
-    // Filter by approval status and public visibility first
-    tutors = tutors.filter((tutor) => tutor.approvalStatus === 'approved' && tutor.isPublic);
+    const sortKey = filters.sortedBy ?? filters.sortBy;
 
-    // Apply client-side sorting since the backend doesn't support sortBy
-    if (filters.sortBy) {
+    if (sortKey) {
       tutors = [...tutors].sort((a, b) => {
-        switch (filters.sortBy) {
-          case 'highest_rating':
-            return b.averageRating - a.averageRating;
-          case 'lowest_price':
-            return a.hourlyRate - b.hourlyRate;
-          case 'highest_price':
-            return b.hourlyRate - a.hourlyRate;
-          case 'most_reviewed':
-            return b.reviewCount - a.reviewCount;
+        switch (sortKey) {
+          case 'oldest':
+            return a.id.localeCompare(b.id);
           case 'newest':
             return b.id.localeCompare(a.id);
-          case 'recommended':
+          case 'rate_low':
+            return a.hourlyRate - b.hourlyRate;
+          case 'rate_high':
+            return b.hourlyRate - a.hourlyRate;
+          case 'price_low':
+            return ((a as any).totalPrice ?? a.hourlyRate) - ((b as any).totalPrice ?? b.hourlyRate);
+          case 'price_high':
+            return ((b as any).totalPrice ?? b.hourlyRate) - ((a as any).totalPrice ?? a.hourlyRate);
           default:
             return 0;
         }
       });
     }
 
-    return tutors;
+    return { ...page, items: tutors };
+  },
+
+  async getTutors(filters: TutorFilters): Promise<Tutor[]> {
+    const response = await this.getTutorList(filters);
+    return response.items;
   },
 
   async getTutorById(id: string, publicOnly = false): Promise<Tutor | null> {

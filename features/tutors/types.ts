@@ -42,12 +42,17 @@ export interface Tutor {
 }
 
 export type TutorSortOption =
+  | 'oldest'
+  | 'newest'
+  | 'rate_high'
+  | 'rate_low'
+  | 'price_high'
+  | 'price_low'
   | 'recommended'
   | 'highest_rating'
   | 'lowest_price'
   | 'highest_price'
-  | 'most_reviewed'
-  | 'newest';
+  | 'most_reviewed';
 
 export interface Subject {
   id: string;
@@ -65,6 +70,8 @@ export interface TutorFilters {
   minRating?: number;
   availabilityDay?: string;
   sortBy?: TutorSortOption;
+  sortedBy?: TutorSortOption;
   page?: number;
   limit?: number;
+  offset?: number;
 }

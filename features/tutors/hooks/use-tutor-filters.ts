@@ -7,8 +7,10 @@ const initialFilters: TutorFilters = {
   minPrice: undefined,
   maxPrice: undefined,
   minRating: undefined,
-  availabilityDay: 'all',
-  sortBy: 'recommended',
+  availabilityDay: undefined,
+  sortedBy: 'rate_high',
+  limit: 10,
+  offset: undefined,
 };
 
 export function useTutorFilters() {
@@ -17,7 +19,8 @@ export function useTutorFilters() {
   const updateFilter = useCallback(<K extends keyof TutorFilters>(key: K, value: TutorFilters[K]) => {
     setFilters(prev => ({
       ...prev,
-      [key]: value
+      [key]: value,
+      offset: key === 'offset' ? value as number : 0,
     }));
   }, []);
 

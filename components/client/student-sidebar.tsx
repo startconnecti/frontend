@@ -22,7 +22,7 @@ import { useQueryClient } from '@tanstack/react-query';
 
 const studentNavItems = [
   { label: 'Dashboard', href: ROUTES.STUDENT.DASHBOARD, icon: LayoutDashboard },
-  { label: 'Find Tutors', href: ROUTES.DISCOVER, icon: Search },
+  { label: 'Find Tutors', href: ROUTES.STUDENT.FIND_TUTORS, icon: Search },
   { label: 'Bookings', href: ROUTES.STUDENT.BOOKINGS, icon: Calendar, disabled: true },
   { label: 'Sessions', href: ROUTES.STUDENT.SESSIONS, icon: Video },
   { label: 'Payments', href: ROUTES.STUDENT.PAYMENTS, icon: CreditCard },

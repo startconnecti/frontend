@@ -33,18 +33,7 @@ export function DashboardHeader() {
         <span className="sr-only">Open sidebar</span>
       </Button>
 
-      <div className="flex flex-1 gap-x-4 self-stretch lg:gap-x-6">
-        {/* Search Placeholder */}
-        <div className="relative flex flex-1 items-center max-w-md">
-          <Search className="absolute left-0 h-4 w-4 text-muted-foreground pointer-events-none" />
-          <input
-            className="block h-full w-full border-0 py-0 pl-8 pr-0 text-sm focus:ring-0 sm:text-sm bg-transparent placeholder:text-muted-foreground/60"
-            placeholder="Search dashboard..."
-            type="search"
-            aria-label="Search dashboard"
-          />
-        </div>
-
+      <div className="flex flex-1 justify-end gap-x-4 self-stretch lg:gap-x-6">
         {/* Actions */}
         <div className="flex items-center gap-x-3 lg:gap-x-5">
           <Button variant="ghost" size="icon" className="text-muted-foreground relative" aria-label="Messages" asChild>

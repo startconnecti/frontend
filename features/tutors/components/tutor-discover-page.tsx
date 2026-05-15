@@ -1,5 +1,7 @@
 'use client';
 
+import { useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { Search, Filter, SlidersHorizontal } from 'lucide-react';
 import { 
   PageContainer, 
@@ -21,10 +23,22 @@ import { useTutorsQuery } from '../hooks/use-tutors-query';
 import { TutorFilterPanel } from './tutor-filter-panel';
 import { TutorSortSelect } from './tutor-sort-select';
 import { TutorResultsSummary } from './tutor-results-summary';
+import { useAuthStore } from '@/stores/auth-store';
+import { ROUTES } from '@/constants/routes';
 
 export function TutorDiscoverPage() {
+  const router = useRouter();
+  const { user, isAuthenticated, isHydrated } = useAuthStore();
   const { filters, updateFilter, resetFilters } = useTutorFilters();
   const { data: tutors = [], isLoading, error, refetch } = useTutorsQuery(filters);
+
+  useEffect(() => {
+    if (!isHydrated || !isAuthenticated) return;
+
+    router.replace(user?.role === 'tutor' ? ROUTES.TUTOR_DASHBOARD : ROUTES.STUDENT.FIND_TUTORS);
+  }, [isHydrated, isAuthenticated, router, user?.role]);
+
+  if (isHydrated && isAuthenticated) return null;
 
   return (
     <PageContainer className="py-8">
