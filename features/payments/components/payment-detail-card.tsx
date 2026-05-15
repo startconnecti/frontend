@@ -29,8 +29,8 @@ interface PaymentDetailCardProps {
 export function PaymentDetailCard({ payment, onRefresh, isRefreshing }: PaymentDetailCardProps) {
   const statusColors = {
     pending: 'bg-amber-100 text-amber-700 border-amber-200',
-    processing: 'bg-blue-100 text-blue-700 border-blue-200',
-    succeeded: 'bg-emerald-100 text-emerald-700 border-emerald-200',
+    waiting_admin_confirmation: 'bg-blue-100 text-blue-700 border-blue-200',
+    confirmed: 'bg-emerald-100 text-emerald-700 border-emerald-200',
     failed: 'bg-rose-100 text-rose-700 border-rose-200',
     cancelled: 'bg-slate-100 text-slate-700 border-slate-200',
     refunded: 'bg-purple-100 text-purple-700 border-purple-200',
@@ -38,8 +38,8 @@ export function PaymentDetailCard({ payment, onRefresh, isRefreshing }: PaymentD
 
   const statusIcons = {
     pending: Clock,
-    processing: RotateCcw,
-    succeeded: CheckCircle2,
+    waiting_admin_confirmation: Loader2,
+    confirmed: CheckCircle2,
     failed: AlertCircle,
     cancelled: AlertCircle,
     refunded: RotateCcw,
@@ -56,7 +56,7 @@ export function PaymentDetailCard({ payment, onRefresh, isRefreshing }: PaymentD
               <CardTitle className="text-2xl font-black text-brand-dark">
                 Payment {payment.paymentCode}
               </CardTitle>
-              <StatusIcon className={`h-5 w-5 ${payment.status === 'succeeded' ? 'text-emerald-600' : 'text-amber-600'}`} />
+              <StatusIcon className={`h-5 w-5 ${payment.status === 'confirmed' ? 'text-emerald-600' : 'text-amber-600'}`} />
             </div>
             <p className="text-xs text-muted-foreground font-medium">Transaction ID: {payment.id}</p>
           </div>
@@ -145,7 +145,7 @@ export function PaymentDetailCard({ payment, onRefresh, isRefreshing }: PaymentD
         </div>
 
         {/* Payment Instructions / Action */}
-        {(payment.status === 'pending' || payment.status === 'processing') && (
+        {(payment.status === 'pending' || payment.status === 'waiting_admin_confirmation') && (
           <div className="space-y-4">
             <h4 className="text-xs font-black uppercase tracking-widest text-muted-foreground flex items-center gap-2">
               <AlertCircle className="h-3 w-3" />
@@ -235,7 +235,7 @@ export function PaymentDetailCard({ payment, onRefresh, isRefreshing }: PaymentD
           </Button>
         )}
         
-        {(payment.status === 'pending' || payment.status === 'processing') && (
+        {(payment.status === 'pending' || payment.status === 'waiting_admin_confirmation') && (
           <Button 
             variant="outline" 
             className="font-bold gap-2"
@@ -251,7 +251,7 @@ export function PaymentDetailCard({ payment, onRefresh, isRefreshing }: PaymentD
           </Button>
         )}
 
-        {payment.status === 'succeeded' && (
+        {payment.status === 'confirmed' && (
           <Button className="font-bold rounded-xl" asChild>
             <Link href={ROUTES.STUDENT.SESSIONS}>
               Go to Sessions
@@ -259,7 +259,7 @@ export function PaymentDetailCard({ payment, onRefresh, isRefreshing }: PaymentD
           </Button>
         )}
         
-        {payment.status === 'succeeded' && (
+        {payment.status === 'confirmed' && (
           <Button variant="outline" className="font-bold gap-2" disabled>
             <RotateCcw className="h-4 w-4" />
             Request Refund

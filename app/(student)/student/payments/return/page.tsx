@@ -23,7 +23,7 @@ function PaymentReturnContent() {
       return;
     }
 
-    if (payment && payment.status !== 'pending' && payment.status !== 'processing') {
+    if (payment && payment.status !== 'pending' && payment.status !== 'waiting_admin_confirmation') {
       // Status is final, invalidate everything and redirect
       queryClient.invalidateQueries({ queryKey: ['payment-detail', payment.id] });
       queryClient.invalidateQueries({ queryKey: ['payments'] });

@@ -10,8 +10,8 @@ interface PaymentFilterTabsProps {
 const TABS: { label: string; value: PaymentStatus | 'all' }[] = [
   { label: 'All', value: 'all' },
   { label: 'Pending', value: 'pending' },
-  { label: 'Processing', value: 'processing' },
-  { label: 'Succeeded', value: 'succeeded' },
+  { label: 'Waiting Confirmation', value: 'waiting_admin_confirmation' },
+  { label: 'Confirmed', value: 'confirmed' },
   { label: 'Failed', value: 'failed' },
   { label: 'Cancelled', value: 'cancelled' },
   { label: 'Refunded', value: 'refunded' },

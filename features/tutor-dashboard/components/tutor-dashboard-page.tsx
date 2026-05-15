@@ -88,24 +88,27 @@ export function TutorDashboardPage() {
 
       {/* Stats Section */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-        <TutorDashboardStatCard 
-          label="Total Sessions" 
-          value={data.stats.totalSessions} 
-          icon={BookOpen} 
-          description="Total bookings received"
-        />
+        <Link href={ROUTES.TUTOR.SESSIONS} className="block transition-transform hover:scale-[1.02]">
+          <TutorDashboardStatCard 
+            label="Completed Sessions" 
+            value={data.stats.completedSessions} 
+            icon={BookOpen} 
+            description="View all sessions"
+          />
+        </Link>
+        <Link href={ROUTES.TUTOR.INCOME} className="block transition-transform hover:scale-[1.02]">
+          <TutorDashboardStatCard 
+            label="Total Earnings" 
+            value={`$${data.earnings.monthlyEarnings}`} 
+            icon={TrendingUp} 
+            description="View income details"
+          />
+        </Link>
         <TutorDashboardStatCard 
           label="Rating" 
           value={data.stats.averageRating} 
           icon={Star} 
           description={`${data.stats.reviewCount} total reviews`}
-        />
-        <TutorDashboardStatCard 
-          label="Completed" 
-          value={data.stats.completedSessions} 
-          icon={Users} 
-          description="Hours taught"
-          trend={{ value: "+3 this week", isUp: true }}
         />
         <TutorDashboardStatCard 
           label="New Messages" 

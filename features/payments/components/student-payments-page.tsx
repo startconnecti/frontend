@@ -16,7 +16,8 @@ import { PaymentFilterTabs } from './payment-filter-tabs';
 export function StudentPaymentsPage() {
   const router = useRouter();
   const [filters, setFilters] = useState<PaymentFilters>({ status: 'all' });
-  const { data: payments = [], isLoading, isError, error, refetch } = useStudentPaymentsQuery(filters);
+  const { data, isLoading, isError, error, refetch } = useStudentPaymentsQuery(filters);
+  const payments = data?.items || [];
 
   const handleStatusChange = (status: PaymentStatus | 'all') => {
     setFilters({ status });
@@ -38,7 +39,7 @@ export function StudentPaymentsPage() {
       </div>
 
       <PaymentFilterTabs 
-        activeStatus={filters.status} 
+        activeStatus={filters.status || 'all'} 
         onStatusChange={handleStatusChange} 
       />
 

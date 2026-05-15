@@ -16,7 +16,7 @@ export type AllStatuses =
   | 'pending' | 'approved' | 'rejected' | 'suspended'
   | 'pending_payment' | 'payment_processing' | 'confirmed' | 'expired' | 'cancelled' | 'completed'
   | 'scheduled' | 'no_show'
-  | 'processing' | 'succeeded' | 'failed' | 'refunded'
+  | 'waiting_admin_confirmation' | 'processing' | 'succeeded' | 'failed' | 'refunded'
   | 'open' | 'reviewing' | 'resolved'
   | 'processed' | 'paid';
 
@@ -50,6 +50,7 @@ const statusMap: Record<AllStatuses, StatusConfig> = {
   no_show: { label: 'No Show', variant: 'destructive' },
 
   // Payment
+  waiting_admin_confirmation: { label: 'Waiting Confirmation', variant: 'warning' },
   processing: { label: 'Processing', variant: 'secondary' },
   succeeded: { label: 'Succeeded', variant: 'success' },
   failed: { label: 'Failed', variant: 'destructive' },

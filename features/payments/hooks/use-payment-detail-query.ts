@@ -12,7 +12,7 @@ export function usePaymentDetailQuery(id: string) {
     staleTime: 1000 * 30, // 30 seconds
     refetchInterval: (query) => {
       const data = query.state.data;
-      if (data && (data.status === 'pending' || data.status === 'processing')) {
+      if (data && (data.status === 'pending' || data.status === 'waiting_admin_confirmation')) {
         return 2000;
       }
       return false;

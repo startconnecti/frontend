@@ -16,7 +16,8 @@ import { SessionFilterTabs } from './session-filter-tabs';
 export function StudentSessionsPage() {
   const router = useRouter();
   const [filters, setFilters] = useState<SessionFilters>({ status: 'all' });
-  const { data: sessions = [], isLoading, isError, error, refetch } = useStudentSessionsQuery(filters);
+  const { data, isLoading, isError, error, refetch } = useStudentSessionsQuery(filters);
+  const sessions = data?.items || [];
 
   const handleStatusChange = (status: SessionStatus | 'all') => {
     setFilters({ status });
@@ -38,7 +39,7 @@ export function StudentSessionsPage() {
       </div>
 
       <SessionFilterTabs 
-        activeStatus={filters.status} 
+        activeStatus={filters.status || 'all'} 
         onStatusChange={handleStatusChange} 
       />
 

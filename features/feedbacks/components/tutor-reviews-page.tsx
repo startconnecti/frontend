@@ -79,12 +79,12 @@ export function TutorReviewsPage() {
         <ListState
           isLoading={isLoading}
           error={error as Error}
-          isEmpty={!data?.reviews || data.reviews.length === 0}
+          isEmpty={!data?.reviews || data.reviews.total === 0}
           emptyTitle="No reviews yet"
           emptyDescription="You haven't received any reviews from students yet. Complete sessions to start gathering feedback."
           onRetry={() => refetch()}
         >
-          <ReviewList reviews={data?.reviews || []} />
+          <ReviewList reviews={data?.reviews.items || []} />
         </ListState>
       </div>
     </PageContainer>

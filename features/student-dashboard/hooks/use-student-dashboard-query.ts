@@ -14,22 +14,26 @@ export function useStudentDashboardQuery() {
   return useQuery({
     queryKey: ['student-dashboard', user?.id],
     queryFn: async (): Promise<StudentDashboardData> => {
-      const [sessions, payments, favorites, recommendedTutors] = await Promise.all([
-        sessionService.getStudentSessions({ status: 'all' }),
-        paymentService.getStudentPayments({ status: 'all' }),
+      const [sessionsRes, paymentsRes, favoritesRes, recommendedTutors] = await Promise.all([
+        sessionService.getStudentSessions({}),
+        paymentService.getStudentPayments({}),
         favoriteService.getFavoriteTutors(),
         tutorService.getTutors({ limit: 4 })
       ]);
+
+      const sessions = sessionsRes.items;
+      const payments = paymentsRes.items;
+      const favorites = favoritesRes.items;
 
       const upcomingSession = sessions.find(s => s.status === 'scheduled') || null;
       
       return {
         studentName: user?.fullName || 'Student',
         stats: {
-          pendingBookingsCount: sessions.filter(s => s.status === 'scheduled').length, // Fallback logic
+          pendingBookingsCount: sessionsRes.total, // Using total from response if possible, or fallback
           completedSessionsCount: sessions.filter(s => s.status === 'completed').length,
-          favoriteTutorsCount: favorites.length,
-          totalSpent: payments.reduce((acc, p) => acc + (p.status === 'succeeded' ? p.amountTotal : 0), 0),
+          favoriteTutorsCount: favoritesRes.total,
+          totalSpent: payments.reduce((acc, p) => acc + (p.status === 'confirmed' ? p.amountTotal : 0), 0),
         },
         upcomingSession: upcomingSession ? {
           id: upcomingSession.id,
@@ -45,7 +49,7 @@ export function useStudentDashboardQuery() {
           tutorName: p.tutor.fullName,
           subject: p.subject,
           amount: p.amountTotal,
-          status: p.status === 'succeeded' ? 'completed' : p.status === 'pending' ? 'pending' : 'failed',
+          status: p.status === 'confirmed' ? 'completed' : p.status === 'pending' || p.status === 'waiting_admin_confirmation' ? 'pending' : 'failed',
           date: p.paidAt || p.createdAt,
         })),
         recommendedTutors: recommendedTutors,

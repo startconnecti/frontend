@@ -11,7 +11,8 @@ import { useFavoriteTutorsQuery } from '../hooks/use-favorite-tutors-query';
 import { useRemoveFavoriteTutorMutation } from '../hooks/use-remove-favorite-tutor-mutation';
 
 export function StudentFavoritesPage() {
-  const { data: favorites = [], isLoading, isError, error, refetch } = useFavoriteTutorsQuery();
+  const { data, isLoading, isError, error, refetch } = useFavoriteTutorsQuery();
+  const favorites = data?.items || [];
   const removeMutation = useRemoveFavoriteTutorMutation();
 
   const handleRemove = (favoriteId: string) => {

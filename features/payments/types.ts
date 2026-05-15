@@ -1,7 +1,7 @@
 export type PaymentStatus = 
   | 'pending' 
-  | 'processing' 
-  | 'succeeded' 
+  | 'waiting_admin_confirmation' 
+  | 'confirmed' 
   | 'failed' 
   | 'cancelled' 
   | 'refunded';
@@ -48,5 +48,5 @@ export interface CreatePaymentRequest {
 }
 
 export interface PaymentFilters {
-  status: PaymentStatus | 'all';
+  status?: PaymentStatus | 'all';
 }

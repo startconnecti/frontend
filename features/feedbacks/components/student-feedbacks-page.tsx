@@ -5,7 +5,8 @@ import { useStudentFeedbacksQuery } from '../hooks/use-student-feedbacks-query';
 import { ReviewList } from './review-list';
 
 export function StudentFeedbacksPage() {
-  const { data: feedbacks = [], isLoading, isError, error, refetch } = useStudentFeedbacksQuery();
+  const { data, isLoading, isError, error, refetch } = useStudentFeedbacksQuery();
+  const feedbacks = data?.items || [];
 
   return (
     <PageContainer className="py-8 space-y-8">

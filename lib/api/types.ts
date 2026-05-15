@@ -21,3 +21,10 @@ export interface ApiErrorResponse {
 }
 
 export type AnyApiResponse<T = unknown> = ApiResponse<T> | ApiErrorResponse;
+
+export interface ListResponse<T> {
+  items: T[];
+  total: number;
+  limit: number;
+  offset: number;
+}

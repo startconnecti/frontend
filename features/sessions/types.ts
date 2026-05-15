@@ -36,5 +36,7 @@ export interface Session {
 }
 
 export interface SessionFilters {
-  status: SessionStatus | 'all';
+  status?: SessionStatus | 'all';
+  startDate?: string;
+  endDate?: string;
 }
