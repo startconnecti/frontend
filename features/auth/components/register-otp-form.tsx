@@ -82,6 +82,22 @@ export function RegisterOtpForm({ email, role, onBack }: RegisterOtpFormProps) {
         />
       )}
 
+      {resendMutation.isError && (
+        <AuthAlert 
+          type="error"
+          title="Resend failed"
+          message={resendMutation.error?.message || 'Failed to resend code. Please try again later.'}
+        />
+      )}
+
+      {resendMutation.isSuccess && (
+        <AuthAlert 
+          type="success"
+          title="Code resent"
+          message={resendMutation.data?.message || 'A new verification code has been sent to your email.'}
+        />
+      )}
+
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
           <FormField
