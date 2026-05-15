@@ -5,6 +5,7 @@ import { useAuthStore } from '@/stores/auth-store';
 import { tutorService } from '@/features/tutors/services/tutor-service';
 import { sessionService } from '@/features/sessions/services/session-service';
 import { feedbackService } from '@/features/feedbacks/services/feedback-service';
+import { paymentService } from '@/features/payments/services/payment-service';
 import { tutorDashboardService } from '../services/tutor-dashboard-service';
 import { TutorDashboardData } from '../types';
 
@@ -18,15 +19,21 @@ export function useTutorDashboardQuery() {
       const nextWeek = new Date();
       nextWeek.setDate(now.getDate() + 7);
 
-      const [tutor, dashboardRes, upcomingSessionsRes, reviewsRes] = await Promise.all([
+      const [tutor, dashboardRes, upcomingSessionsRes, reviewsRes, paymentsRes] = await Promise.all([
         tutorService.getTutorById(user?.id || ''),
         tutorDashboardService.getTutorDashboard(),
         sessionService.getTutorSessions({
           status: 'scheduled',
-          startDate: now.toISOString(),
-          endDate: nextWeek.toISOString(),
+          startTime: now.toISOString(),
+          endTime: nextWeek.toISOString(),
+          tutorId: user?.id,
         }),
-        feedbackService.getTutorReviews({ limit: 10 }),
+        feedbackService.getTutorReviews({ limit: 10, tutorId: user?.id }),
+        paymentService.getStudentPayments({
+          tutorId: user?.id,
+          status: 'confirmed',
+          limit: 10,
+        } as any),
       ]);
 
       const sessions = upcomingSessionsRes.items;
@@ -38,14 +45,12 @@ export function useTutorDashboardQuery() {
         approvalStatus: (tutor?.approvalStatus === 'suspended' ? 'rejected' : tutor?.approvalStatus || 'pending') as any,
         isPublic: tutor?.isPublic || false,
         stats: {
-          totalSessions: dashboardRes.totalCompletedSessions || 0,
-          completedSessions: dashboardRes.totalCompletedSessions || 0,
-          averageRating: dashboardRes.averageRating || 0,
-          reviewCount: dashboardRes.totalReviews || 0,
+          sessionsCompleted: dashboardRes.sessionsCompleted ?? 0,
+          totalEarnings: dashboardRes.totalEarnings ?? 0,
         },
         earnings: {
-          monthlyEarnings: dashboardRes.totalEarnings || 0,
-          pendingPayoutAmount: dashboardRes.pendingPayoutAmount || 0,
+          monthlyEarnings: dashboardRes.totalEarnings ?? 0,
+          pendingPayoutAmount: dashboardRes.pendingPayoutAmount ?? 0,
         },
         upcomingSession: upcomingSession ? {
           id: upcomingSession.id,
@@ -63,7 +68,12 @@ export function useTutorDashboardQuery() {
           comment: r.comment || '',
           date: r.createdAt,
         })),
-        recentPayouts: [],
+        recentEarnings: paymentsRes.items.map(p => ({
+          id: p.id,
+          subject: p.subject,
+          amount: p.amountTotal,
+          date: p.paidAt || p.createdAt,
+        })),
       };
     },
     enabled: !!user,

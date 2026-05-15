@@ -17,7 +17,7 @@ export const feedbackService = {
   },
 
   async getTutorReviews(params?: any): Promise<ListResponse<Feedback>> {
-    const response = await api.get<any>('/api/v1/feedbacks/tutor', { params });
+    const response = await api.get<any>('/api/v1/feedbacks', { params });
     if (Array.isArray(response)) {
       return { items: response, total: response.length, limit: response.length, offset: 0 };
     }

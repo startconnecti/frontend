@@ -7,11 +7,11 @@ export const sessionService = {
     const params = { ...filters };
     if (params.status === 'all') delete params.status;
     const response = await api.get<any>('/api/v1/sessions', { params: params as any });
-    
+
     if (Array.isArray(response)) {
       return { items: response, total: response.length, limit: response.length, offset: 0 };
     }
-    
+
     return {
       items: response?.items ?? response?.data ?? [],
       total: response?.total ?? 0,
@@ -27,12 +27,12 @@ export const sessionService = {
   async getTutorSessions(filters: SessionFilters): Promise<ListResponse<Session>> {
     const params = { ...filters };
     if (params.status === 'all') delete params.status;
-    const response = await api.get<any>('/api/v1/tutors/sessions', { params: params as any });
-    
+    const response = await api.get<any>('/api/v1/sessions', { params: params as any });
+
     if (Array.isArray(response)) {
       return { items: response, total: response.length, limit: response.length, offset: 0 };
     }
-    
+
     return {
       items: response?.items ?? response?.data ?? [],
       total: response?.total ?? 0,
@@ -42,6 +42,6 @@ export const sessionService = {
   },
 
   async getTutorSessionById(id: string): Promise<Session> {
-    return api.get<Session>(`/api/v1/tutors/sessions/${id}`);
+    return api.get<Session>(`/api/v1/sessions/${id}`);
   }
 };

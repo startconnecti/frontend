@@ -1,10 +1,8 @@
 export type TutorApprovalStatus = 'approved' | 'pending' | 'rejected';
 
 export interface TutorDashboardStats {
-  totalSessions: number;
-  completedSessions: number;
-  averageRating: number;
-  reviewCount: number;
+  sessionsCompleted: number;
+  totalEarnings: number;
 }
 
 export interface TutorEarnings {
@@ -30,10 +28,10 @@ export interface RecentReview {
   date: string;
 }
 
-export interface RecentPayout {
+export interface RecentEarning {
   id: string;
+  subject: string;
   amount: number;
-  status: 'completed' | 'processing';
   date: string;
 }
 
@@ -45,5 +43,5 @@ export interface TutorDashboardData {
   earnings: TutorEarnings;
   upcomingSession: UpcomingTeachingSession | null;
   recentReviews: RecentReview[];
-  recentPayouts: RecentPayout[];
+  recentEarnings: RecentEarning[];
 }

@@ -1,10 +1,8 @@
 import { Tutor } from '@/features/tutors/types';
 
 export interface StudentDashboardStats {
-  pendingBookingsCount: number;
-  completedSessionsCount: number;
+  sessionsCompleted: number;
   favoriteTutorsCount: number;
-  totalSpent: number;
 }
 
 export interface UpcomingSession {
@@ -22,7 +20,7 @@ export interface RecentPayment {
   tutorName: string;
   subject: string;
   amount: number;
-  status: 'completed' | 'pending' | 'failed';
+  status: 'confirmed';
   date: string;
 }
 

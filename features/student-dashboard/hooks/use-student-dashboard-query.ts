@@ -6,6 +6,7 @@ import { sessionService } from '@/features/sessions/services/session-service';
 import { paymentService } from '@/features/payments/services/payment-service';
 import { favoriteService } from '@/features/favorites/services/favorite-service';
 import { tutorService } from '@/features/tutors/services/tutor-service';
+import { studentDashboardService } from '../services/student-dashboard-service';
 import { StudentDashboardData } from '../types';
 
 export function useStudentDashboardQuery() {
@@ -14,26 +15,36 @@ export function useStudentDashboardQuery() {
   return useQuery({
     queryKey: ['student-dashboard', user?.id],
     queryFn: async (): Promise<StudentDashboardData> => {
-      const [sessionsRes, paymentsRes, favoritesRes, recommendedTutors] = await Promise.all([
-        sessionService.getStudentSessions({}),
-        paymentService.getStudentPayments({}),
+      const now = new Date();
+      const nextWeek = new Date();
+      nextWeek.setDate(now.getDate() + 7);
+
+      const [sessionsRes, paymentsRes, favoritesRes, recommendedTutors, dashboardRes] = await Promise.all([
+        sessionService.getStudentSessions({
+          status: 'scheduled',
+          startTime: now.toISOString(),
+          endTime: nextWeek.toISOString(),
+          studentId: user?.id,
+        }),
+        paymentService.getStudentPayments({
+          studentId: user?.id,
+          status: 'confirmed',
+          limit: 10,
+        } as any),
         favoriteService.getFavoriteTutors(),
-        tutorService.getTutors({ limit: 4 })
+        tutorService.getTutors({ limit: 4 }),
+        studentDashboardService.getStudentDashboard()
       ]);
 
       const sessions = sessionsRes.items;
       const payments = paymentsRes.items;
-      const favorites = favoritesRes.items;
-
-      const upcomingSession = sessions.find(s => s.status === 'scheduled') || null;
+      const upcomingSession = sessions[0] || null;
       
       return {
         studentName: user?.fullName || 'Student',
         stats: {
-          pendingBookingsCount: sessionsRes.total, // Using total from response if possible, or fallback
-          completedSessionsCount: sessions.filter(s => s.status === 'completed').length,
-          favoriteTutorsCount: favoritesRes.total,
-          totalSpent: payments.reduce((acc, p) => acc + (p.status === 'confirmed' ? p.amountTotal : 0), 0),
+          sessionsCompleted: dashboardRes.sessionsCompleted ?? 0,
+          favoriteTutorsCount: dashboardRes.favoriteTutorsCount ?? dashboardRes.totalFavoriteTutors ?? favoritesRes.total ?? 0,
         },
         upcomingSession: upcomingSession ? {
           id: upcomingSession.id,
@@ -44,12 +55,12 @@ export function useStudentDashboardQuery() {
           endTime: upcomingSession.endTime,
           meetingLink: upcomingSession.meetingUrl,
         } : null,
-        recentPayments: payments.slice(0, 5).map(p => ({
+        recentPayments: payments.map(p => ({
           id: p.id,
           tutorName: p.tutor.fullName,
           subject: p.subject,
           amount: p.amountTotal,
-          status: p.status === 'confirmed' ? 'completed' : p.status === 'pending' || p.status === 'waiting_admin_confirmation' ? 'pending' : 'failed',
+          status: 'confirmed',
           date: p.paidAt || p.createdAt,
         })),
         recommendedTutors: recommendedTutors,

@@ -1,51 +1,38 @@
 'use client';
 
+import Link from 'next/link';
+import { ArrowRight, type LucideIcon } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import { LucideIcon } from 'lucide-react';
 
 interface TutorDashboardStatCardProps {
   label: string;
   value: string | number;
+  href: string;
   icon: LucideIcon;
-  description?: string;
-  trend?: {
-    value: string;
-    isUp: boolean;
-  };
 }
 
 export function TutorDashboardStatCard({ 
   label, 
   value, 
-  icon: Icon, 
-  description,
-  trend 
+  href,
+  icon: Icon,
 }: TutorDashboardStatCardProps) {
   return (
-    <Card className="border-border/60 shadow-sm overflow-hidden group hover:shadow-md transition-all duration-300">
-      <CardContent className="p-6">
-        <div className="flex items-center justify-between">
-          <div className="space-y-1">
-            <p className="text-xs font-bold text-muted-foreground uppercase tracking-wider">{label}</p>
-            <h3 className="text-3xl font-black" style={{ color: '#2C1208' }}>{value}</h3>
-          </div>
-          <div className="h-12 w-12 rounded-2xl bg-primary/5 flex items-center justify-center text-primary group-hover:bg-primary group-hover:text-primary-foreground transition-all duration-500">
-            <Icon className="h-6 w-6" />
-          </div>
+    <Card className="h-36 rounded-2xl border border-border/60 bg-white shadow-sm overflow-hidden hover:border-primary/30 hover:shadow-md transition-all duration-300">
+      <CardContent className="h-full p-6 flex items-center gap-5">
+        <div className="h-14 w-14 shrink-0 rounded-2xl bg-primary/10 text-primary flex items-center justify-center">
+          <Icon className="h-7 w-7" />
         </div>
-        
-        {(description || trend) && (
-          <div className="mt-4 flex items-center gap-2">
-            {trend && (
-              <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full ${trend.isUp ? 'bg-emerald-100 text-emerald-700' : 'bg-rose-100 text-rose-700'}`}>
-                {trend.value}
-              </span>
-            )}
-            {description && (
-              <p className="text-[10px] text-muted-foreground font-medium">{description}</p>
-            )}
-          </div>
-        )}
+        <div className="min-w-0 flex-1 space-y-1">
+          <p className="text-sm font-semibold text-muted-foreground truncate">{label}</p>
+          <h3 className="text-4xl font-extrabold leading-none text-foreground">{value}</h3>
+        </div>
+        <Button size="icon" className="h-11 w-11 shrink-0 rounded-full shadow-sm hover:bg-primary/90" asChild>
+          <Link href={href} aria-label={`View details for ${label}`}>
+            <ArrowRight className="h-5 w-5" />
+          </Link>
+        </Button>
       </CardContent>
     </Card>
   );

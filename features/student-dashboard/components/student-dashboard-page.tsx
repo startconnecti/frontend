@@ -1,15 +1,11 @@
 'use client';
 
 import { 
-  Users, 
-  BookOpen, 
-  CreditCard, 
-  Heart, 
   Search, 
   ArrowRight,
+  Calendar,
+  Heart,
   TrendingUp,
-  Clock,
-  CheckCircle2
 } from 'lucide-react';
 import Link from 'next/link';
 
@@ -33,9 +29,9 @@ export function StudentDashboardPage() {
           <Skeleton className="h-10 w-64" />
           <Skeleton className="h-4 w-48" />
         </div>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-          {[1, 2, 3, 4].map((i) => (
-            <Skeleton key={i} className="h-32 w-full rounded-2xl" />
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+          {[1, 2].map((i) => (
+            <Skeleton key={i} className="h-36 w-full rounded-2xl" />
           ))}
         </div>
         <Skeleton className="h-64 w-full rounded-3xl" />
@@ -77,31 +73,18 @@ export function StudentDashboardPage() {
       </div>
 
       {/* Stats Section */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
         <StudentDashboardStatCard 
-          label="Pending Bookings" 
-          value={data.stats.pendingBookingsCount} 
-          icon={Clock} 
-          description="Waiting for approval"
+          label="Completed Sessions" 
+          value={data.stats.sessionsCompleted}
+          href={ROUTES.STUDENT.SESSIONS}
+          icon={Calendar}
         />
         <StudentDashboardStatCard 
-          label="Completed" 
-          value={data.stats.completedSessionsCount} 
-          icon={CheckCircle2} 
-          description="Total hours learned"
-          trend={{ value: "+2 this week", isUp: true }}
-        />
-        <StudentDashboardStatCard 
-          label="Favorites" 
-          value={data.stats.favoriteTutorsCount} 
-          icon={Heart} 
-          description="Tutors you love"
-        />
-        <StudentDashboardStatCard 
-          label="Total Spent" 
-          value={`$${data.stats.totalSpent}`} 
-          icon={CreditCard} 
-          description="Lifetime investment"
+          label="Favorite Tutors" 
+          value={data.stats.favoriteTutorsCount}
+          href="/student/favorite-tutors"
+          icon={Heart}
         />
       </div>
 

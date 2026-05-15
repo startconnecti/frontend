@@ -1,15 +1,12 @@
 'use client';
 
 import { 
-  Users, 
-  BookOpen, 
   Star, 
   TrendingUp, 
   ArrowRight,
   Settings,
   Calendar,
-  Search,
-  MessageCircle
+  DollarSign,
 } from 'lucide-react';
 import Link from 'next/link';
 
@@ -19,9 +16,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { ROUTES } from '@/constants/routes';
 import { useTutorDashboardQuery } from '../hooks/use-tutor-dashboard-query';
 import { TutorDashboardStatCard } from './tutor-dashboard-stat-card';
-import { TutorApprovalStatusCard } from './tutor-approval-status-card';
 import { TutorUpcomingSessionCard } from './tutor-upcoming-session-card';
-import { TutorEarningsSummary } from './tutor-earnings-summary';
 import { Skeleton } from '@/components/ui/skeleton';
 
 export function TutorDashboardPage() {
@@ -34,10 +29,9 @@ export function TutorDashboardPage() {
           <Skeleton className="h-10 w-64" />
           <Skeleton className="h-4 w-48" />
         </div>
-        <Skeleton className="h-24 w-full rounded-xl" />
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-          {[1, 2, 3, 4].map((i) => (
-            <Skeleton key={i} className="h-32 w-full rounded-2xl" />
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+          {[1, 2].map((i) => (
+            <Skeleton key={i} className="h-36 w-full rounded-2xl" />
           ))}
         </div>
       </PageContainer>
@@ -83,38 +77,19 @@ export function TutorDashboardPage() {
         </div>
       </div>
 
-      {/* Approval Status */}
-      <TutorApprovalStatusCard status={data.approvalStatus} isPublic={data.isPublic} />
-
       {/* Stats Section */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-        <Link href={ROUTES.TUTOR.SESSIONS} className="block transition-transform hover:scale-[1.02]">
-          <TutorDashboardStatCard 
-            label="Completed Sessions" 
-            value={data.stats.completedSessions} 
-            icon={BookOpen} 
-            description="View all sessions"
-          />
-        </Link>
-        <Link href={ROUTES.TUTOR.INCOME} className="block transition-transform hover:scale-[1.02]">
-          <TutorDashboardStatCard 
-            label="Total Earnings" 
-            value={`$${data.earnings.monthlyEarnings}`} 
-            icon={TrendingUp} 
-            description="View income details"
-          />
-        </Link>
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
         <TutorDashboardStatCard 
-          label="Rating" 
-          value={data.stats.averageRating} 
-          icon={Star} 
-          description={`${data.stats.reviewCount} total reviews`}
+          label="Completed Sessions" 
+          value={data.stats.sessionsCompleted}
+          href={ROUTES.TUTOR.SESSIONS}
+          icon={Calendar}
         />
         <TutorDashboardStatCard 
-          label="New Messages" 
-          value={2} 
-          icon={MessageCircle} 
-          description="Awaiting response"
+          label="Total Earnings" 
+          value={data.stats.totalEarnings}
+          href={ROUTES.TUTOR.INCOME}
+          icon={DollarSign}
         />
       </div>
 
@@ -165,29 +140,36 @@ export function TutorDashboardPage() {
 
         {/* Sidebar Column */}
         <div className="space-y-10">
-          {/* Earnings Summary */}
-          <TutorEarningsSummary earnings={data.earnings} />
-
-          {/* Recent Payouts */}
+          {/* Recent Earnings */}
           <Card className="border-border/60 shadow-sm overflow-hidden">
             <CardHeader className="bg-muted/10 border-b border-border/40 py-4">
-              <CardTitle className="text-sm font-bold uppercase tracking-wider text-muted-foreground">Recent Payouts</CardTitle>
+              <CardTitle className="text-sm font-bold uppercase tracking-wider text-muted-foreground">Recent Earnings</CardTitle>
             </CardHeader>
             <CardContent className="p-0">
-              <div className="divide-y divide-border/40">
-                {data.recentPayouts.map((payout) => (
-                  <div key={payout.id} className="p-4 flex items-center justify-between group hover:bg-muted/5 transition-colors">
-                    <div className="space-y-1">
-                      <p className="text-xs font-bold">{new Date(payout.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</p>
-                      <p className={`text-[10px] font-bold uppercase ${payout.status === 'completed' ? 'text-emerald-600' : 'text-amber-600'}`}>
-                        {payout.status}
-                      </p>
+              {data.recentEarnings.length === 0 ? (
+                <div className="p-8 text-center text-sm text-muted-foreground">No recent earnings</div>
+              ) : (
+                <div className="divide-y divide-border/40">
+                  {data.recentEarnings.map((earning) => (
+                    <div key={earning.id} className="p-4 hover:bg-muted/5 transition-colors group">
+                      <div className="flex items-center justify-between mb-1">
+                        <p className="text-sm font-bold truncate group-hover:text-primary transition-colors">{earning.subject}</p>
+                        <p className="text-sm font-black">${earning.amount}</p>
+                      </div>
+                      <p className="text-[10px] text-muted-foreground">{new Date(earning.date).toLocaleDateString()}</p>
                     </div>
-                    <p className="text-sm font-black group-hover:text-primary transition-colors">${payout.amount}</p>
-                  </div>
-                ))}
-              </div>
+                  ))}
+                </div>
+              )}
             </CardContent>
+            <div className="p-4 bg-muted/10 border-t border-border/40">
+              <Button variant="ghost" size="sm" className="w-full text-xs font-bold gap-2" asChild>
+                <Link href={ROUTES.TUTOR.INCOME}>
+                  View Income History
+                  <ArrowRight className="h-3 w-3" />
+                </Link>
+              </Button>
+            </div>
           </Card>
         </div>
       </div>
