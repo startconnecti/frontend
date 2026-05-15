@@ -65,24 +65,41 @@ function buildTutorQueryParams(filters: TutorFilters): TutorQueryParams {
 }
 
 function normalizeTutor(tutor: any): Tutor {
+  tutor = tutor?.tutor ?? tutor;
   if (!tutor) return tutor;
+  const certificates = Array.isArray(tutor.certificates)
+    ? tutor.certificates
+    : Array.isArray(tutor.certifications)
+      ? tutor.certifications
+      : [];
+  const availabilitySlots = Array.isArray(tutor.availabilitySlots)
+    ? tutor.availabilitySlots
+    : Array.isArray(tutor.weeklyAvailability)
+      ? tutor.weeklyAvailability
+      : [];
+
   return {
     ...tutor,
     id: tutor.id ?? tutor.tutorId ?? '',
     fullName: tutor.fullName ?? tutor.name ?? '-',
     avatarUrl: tutor.avatarUrl ?? tutor.avatar ?? undefined,
+    bio: tutor.bio ?? '',
+    experienceText: tutor.experienceText ?? '',
     subjects: Array.isArray(tutor.subjects)
       ? tutor.subjects.map((s: any) => (typeof s === 'string' ? s : s.name ?? s.slug ?? '')).filter(Boolean)
       : [],
     approvalStatus: tutor.approvalStatus ?? 'approved',
     isPublic: tutor.isPublic ?? true,
-    certificates: Array.isArray(tutor.certificates) ? tutor.certificates : [],
-    availabilitySlots: Array.isArray(tutor.availabilitySlots) ? tutor.availabilitySlots : [],
+    certificates,
+    certifications: certificates,
+    availabilitySlots,
+    weeklyAvailability: availabilitySlots,
     feedbacks: Array.isArray(tutor.feedbacks) ? tutor.feedbacks : [],
     hourlyRate: Number(tutor.hourlyRate) || 0,
     averageRating: Number(tutor.averageRating ?? tutor.ratingAvg) || 0,
     reviewCount: Number(tutor.reviewCount ?? tutor.totalReviews) || 0,
     yearsOfExperience: Number(tutor.yearsOfExperience) || 0,
+    isFavorite: Boolean(tutor.isFavorite),
   };
 }
 

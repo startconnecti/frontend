@@ -6,6 +6,8 @@ export const metadata: Metadata = {
   description: 'Learn more about this expert tutor and book a session.',
 };
 
-export default function ProfilePage({ params }: { params: { id: string } }) {
-  return <TutorProfilePage id={params.id} />;
+export default async function ProfilePage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
+
+  return <TutorProfilePage id={id} />;
 }

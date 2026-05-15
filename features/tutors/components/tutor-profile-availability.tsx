@@ -41,10 +41,15 @@ export function TutorProfileAvailability({ slots }: TutorProfileAvailabilityProp
               </div>
               <div className="space-y-2">
                 {daySlots.map((slot, index) => (
-                  <div key={index} className="flex items-center gap-2 text-xs text-muted-foreground px-2 py-1.5 bg-background rounded-lg border border-border/20">
+                  <button key={index} className="w-full flex items-center justify-between gap-2 text-xs px-2 py-1.5 bg-background rounded-lg border border-border/20 hover:border-primary/30 transition-colors text-left">
+                    <span className="flex items-center gap-2 text-muted-foreground">
                     <Clock className="h-3 w-3" />
                     <span>{slot.startTime} - {slot.endTime}</span>
-                  </div>
+                    </span>
+                    <span className={`font-bold capitalize ${slot.status === 'blocked' ? 'text-red-600' : 'text-emerald-600'}`}>
+                      {slot.status ?? 'available'}
+                    </span>
+                  </button>
                 ))}
               </div>
             </div>

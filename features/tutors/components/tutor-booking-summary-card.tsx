@@ -160,9 +160,9 @@ export function TutorBookingSummaryCard({ tutor }: TutorBookingSummaryCardProps)
         </div>
       </CardHeader>
       
-      <CardContent className="p-6 space-y-6">
+      <CardContent className="p-6 space-y-6 ">
         {/* Selectors */}
-        <div className="space-y-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 space-y-4">
           <div className="space-y-1.5">
             <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">Subject</label>
             <Select value={selectedSubject} onValueChange={setSelectedSubject}>
@@ -199,15 +199,11 @@ export function TutorBookingSummaryCard({ tutor }: TutorBookingSummaryCardProps)
 
         <div className="space-y-4 pt-2">
           <div className="flex items-start gap-3">
-            <CheckCircle2 className="h-5 w-5 text-emerald-500 mt-0.5 shrink-0" />
-            <p className="text-sm text-muted-foreground">Free 15-minute consultation</p>
-          </div>
-          <div className="flex items-start gap-3">
             <Calendar className="h-5 w-5 text-primary mt-0.5 shrink-0" />
             <p className="text-sm text-muted-foreground">Easy online booking</p>
           </div>
           <div className="flex items-start gap-3">
-            <ShieldCheck className="h-5 w-5 text-primary mt-0.5 shrink-0" />
+            <ShieldCheck className="h-5 w-5 text-emerald-500 mt-0.5 shrink-0" />
             <p className="text-sm text-muted-foreground">Satisfaction guarantee</p>
           </div>
         </div>

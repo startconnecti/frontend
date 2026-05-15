@@ -13,6 +13,8 @@ interface TutorProfileHeaderProps {
   reviewCount: number;
   hourlyRate: number;
   experience: number;
+  bio?: string | null;
+  isFavorite?: boolean;
 }
 
 export function TutorProfileHeader({
@@ -22,7 +24,9 @@ export function TutorProfileHeader({
   rating,
   reviewCount,
   hourlyRate,
-  experience
+  experience,
+  bio,
+  isFavorite
 }: TutorProfileHeaderProps) {
   return (
     <div className="flex flex-col md:flex-row gap-6 items-start pb-8 border-b">
@@ -51,13 +55,17 @@ export function TutorProfileHeader({
 
           <div className="flex items-center gap-2">
             <Button variant="outline" size="icon" className="rounded-full" aria-label="Add to favorites">
-              <Heart className="h-5 w-5" />
+              <Heart className={`h-5 w-5 ${isFavorite ? 'fill-primary text-primary' : ''}`} />
             </Button>
             <Button variant="outline" size="icon" className="rounded-full" aria-label="Send message">
               <MessageSquare className="h-5 w-5" />
             </Button>
           </div>
         </div>
+
+        {bio && (
+          <p className="text-sm text-muted-foreground leading-relaxed max-w-2xl">{bio}</p>
+        )}
 
         <div className="flex flex-wrap items-center gap-x-8 gap-y-3 pt-2 text-sm">
           <div className="flex items-center gap-2">
@@ -71,7 +79,7 @@ export function TutorProfileHeader({
           </div>
           <div className="flex items-center gap-2 text-muted-foreground">
             <Clock className="h-5 w-5" />
-            <span>Responds in 2 hours</span>
+            <span className="font-semibold text-foreground">{hourlyRate.toLocaleString()} / hour</span>
           </div>
         </div>
       </div>

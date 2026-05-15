@@ -29,6 +29,10 @@ export const feedbackService = {
     };
   },
 
+  async getVisibleTutorFeedbacks(tutorId: string, limit = 4, offset = 0): Promise<ListResponse<Feedback>> {
+    return this.getTutorReviews({ tutorId, status: 'visible', limit, offset });
+  },
+
   async getTutorReviewSummary(): Promise<TutorReviewSummary> {
     const response = await this.getTutorReviews();
     const reviews = response.items;

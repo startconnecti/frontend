@@ -1,5 +1,6 @@
 'use client';
 
+import { useState } from 'react';
 import Link from 'next/link';
 import { ArrowLeft } from 'lucide-react';
 import { 
@@ -10,6 +11,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { ROUTES } from '@/constants/routes';
 import { useTutorDetailQuery } from '../hooks/use-tutor-detail-query';
+import { useTutorFeedbacksQuery } from '@/features/feedbacks/hooks/use-tutor-feedbacks-query';
 import { TutorProfileHeader } from './tutor-profile-header';
 import { TutorProfileAbout } from './tutor-profile-about';
 import { TutorProfileCertificates } from './tutor-profile-certificates';
@@ -22,7 +24,18 @@ interface TutorProfilePageProps {
 }
 
 export function TutorProfilePage({ id }: TutorProfilePageProps) {
+  const reviewLimit = 4;
+  const [reviewOffset, setReviewOffset] = useState(0);
   const { data: tutor, isLoading, error } = useTutorDetailQuery(id, true);
+  const { data: feedbacksData } = useTutorFeedbacksQuery(tutor?.id, reviewLimit, reviewOffset);
+  const feedbacks = (feedbacksData?.items ?? tutor?.feedbacks ?? []).map((feedback: any) => ({
+    id: feedback.id,
+    studentName: feedback.studentName || 'Student',
+    rating: Number(feedback.rating) || 0,
+    comment: feedback.comment || '',
+    date: feedback.createdAt || feedback.date || '',
+  }));
+  const feedbackTotal = feedbacksData?.total ?? feedbacks.length;
 
   return (
     <PageContainer className="py-8">
@@ -53,17 +66,24 @@ export function TutorProfilePage({ id }: TutorProfilePageProps) {
                 reviewCount={tutor.reviewCount}
                 hourlyRate={tutor.hourlyRate}
                 experience={tutor.yearsOfExperience}
+                bio={tutor.bio}
+                isFavorite={tutor.isFavorite}
               />
 
-              <TutorProfileAbout bio={tutor.bio} />
+              <TutorProfileAbout bio={tutor.bio} experienceText={tutor.experienceText} />
 
-              <TutorProfileCertificates certificates={tutor.certificates} />
+              <TutorProfileCertificates certificates={tutor.certifications ?? tutor.certificates} />
 
-              <TutorProfileAvailability slots={tutor.availabilitySlots} />
+              <TutorProfileAvailability slots={tutor.weeklyAvailability ?? tutor.availabilitySlots} />
 
               <TutorProfileReviews 
-                feedbacks={tutor.feedbacks} 
+                feedbacks={feedbacks} 
                 averageRating={tutor.averageRating} 
+                limit={feedbacksData?.limit ?? reviewLimit}
+                offset={feedbacksData?.offset ?? reviewOffset}
+                total={feedbackTotal}
+                onPrevious={() => setReviewOffset((offset) => Math.max(0, offset - reviewLimit))}
+                onNext={() => setReviewOffset((offset) => offset + reviewLimit)}
               />
             </div>
 

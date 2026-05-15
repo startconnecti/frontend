@@ -21,6 +21,7 @@ export interface AvailabilitySlot {
   dayOfWeek?: 'monday' | 'tuesday' | 'wednesday' | 'thursday' | 'friday' | 'saturday' | 'sunday';
   startTime: string; // HH:mm
   endTime: string;   // HH:mm
+  status?: 'available' | 'blocked' | string;
 }
 
 export interface Tutor {
@@ -37,8 +38,11 @@ export interface Tutor {
   approvalStatus: TutorStatus;
   isPublic: boolean;
   certificates: Certificate[];
+  certifications: Certificate[];
   availabilitySlots: AvailabilitySlot[];
+  weeklyAvailability: AvailabilitySlot[];
   feedbacks: Feedback[];
+  isFavorite?: boolean;
 }
 
 export type TutorSortOption =

@@ -2,14 +2,24 @@
 
 import { Star, Quote } from 'lucide-react';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { Button } from '@/components/ui/button';
 import { Feedback } from '../types';
 
 interface TutorProfileReviewsProps {
   feedbacks: Feedback[];
   averageRating: number;
+  limit: number;
+  offset: number;
+  total: number;
+  onPrevious: () => void;
+  onNext: () => void;
 }
 
-export function TutorProfileReviews({ feedbacks, averageRating }: TutorProfileReviewsProps) {
+export function TutorProfileReviews({ feedbacks, averageRating, limit, offset, total, onPrevious, onNext }: TutorProfileReviewsProps) {
+  const reviews = feedbacks ?? [];
+  const canGoPrevious = offset > 0;
+  const canGoNext = offset + limit < total;
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -20,21 +30,21 @@ export function TutorProfileReviews({ feedbacks, averageRating }: TutorProfileRe
         </div>
       </div>
 
-      {!feedbacks || feedbacks.length === 0 ? (
+      {reviews.length === 0 ? (
         <div className="p-8 rounded-2xl border border-dashed border-border/60 text-center">
-          <p className="text-sm text-muted-foreground italic">This tutor hasn't received any reviews yet.</p>
+          <p className="text-sm text-muted-foreground italic">No reviews available</p>
         </div>
       ) : (
-        <div className="space-y-6">
-          {feedbacks.map((review) => (
+        <div className="max-h-[420px] space-y-6 overflow-y-auto pr-2">
+          {reviews.map((review) => (
             <div key={review.id} className="space-y-3">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
                   <Avatar className="h-8 w-8">
-                    <AvatarFallback className="text-xs bg-muted text-muted-foreground">{review.studentName[0]}</AvatarFallback>
+                    <AvatarFallback className="text-xs bg-muted text-muted-foreground">{(review.studentName || 'S')[0]}</AvatarFallback>
                   </Avatar>
                   <div className="space-y-0.5">
-                    <p className="text-sm font-bold">{review.studentName}</p>
+                    <p className="text-sm font-bold">{review.studentName || 'Student'}</p>
                     <div className="flex items-center gap-1">
                       {[...Array(5)].map((_, i) => (
                         <Star 
@@ -45,12 +55,12 @@ export function TutorProfileReviews({ feedbacks, averageRating }: TutorProfileRe
                     </div>
                   </div>
                 </div>
-                <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-widest">{review.date}</span>
+                <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-widest">{review.date ? new Date(review.date).toLocaleDateString() : ''}</span>
               </div>
               <div className="relative pl-6 pt-1">
                 <Quote className="h-4 w-4 text-muted-foreground/20 absolute left-0 top-0 rotate-180" />
                 <p className="text-sm text-muted-foreground leading-relaxed italic">
-                  "{review.comment}"
+                  "{review.comment || ''}"
                 </p>
               </div>
               <div className="h-px bg-border/40 w-full" />
@@ -58,6 +68,19 @@ export function TutorProfileReviews({ feedbacks, averageRating }: TutorProfileRe
           ))}
         </div>
       )}
+      <div className="flex items-center justify-between gap-3 pt-2">
+        <p className="text-xs text-muted-foreground">
+          {total > 0 ? `${offset + 1}-${Math.min(offset + limit, total)} of ${total}` : '0 reviews'}
+        </p>
+        <div className="flex items-center gap-2">
+          <Button variant="outline" size="sm" disabled={!canGoPrevious} onClick={onPrevious}>
+            Previous
+          </Button>
+          <Button variant="outline" size="sm" disabled={!canGoNext} onClick={onNext}>
+            Next
+          </Button>
+        </div>
+      </div>
     </div>
   );
 }
