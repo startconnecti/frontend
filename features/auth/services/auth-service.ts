@@ -1,7 +1,7 @@
 import { api } from '@/lib/api/client';
-import { 
-  LoginRequest, 
-  LoginResponse, 
+import {
+  LoginRequest,
+  LoginResponse,
   RegisterCredentialsRequest,
   VerifyRegisterOtpRequest,
   ForgotPasswordRequest,
@@ -46,7 +46,7 @@ export const authService = {
   },
 
   async requestForgotPassword(request: ForgotPasswordRequest): Promise<boolean> {
-    await api.post('/api/v1/auth/forgot-password/request-otp', request);
+    await api.post('/api/v1/auth/forgot-password/send-otp', request);
     return true;
   },
 
