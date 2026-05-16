@@ -35,6 +35,7 @@ export interface Tutor {
   yearsOfExperience: number;
   averageRating: number;
   reviewCount: number;
+  totalReviews: number;
   approvalStatus: TutorStatus;
   isPublic: boolean;
   certificates: Certificate[];

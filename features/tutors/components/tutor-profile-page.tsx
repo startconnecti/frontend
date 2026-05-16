@@ -35,7 +35,7 @@ export function TutorProfilePage({ id }: TutorProfilePageProps) {
     comment: feedback.comment || '',
     date: feedback.createdAt || feedback.date || '',
   }));
-  const feedbackTotal = feedbacksData?.total ?? feedbacks.length;
+  const feedbackTotal = feedbacksData?.total;
 
   return (
     <PageContainer className="py-8">
@@ -63,7 +63,7 @@ export function TutorProfilePage({ id }: TutorProfilePageProps) {
                 avatarUrl={tutor.avatarUrl}
                 subjects={tutor.subjects}
                 rating={tutor.averageRating}
-                reviewCount={tutor.reviewCount}
+                reviewCount={tutor.totalReviews ?? 0}
                 hourlyRate={tutor.hourlyRate}
                 experience={tutor.yearsOfExperience}
                 bio={tutor.bio}

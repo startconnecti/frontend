@@ -10,7 +10,7 @@ interface TutorProfileReviewsProps {
   averageRating: number;
   limit: number;
   offset: number;
-  total: number;
+  total?: number;
   onPrevious: () => void;
   onNext: () => void;
 }
@@ -18,7 +18,7 @@ interface TutorProfileReviewsProps {
 export function TutorProfileReviews({ feedbacks, averageRating, limit, offset, total, onPrevious, onNext }: TutorProfileReviewsProps) {
   const reviews = feedbacks ?? [];
   const canGoPrevious = offset > 0;
-  const canGoNext = offset + limit < total;
+  const canGoNext = total !== undefined ? offset + limit < total : reviews.length === limit;
 
   return (
     <div className="space-y-6">
@@ -35,7 +35,7 @@ export function TutorProfileReviews({ feedbacks, averageRating, limit, offset, t
           <p className="text-sm text-muted-foreground italic">No reviews available</p>
         </div>
       ) : (
-        <div className="max-h-[420px] space-y-6 overflow-y-auto pr-2">
+        <div className="grid grid-cols-2 gap-5 max-h-[420px] space-y-6 overflow-y-auto pr-2">
           {reviews.map((review) => (
             <div key={review.id} className="space-y-3">
               <div className="flex items-center justify-between">
@@ -69,9 +69,6 @@ export function TutorProfileReviews({ feedbacks, averageRating, limit, offset, t
         </div>
       )}
       <div className="flex items-center justify-between gap-3 pt-2">
-        <p className="text-xs text-muted-foreground">
-          {total > 0 ? `${offset + 1}-${Math.min(offset + limit, total)} of ${total}` : '0 reviews'}
-        </p>
         <div className="flex items-center gap-2">
           <Button variant="outline" size="sm" disabled={!canGoPrevious} onClick={onPrevious}>
             Previous

@@ -97,7 +97,8 @@ function normalizeTutor(tutor: any): Tutor {
     feedbacks: Array.isArray(tutor.feedbacks) ? tutor.feedbacks : [],
     hourlyRate: Number(tutor.hourlyRate) || 0,
     averageRating: Number(tutor.averageRating ?? tutor.ratingAvg) || 0,
-    reviewCount: Number(tutor.reviewCount ?? tutor.totalReviews) || 0,
+    reviewCount: Number(tutor.totalReviews ?? tutor.reviewCount) || 0,
+    totalReviews: Number(tutor.totalReviews ?? tutor.reviewCount) || 0,
     yearsOfExperience: Number(tutor.yearsOfExperience) || 0,
     isFavorite: Boolean(tutor.isFavorite),
   };
