@@ -5,7 +5,7 @@ export const sessionService = {
   async getSessions(params: GetSessionsParams): Promise<SessionListResponse> {
     const queryParams: Record<string, string | number> = {};
     if (params.limit) queryParams.limit = params.limit;
-    if (params.offset) queryParams.offset = params.offset;
+    if (params.page) queryParams.page = params.page;
     
     const validStatuses = ['scheduled', 'cancelled', 'completed', 'no_show'];
     if (params.status && validStatuses.includes(params.status)) {

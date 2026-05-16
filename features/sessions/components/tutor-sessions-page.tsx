@@ -22,16 +22,15 @@ export function TutorSessionsPage() {
   const page = searchParams.get('page') || '1';
   
   const limit = 10;
-  const offset = (Number(page) - 1) * limit;
   
   const { data, isLoading, isError, error, refetch } = useTutorSessionsQuery({
     status: status === 'all' ? undefined : status,
     limit,
-    offset,
+    page: Number(page),
   });
   
   const sessions = data?.items || [];
-  const total = data?.pagination?.total || 0;
+  const total = data?.meta?.pagination?.total || 0;
 
   useEffect(() => {
     if (isError && error) {

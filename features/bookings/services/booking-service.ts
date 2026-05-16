@@ -9,7 +9,7 @@ export const bookingService = {
   async getBookings(params: GetBookingsParams): Promise<BookingListResponse> {
     const queryParams: Record<string, string | number> = {};
     if (params.limit) queryParams.limit = params.limit;
-    if (params.offset) queryParams.offset = params.offset;
+    if (params.page) queryParams.page = params.page;
     if (params.status && params.status !== 'all') queryParams.status = params.status;
     
     return api.get<BookingListResponse>('/api/v1/bookings', { params: queryParams });

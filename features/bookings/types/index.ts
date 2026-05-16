@@ -22,20 +22,20 @@ export interface BookingPagination {
 }
 
 export interface BookingListResponse {
-  success: boolean;
-  data: {
-    items: Booking[];
-    pagination: BookingPagination;
-  };
+  items: Booking[];
   meta: {
-    requestId: string;
-    timestamp: string;
+    pagination: {
+      total: number;
+      page: number;
+      limit: number;
+      totalPages: number;
+    };
   };
 }
 
 export interface GetBookingsParams {
   limit?: number;
-  offset?: number;
+  page?: number;
   status?: BookingStatus | 'all';
 }
 

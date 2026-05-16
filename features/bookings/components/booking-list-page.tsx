@@ -1,6 +1,6 @@
 'use client';
 
-import { useSearchParams, useRouter } from 'next/navigation';
+import { useSearchParams, useRouter, usePathname } from 'next/navigation';
 import { PageContainer, SectionHeader, ListState } from '@/components/shared';
 import { BookingFilterTabs, BookingStatusFilter } from './booking-filter-tabs';
 import { BookingCard } from './booking-card';
@@ -13,26 +13,32 @@ import { Booking } from '../types';
 import { useCreatePaymentMutation } from '@/features/payments/hooks/use-create-payment-mutation';
 import { PaymentInstructionModal } from '@/features/payments/components/payment-instruction-modal';
 import { PaymentInstruction } from '@/features/payments/types/index';
+import { Pagination } from '@/components/shared/pagination';
 
 export function BookingListPage() {
   const searchParams = useSearchParams();
   const router = useRouter();
+  const pathname = usePathname();
 
   const status = (searchParams.get('status') as BookingStatusFilter) || 'all';
   const page = searchParams.get('page') || '1';
 
-  const limit = 20;
-  const offset = (Number(page) - 1) * limit;
+  const handlePageChange = (newPage: number) => {
+    const params = new URLSearchParams(searchParams.toString());
+    params.set('page', newPage.toString());
+    router.push(`${pathname}?${params.toString()}`);
+  };
+
+  const limit = 10;
 
   const { data, isLoading, isError, error, refetch } = useStudentBookingsQuery({
     status,
     limit,
-    offset,
+    page: Number(page),
   });
 
-  const responseData = data as unknown as { items: Booking[]; pagination?: { total: number } };
-  const bookings = responseData?.items || [];
-  const total = responseData?.pagination?.total || 0;
+  const bookings = data?.items || [];
+  const total = data?.meta?.pagination?.total || 0;
 
   const [bookingToCancel, setBookingToCancel] = useState<Booking | null>(null);
   const [paymentInstruction, setPaymentInstruction] = useState<PaymentInstruction | null>(null);
@@ -105,12 +111,11 @@ export function BookingListPage() {
           ))}
         </div>
 
-        <div className="bg-muted p-4 rounded-lg text-xs text-muted-foreground flex justify-between items-center">
-          <span>Current Page: {page}</span>
-          <span>
-            Showing {bookings.length} of {total} total bookings
-          </span>
-        </div>
+        <Pagination 
+          currentPage={Number(page)} 
+          totalPages={Math.ceil(total / limit)} 
+          onPageChange={handlePageChange} 
+        />
       </ListState>
 
       {bookingToCancel && (

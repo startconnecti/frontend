@@ -43,4 +43,5 @@ export interface SessionFilters {
   tutorId?: string;
   limit?: number;
   offset?: number;
+  page?: number;
 }

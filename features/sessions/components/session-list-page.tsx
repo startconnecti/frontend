@@ -12,6 +12,7 @@ import { SessionStatus, Session } from '../types/index';
 import { CancelSessionModal } from './cancel-session-modal';
 import { LeaveFeedbackModal } from '@/features/feedbacks/components/leave-feedback-modal';
 import { Button } from '@/components/ui/button';
+import { Pagination } from '@/components/shared/pagination';
 
 export function SessionListPage() {
   const searchParams = useSearchParams();
@@ -20,19 +21,17 @@ export function SessionListPage() {
   const status = (searchParams.get('status') as SessionStatusFilter) || 'all';
   const page = searchParams.get('page') || '1';
   
-  const limit = 20;
-  const offset = (Number(page) - 1) * limit;
-
+  const limit = 10;
   const apiStatus = status === 'all' ? undefined : (status as SessionStatus);
 
   const { data, isLoading, isError, error, refetch } = useStudentSessionsQuery({
     status: apiStatus,
     limit,
-    offset,
+    page: Number(page),
   });
 
   const sessions = data?.items || [];
-  const total = data?.pagination?.total || 0;
+  const total = data?.meta?.pagination?.total || 0;
 
   const [sessionToCancel, setSessionToCancel] = useState<Session | null>(null);
   const [sessionForFeedback, setSessionForFeedback] = useState<Session | null>(null);
@@ -100,27 +99,11 @@ export function SessionListPage() {
           ))}
         </div>
         
-        {total > limit && (
-          <div className="flex justify-between items-center mt-6">
-            <Button 
-              variant="outline" 
-              disabled={Number(page) <= 1}
-              onClick={() => handlePageChange(Number(page) - 1)}
-            >
-              Previous
-            </Button>
-            <span className="text-sm text-muted-foreground">
-              Page {page} of {Math.ceil(total / limit)}
-            </span>
-            <Button 
-              variant="outline" 
-              disabled={Number(page) >= Math.ceil(total / limit)}
-              onClick={() => handlePageChange(Number(page) + 1)}
-            >
-              Next
-            </Button>
-          </div>
-        )}
+        <Pagination 
+          currentPage={Number(page)} 
+          totalPages={Math.ceil(total / limit)} 
+          onPageChange={handlePageChange} 
+        />
       </ListState>
 
       {sessionToCancel && (

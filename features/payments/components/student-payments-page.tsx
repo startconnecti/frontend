@@ -1,7 +1,8 @@
 'use client';
 
 import { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams, usePathname } from 'next/navigation';
+import { Pagination } from '@/components/shared/pagination';
 import { Search, CreditCard } from 'lucide-react';
 
 import { PageContainer, SectionHeader, ListState } from '@/components/shared';
@@ -15,12 +16,32 @@ import { PaymentFilterTabs } from './payment-filter-tabs';
 
 export function StudentPaymentsPage() {
   const router = useRouter();
-  const [filters, setFilters] = useState<PaymentFilters>({ status: 'all' });
-  const { data, isLoading, isError, error, refetch } = useStudentPaymentsQuery(filters);
-  const payments = data?.items || [];
+  const searchParams = useSearchParams();
+  const pathname = usePathname();
 
-  const handleStatusChange = (status: PaymentStatus | 'all') => {
-    setFilters({ status });
+  const status = searchParams.get('status') || 'all';
+  const page = searchParams.get('page') || '1';
+
+  const { data, isLoading, isError, error, refetch } = useStudentPaymentsQuery({
+    status: status as any,
+    limit: 10,
+    page: Number(page),
+  });
+
+  const payments = data?.items || [];
+  const total = data?.meta?.pagination?.total || 0;
+
+  const handleStatusChange = (newStatus: string) => {
+    const params = new URLSearchParams(searchParams.toString());
+    params.set('status', newStatus);
+    params.set('page', '1');
+    router.push(`${pathname}?${params.toString()}`);
+  };
+
+  const handlePageChange = (newPage: number) => {
+    const params = new URLSearchParams(searchParams.toString());
+    params.set('page', newPage.toString());
+    router.push(`${pathname}?${params.toString()}`);
   };
 
   return (
@@ -39,7 +60,7 @@ export function StudentPaymentsPage() {
       </div>
 
       <PaymentFilterTabs 
-        activeStatus={filters.status || 'all'} 
+        activeStatus={status as any} 
         onStatusChange={handleStatusChange} 
       />
 
@@ -66,6 +87,12 @@ export function StudentPaymentsPage() {
             </div>
           ))}
         </div>
+        
+        <Pagination 
+          currentPage={Number(page)} 
+          totalPages={Math.ceil(total / 10)} 
+          onPageChange={handlePageChange} 
+        />
       </ListState>
     </PageContainer>
   );

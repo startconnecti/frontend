@@ -77,7 +77,7 @@ export function TutorBookingSummaryCard({ tutor }: TutorBookingSummaryCardProps)
     
     paymentMutation.mutate(bookingResponse.bookingId, {
       onSuccess: (response) => {
-        router.push(ROUTES.STUDENT.PAYMENT_DETAIL(response.data.payment.id));
+        router.push(ROUTES.STUDENT.PAYMENT_DETAIL(response.data.payment.paymentId));
       }
     });
   };

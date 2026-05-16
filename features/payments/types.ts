@@ -41,4 +41,6 @@ export interface CreatePaymentRequest {
 
 export interface PaymentFilters {
   status?: PaymentStatus | 'all';
+  limit?: number;
+  page?: number;
 }

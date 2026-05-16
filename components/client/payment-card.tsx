@@ -1,5 +1,5 @@
-import { CreditCard, ArrowDownRight, ArrowUpRight, Receipt } from 'lucide-react';
-import { Card } from '@/components/ui/card';
+import { Calendar, CreditCard, Wallet } from 'lucide-react';
+import { Card, CardContent, CardFooter, CardHeader } from '@/components/ui/card';
 import { ClientStatusBadge, AllStatuses } from '@/components/shared/client-status-badge';
 import { cn } from '@/lib/utils';
 
@@ -21,35 +21,61 @@ export function PaymentCard({
   date,
   description,
   status,
-  type = 'outbound',
+  currency = 'VND',
   method,
   onViewReceipt
 }: PaymentCardProps) {
-  const isPositive = type === 'inbound';
+  
+  // Helper to format method
+  const formatMethod = (m?: string) => {
+    if (!m) return 'N/A';
+    return m.replace(/_/g, ' ').replace(/\b\w/g, (l) => l.toUpperCase());
+  };
+
+  // Helper to format amount
+  const formatAmount = (amt: number, curr: string) => {
+    if (curr === 'VND') {
+      return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(amt);
+    }
+    return new Intl.NumberFormat('en-US', { style: 'currency', currency: curr }).format(amt);
+  };
 
   return (
-    <Card className="p-4 flex items-center gap-4 hover:bg-muted/10 transition-colors cursor-pointer border-border/50" onClick={onViewReceipt}>
-      <div className={cn(
-        "h-10 w-10 rounded-full flex items-center justify-center shrink-0",
-        isPositive ? "bg-emerald-100 text-emerald-600" : "bg-amber-100 text-amber-600"
-      )}>
-        {isPositive ? <ArrowDownRight className="h-5 w-5" /> : <ArrowUpRight className="h-5 w-5" />}
-      </div>
+    <Card 
+      className="rounded-xl border border-border bg-card hover:shadow-md transition-shadow cursor-pointer overflow-hidden"
+      onClick={onViewReceipt}
+    >
+      {/* Header */}
+      <CardHeader className="p-4 flex flex-row justify-between items-center border-b border-border/50">
+        <span className="text-xs font-mono text-muted-foreground">ID: {id.slice(0, 8)}...</span>
+        <ClientStatusBadge status={status} className="text-[10px] h-5 px-2" />
+      </CardHeader>
 
-      <div className="flex-1 min-w-0">
-        <h4 className="font-semibold text-sm truncate">{description}</h4>
-        <p className="text-xs text-muted-foreground">{date}</p>
-      </div>
+      {/* Body */}
+      <CardContent className="p-4 space-y-1">
+        <div className="text-2xl font-bold text-foreground">
+          {formatAmount(amount, currency)}
+        </div>
+        <div className="text-sm text-muted-foreground">
+          {description}
+        </div>
+      </CardContent>
 
-      <div className="flex flex-col items-end gap-1.5 shrink-0">
-        <p className={cn(
-          "font-bold text-sm",
-          isPositive ? "text-emerald-600" : "text-foreground"
-        )}>
-          {isPositive ? '+' : '-'}${Math.abs(amount).toFixed(2)}
-        </p>
-        <ClientStatusBadge status={status} className="text-[9px] h-4 px-1.5" />
-      </div>
+      {/* Footer */}
+      <CardFooter className="p-4 border-t border-border/50 flex justify-between items-center text-xs text-muted-foreground">
+        <div className="flex items-center gap-1.5">
+          <Calendar className="h-3.5 w-3.5" />
+          {date}
+        </div>
+        <div className="flex items-center gap-1.5">
+          {method?.toLowerCase().includes('bank') || method?.toLowerCase().includes('momo') ? (
+            <Wallet className="h-3.5 w-3.5" />
+          ) : (
+            <CreditCard className="h-3.5 w-3.5" />
+          )}
+          {formatMethod(method)}
+        </div>
+      </CardFooter>
     </Card>
   );
 }

@@ -14,15 +14,18 @@ export interface Session {
 
 export interface SessionListResponse {
   items: Session[];
-  pagination: {
-    limit: number;
-    offset: number;
-    total: number;
+  meta: {
+    pagination: {
+      total: number;
+      page: number;
+      limit: number;
+      totalPages: number;
+    };
   };
 }
 
 export interface GetSessionsParams {
   limit?: number;
-  offset?: number;
+  page?: number;
   status?: SessionStatus | 'all';
 }
