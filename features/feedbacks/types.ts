@@ -1,5 +1,5 @@
 export interface Feedback {
-  id: string;
+  feedbackId: string;
   sessionId: string;
   studentId: string;
   tutorId: string;

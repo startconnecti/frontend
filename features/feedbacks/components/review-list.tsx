@@ -6,16 +6,20 @@ import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 
+import { Pencil, Trash2 } from 'lucide-react';
+
 interface ReviewListProps {
   reviews: Feedback[];
   showParticipant?: boolean;
+  onEdit?: (review: Feedback) => void;
+  onDelete?: (review: Feedback) => void;
 }
 
-export function ReviewList({ reviews, showParticipant = true }: ReviewListProps) {
+export function ReviewList({ reviews, showParticipant = true, onEdit, onDelete }: ReviewListProps) {
   return (
     <div className="space-y-6">
       {reviews.map((review) => (
-        <div key={review.id} className="p-6 bg-white rounded-3xl border border-border/40 shadow-sm space-y-4">
+        <div key={review.feedbackId} className="p-6 bg-white rounded-3xl border border-border/40 shadow-sm space-y-4">
           <div className="flex justify-between items-start">
             {showParticipant && (
               <div className="flex items-center gap-3">
@@ -43,12 +47,35 @@ export function ReviewList({ reviews, showParticipant = true }: ReviewListProps)
               ))}
             </div>
             
-            {!showParticipant && (
-              <div className="text-right">
-                <p className="text-[10px] text-muted-foreground font-bold uppercase tracking-widest">{review.tutorName}</p>
-                <p className="text-[10px] text-muted-foreground/60">{review.subject}</p>
+            <div className="flex items-center gap-4">
+              {!showParticipant && (
+                <div className="text-right">
+                  <p className="text-[10px] text-muted-foreground font-bold uppercase tracking-widest">{review.tutorName}</p>
+                  <p className="text-[10px] text-muted-foreground/60">{review.subject}</p>
+                </div>
+              )}
+              
+              <div className="flex gap-1">
+                {onEdit && (
+                  <button 
+                    onClick={() => onEdit(review)}
+                    className="p-1.5 hover:bg-muted rounded-full transition-colors text-muted-foreground hover:text-foreground"
+                    title="Edit feedback"
+                  >
+                    <Pencil className="h-3.5 w-3.5" />
+                  </button>
+                )}
+                {onDelete && (
+                  <button 
+                    onClick={() => onDelete(review)}
+                    className="p-1.5 hover:bg-muted rounded-full transition-colors text-muted-foreground hover:text-destructive"
+                    title="Delete feedback"
+                  >
+                    <Trash2 className="h-3.5 w-3.5" />
+                  </button>
+                )}
               </div>
-            )}
+            </div>
           </div>
 
           {review.comment && (
