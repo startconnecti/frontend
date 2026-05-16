@@ -8,9 +8,9 @@ interface SessionFilterTabsProps {
 }
 
 const TABS: { label: string; value: SessionStatusFilter }[] = [
+  { label: 'All', value: 'all' },
   { label: 'Upcoming', value: 'scheduled' },
   { label: 'Completed', value: 'completed' },
-  { label: 'All', value: 'all' },
 ];
 
 export function SessionFilterTabs({ activeStatus, onStatusChange }: SessionFilterTabsProps) {

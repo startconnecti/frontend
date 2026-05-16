@@ -41,4 +41,6 @@ export interface SessionFilters {
   endTime?: string;
   studentId?: string;
   tutorId?: string;
+  limit?: number;
+  offset?: number;
 }

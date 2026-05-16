@@ -1,4 +1,4 @@
-export type SessionStatus = 'scheduled' | 'completed' | 'student_canceled' | 'tutor_canceled' | 'admin_canceled' | 'auto_completed';
+export type SessionStatus = 'scheduled' | 'cancelled' | 'completed' | 'no_show';
 
 export interface Session {
   sessionId: string;
@@ -9,6 +9,7 @@ export interface Session {
   status: SessionStatus;
   meetingUrl?: string;
   hasFeedback: boolean;
+  studentName?: string;
 }
 
 export interface SessionListResponse {

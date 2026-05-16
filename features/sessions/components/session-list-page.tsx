@@ -11,12 +11,13 @@ import { toast } from 'sonner';
 import { SessionStatus, Session } from '../types/index';
 import { CancelSessionModal } from './cancel-session-modal';
 import { LeaveFeedbackModal } from '@/features/feedbacks/components/leave-feedback-modal';
+import { Button } from '@/components/ui/button';
 
 export function SessionListPage() {
   const searchParams = useSearchParams();
   const router = useRouter();
   
-  const status = (searchParams.get('status') as SessionStatusFilter) || 'scheduled';
+  const status = (searchParams.get('status') as SessionStatusFilter) || 'all';
   const page = searchParams.get('page') || '1';
   
   const limit = 20;
@@ -52,6 +53,12 @@ export function SessionListPage() {
       params.set('status', newStatus);
     }
     params.set('page', '1'); // Reset to page 1 on filter change
+    router.push(`?${params.toString()}`);
+  };
+
+  const handlePageChange = (newPage: number) => {
+    const params = new URLSearchParams(searchParams.toString());
+    params.set('page', newPage.toString());
     router.push(`?${params.toString()}`);
   };
 
@@ -93,12 +100,27 @@ export function SessionListPage() {
           ))}
         </div>
         
-        <div className="bg-muted p-4 rounded-lg text-xs text-muted-foreground flex justify-between items-center">
-          <span>Current Page: {page}</span>
-          <span>
-            Showing {sessions.length} of {total} total sessions
-          </span>
-        </div>
+        {total > limit && (
+          <div className="flex justify-between items-center mt-6">
+            <Button 
+              variant="outline" 
+              disabled={Number(page) <= 1}
+              onClick={() => handlePageChange(Number(page) - 1)}
+            >
+              Previous
+            </Button>
+            <span className="text-sm text-muted-foreground">
+              Page {page} of {Math.ceil(total / limit)}
+            </span>
+            <Button 
+              variant="outline" 
+              disabled={Number(page) >= Math.ceil(total / limit)}
+              onClick={() => handlePageChange(Number(page) + 1)}
+            >
+              Next
+            </Button>
+          </div>
+        )}
       </ListState>
 
       {sessionToCancel && (

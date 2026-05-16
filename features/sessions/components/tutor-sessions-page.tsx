@@ -1,23 +1,61 @@
 'use client';
 
 import { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { useEffect } from 'react';
+import { toast } from 'sonner';
+import { getErrorMessage } from '@/lib/api/query-utils';
+import { Button } from '@/components/ui/button';
 
 import { PageContainer, SectionHeader, ListState } from '@/components/shared';
 import { SessionCard as ClientSessionCard } from '@/components/client/session-card';
 import { ROUTES } from '@/constants/routes';
 import { useTutorSessionsQuery } from '../hooks/use-tutor-sessions-query';
-import { SessionFilters, SessionStatus } from '../types';
+import { SessionStatus } from '../types';
 import { SessionFilterTabs } from './session-filter-tabs';
 
 export function TutorSessionsPage() {
   const router = useRouter();
-  const [filters, setFilters] = useState<SessionFilters>({ status: 'all' });
-  const { data, isLoading, isError, error, refetch } = useTutorSessionsQuery(filters);
+  const searchParams = useSearchParams();
+  
+  const status = (searchParams.get('status') as any) || 'all';
+  const page = searchParams.get('page') || '1';
+  
+  const limit = 10;
+  const offset = (Number(page) - 1) * limit;
+  
+  const { data, isLoading, isError, error, refetch } = useTutorSessionsQuery({
+    status: status === 'all' ? undefined : status,
+    limit,
+    offset,
+  });
+  
   const sessions = data?.items || [];
+  const total = data?.pagination?.total || 0;
 
-  const handleStatusChange = (status: SessionStatus | 'all') => {
-    setFilters({ status });
+  useEffect(() => {
+    if (isError && error) {
+      toast.error('Failed to load sessions', {
+        description: getErrorMessage(error),
+      });
+    }
+  }, [isError, error]);
+
+  const handleStatusChange = (newStatus: any) => {
+    const params = new URLSearchParams(searchParams.toString());
+    if (newStatus === 'all') {
+      params.delete('status');
+    } else {
+      params.set('status', newStatus);
+    }
+    params.set('page', '1'); // Reset to page 1 on filter change
+    router.push(`?${params.toString()}`);
+  };
+
+  const handlePageChange = (newPage: number) => {
+    const params = new URLSearchParams(searchParams.toString());
+    params.set('page', newPage.toString());
+    router.push(`?${params.toString()}`);
   };
 
   return (
@@ -30,7 +68,7 @@ export function TutorSessionsPage() {
       </div>
 
       <SessionFilterTabs 
-        activeStatus={filters.status || 'all'} 
+        activeStatus={status} 
         onStatusChange={handleStatusChange} 
       />
 
@@ -44,12 +82,11 @@ export function TutorSessionsPage() {
       >
         <div className="grid grid-cols-1 gap-4">
           {sessions.map((session) => (
-            <div key={session.id} className="cursor-pointer" onClick={() => router.push(ROUTES.TUTOR.SESSION_DETAIL(session.id))}>
+            <div key={session.sessionId} className="cursor-pointer" onClick={() => router.push(ROUTES.TUTOR.SESSION_DETAIL(session.sessionId))}>
               <ClientSessionCard
-                id={session.id}
-                participantName={session.student?.fullName || 'Student'}
-                subject={session.subject}
-                avatar={session.student?.avatarUrl}
+                id={session.sessionId}
+                participantName={session.studentName || 'Student'}
+                subject={session.subjectName}
                 status={session.status}
                 date={new Date(session.startTime).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
                 startTime={new Date(session.startTime).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })}
@@ -61,6 +98,28 @@ export function TutorSessionsPage() {
             </div>
           ))}
         </div>
+
+        {total > limit && (
+          <div className="flex justify-between items-center mt-6">
+            <Button 
+              variant="outline" 
+              disabled={Number(page) <= 1}
+              onClick={() => handlePageChange(Number(page) - 1)}
+            >
+              Previous
+            </Button>
+            <span className="text-sm text-muted-foreground">
+              Page {page} of {Math.ceil(total / limit)}
+            </span>
+            <Button 
+              variant="outline" 
+              disabled={Number(page) >= Math.ceil(total / limit)}
+              onClick={() => handlePageChange(Number(page) + 1)}
+            >
+              Next
+            </Button>
+          </div>
+        )}
       </ListState>
     </PageContainer>
   );
