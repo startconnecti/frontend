@@ -12,7 +12,8 @@ import {
   MessageSquare, 
   Bell, 
   Settings, 
-  LogOut 
+  LogOut,
+  LucideIcon 
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { ROUTES } from '@/constants/routes';
@@ -20,10 +21,17 @@ import { useAuthStore } from '@/stores/auth-store';
 import { useRouter } from 'next/navigation';
 import { useQueryClient } from '@tanstack/react-query';
 
-const studentNavItems = [
+interface NavItem {
+  label: string;
+  href: string;
+  icon: LucideIcon;
+  disabled?: boolean;
+}
+
+const studentNavItems: NavItem[] = [
   { label: 'Dashboard', href: ROUTES.STUDENT.DASHBOARD, icon: LayoutDashboard },
   { label: 'Find Tutors', href: ROUTES.STUDENT.FIND_TUTORS, icon: Search },
-  { label: 'Bookings', href: ROUTES.STUDENT.BOOKINGS, icon: Calendar, disabled: true },
+  { label: 'Bookings', href: ROUTES.STUDENT.BOOKINGS, icon: Calendar },
   { label: 'Sessions', href: ROUTES.STUDENT.SESSIONS, icon: Video },
   { label: 'Payments', href: ROUTES.STUDENT.PAYMENTS, icon: CreditCard },
   { label: 'Favorites', href: ROUTES.STUDENT.FAVORITES, icon: Heart },

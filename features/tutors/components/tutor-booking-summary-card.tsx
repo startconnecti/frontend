@@ -73,14 +73,11 @@ export function TutorBookingSummaryCard({ tutor }: TutorBookingSummaryCardProps)
       return;
     }
 
-    if (!bookingResponse?.id) return;
+    if (!bookingResponse?.bookingId) return;
     
-    paymentMutation.mutate({
-      bookingId: bookingResponse.id,
-      method: paymentMethod
-    }, {
-      onSuccess: (payment) => {
-        router.push(ROUTES.STUDENT.PAYMENT_DETAIL(payment.id));
+    paymentMutation.mutate(bookingResponse.bookingId, {
+      onSuccess: (response) => {
+        router.push(ROUTES.STUDENT.PAYMENT_DETAIL(response.data.payment.id));
       }
     });
   };
@@ -98,7 +95,7 @@ export function TutorBookingSummaryCard({ tutor }: TutorBookingSummaryCardProps)
             </div>
             <div>
               <h3 className="font-black text-emerald-900">Booking Created!</h3>
-              <p className="text-xs text-emerald-700 font-medium">Reference: #{bookingResponse.id.slice(-6).toUpperCase()}</p>
+              <p className="text-xs text-emerald-700 font-medium">Reference: #{bookingResponse.bookingId.slice(-6).toUpperCase()}</p>
             </div>
           </div>
         </CardHeader>

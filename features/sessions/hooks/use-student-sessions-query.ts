@@ -2,11 +2,12 @@
 
 import { useQuery } from '@tanstack/react-query';
 import { sessionService } from '../services/session-service';
-import { SessionFilters } from '../types';
+import { GetSessionsParams } from '../types/index';
 
-export function useStudentSessionsQuery(filters: SessionFilters) {
+export function useStudentSessionsQuery(params: GetSessionsParams) {
   return useQuery({
-    queryKey: ['student-sessions', filters],
-    queryFn: () => sessionService.getStudentSessions(filters),
+    queryKey: ['student-sessions', params.status, params.limit, params.offset],
+    queryFn: () => sessionService.getSessions(params),
+    staleTime: 5 * 60 * 1000, // 5 minutes
   });
 }

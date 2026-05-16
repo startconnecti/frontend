@@ -1,18 +1,16 @@
 'use client';
 
-import { SessionStatus } from '../types';
+export type SessionStatusFilter = 'scheduled' | 'completed' | 'all';
 
 interface SessionFilterTabsProps {
-  activeStatus: SessionStatus | 'all';
-  onStatusChange: (status: SessionStatus | 'all') => void;
+  activeStatus: SessionStatusFilter;
+  onStatusChange: (status: SessionStatusFilter) => void;
 }
 
-const TABS: { label: string; value: SessionStatus | 'all' }[] = [
-  { label: 'All Sessions', value: 'all' },
-  { label: 'Scheduled', value: 'scheduled' },
+const TABS: { label: string; value: SessionStatusFilter }[] = [
+  { label: 'Upcoming', value: 'scheduled' },
   { label: 'Completed', value: 'completed' },
-  { label: 'Cancelled', value: 'cancelled' },
-  { label: 'No Show', value: 'no_show' },
+  { label: 'All', value: 'all' },
 ];
 
 export function SessionFilterTabs({ activeStatus, onStatusChange }: SessionFilterTabsProps) {

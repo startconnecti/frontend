@@ -1,47 +1,17 @@
 import { api } from '@/lib/api/client';
-import { Session, SessionFilters } from '../types';
-import { ListResponse } from '@/lib/api/types';
+import { SessionListResponse, GetSessionsParams } from '../types/index';
 
 export const sessionService = {
-  async getStudentSessions(filters: SessionFilters): Promise<ListResponse<Session>> {
-    const params = { ...filters };
-    if (params.status === 'all') delete params.status;
-    const response = await api.get<any>('/api/v1/sessions', { params: params as any });
-
-    if (Array.isArray(response)) {
-      return { items: response, total: response.length, limit: response.length, offset: 0 };
-    }
-
-    return {
-      items: response?.items ?? response?.data ?? [],
-      total: response?.total ?? 0,
-      limit: response?.limit ?? 10,
-      offset: response?.offset ?? 0
-    };
+  async getSessions(params: GetSessionsParams): Promise<SessionListResponse> {
+    const queryParams: Record<string, string | number> = {};
+    if (params.limit) queryParams.limit = params.limit;
+    if (params.offset) queryParams.offset = params.offset;
+    if (params.status && params.status !== 'all') queryParams.status = params.status;
+    
+    return api.get<SessionListResponse>('/api/v1/sessions', { params: queryParams });
   },
 
-  async getSessionById(id: string): Promise<Session> {
-    return api.get<Session>(`/api/v1/sessions/${id}`);
-  },
-
-  async getTutorSessions(filters: SessionFilters): Promise<ListResponse<Session>> {
-    const params = { ...filters };
-    if (params.status === 'all') delete params.status;
-    const response = await api.get<any>('/api/v1/sessions', { params: params as any });
-
-    if (Array.isArray(response)) {
-      return { items: response, total: response.length, limit: response.length, offset: 0 };
-    }
-
-    return {
-      items: response?.items ?? response?.data ?? [],
-      total: response?.total ?? 0,
-      limit: response?.limit ?? 10,
-      offset: response?.offset ?? 0
-    };
-  },
-
-  async getTutorSessionById(id: string): Promise<Session> {
-    return api.get<Session>(`/api/v1/sessions/${id}`);
+  async cancelSession(sessionId: string, payload: { cancellation_reason?: string }): Promise<void> {
+    return api.post<void>(`/api/v1/sessions/${sessionId}/cancel`, payload);
   }
 };
