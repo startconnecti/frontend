@@ -1,13 +1,14 @@
 export type SessionStatus = 'scheduled' | 'completed' | 'student_canceled' | 'tutor_canceled' | 'admin_canceled' | 'auto_completed';
 
 export interface Session {
-  id: string;
+  sessionId: string;
   tutorName: string;
   subjectName: string;
   startTime: string; // ISO string
   endTime: string; // ISO string
   status: SessionStatus;
   meetingUrl?: string;
+  hasFeedback: boolean;
 }
 
 export interface SessionListResponse {

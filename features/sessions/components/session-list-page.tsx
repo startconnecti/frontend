@@ -78,8 +78,9 @@ export function SessionListPage() {
         <div className="grid grid-cols-1 gap-4">
           {sessions.map((session) => (
             <SessionCard 
-              key={session.id} 
-              id={session.id}
+              key={session.sessionId} 
+              id={session.sessionId}
+              hasFeedback={session.hasFeedback}
               tutorName={session.tutorName}
               subjectName={session.subjectName}
               date={new Date(session.startTime).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
@@ -104,7 +105,7 @@ export function SessionListPage() {
         <CancelSessionModal
           isOpen={!!sessionToCancel}
           onClose={() => setSessionToCancel(null)}
-          sessionId={sessionToCancel.id}
+          sessionId={sessionToCancel.sessionId}
         />
       )}
 
@@ -112,7 +113,7 @@ export function SessionListPage() {
         <LeaveFeedbackModal
           isOpen={!!sessionForFeedback}
           onClose={() => setSessionForFeedback(null)}
-          sessionId={sessionForFeedback.id}
+          sessionId={sessionForFeedback.sessionId}
         />
       )}
     </PageContainer>

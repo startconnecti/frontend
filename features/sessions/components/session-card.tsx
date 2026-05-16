@@ -4,6 +4,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { SessionStatus } from '../types/index';
+import { Check } from 'lucide-react';
 
 interface SessionCardProps {
   id: string;
@@ -15,6 +16,7 @@ interface SessionCardProps {
   meetingUrl?: string;
   onCancel?: () => void;
   onFeedback?: () => void;
+  hasFeedback?: boolean;
 }
 
 export function SessionCard({
@@ -26,6 +28,7 @@ export function SessionCard({
   meetingUrl,
   onCancel,
   onFeedback,
+  hasFeedback,
 }: SessionCardProps) {
   const isScheduled = status === 'scheduled';
   const isCompleted = status === 'completed' || status === 'auto_completed';
@@ -61,9 +64,16 @@ export function SessionCard({
               </Button>
             )}
 
-            {isCompleted && onFeedback && (
+            {isCompleted && onFeedback && !hasFeedback && (
               <Button variant="outline" size="sm" onClick={onFeedback}>
                 Leave Feedback
+              </Button>
+            )}
+
+            {isCompleted && hasFeedback && (
+              <Button variant="ghost" size="sm" disabled className="gap-1">
+                <Check className="h-4 w-4" />
+                Feedback Submitted
               </Button>
             )}
           </div>
