@@ -4,7 +4,7 @@ import { ApiErrorResponse, ApiResponse } from './types';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL ?? '';
 
-type RequestBody = object | string | number | boolean | null;
+type RequestBody = object | string | number | boolean | null | FormData;
 
 interface RequestOptions extends RequestInit {
   params?: Record<string, string | number | boolean | undefined>;
@@ -117,7 +117,7 @@ function serializeBody(body: RequestBody | undefined): BodyInit | undefined {
     return undefined;
   }
 
-  if (typeof body === 'string') {
+  if (typeof body === 'string' || body instanceof FormData) {
     return body;
   }
 
@@ -135,7 +135,11 @@ export async function request<T>(
   const headers = new Headers(customHeaders);
   headers.set('Accept', 'application/json');
 
-  if (restOptions.body !== undefined && !headers.has('Content-Type')) {
+  if (
+    restOptions.body !== undefined &&
+    !(restOptions.body instanceof FormData) &&
+    !headers.has('Content-Type')
+  ) {
     headers.set('Content-Type', 'application/json');
   }
 
