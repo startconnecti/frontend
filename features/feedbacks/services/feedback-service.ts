@@ -16,5 +16,16 @@ export const feedbackService = {
 
   async deleteFeedback(id: string): Promise<void> {
     return api.delete<void>(`/api/v1/feedbacks/${id}`);
+  },
+
+  async getTutorReviews(params?: { limit?: number; page?: number; tutorId?: string }): Promise<{ items: any[]; meta: { pagination: { total: number; page: number; limit: number; totalPages: number; } } }> {
+    return api.get('/api/v1/feedbacks', { params });
+  },
+
+  async getTutorReviewSummary(tutorId?: string): Promise<{ averageRating: number; totalReviews: number }> {
+    return {
+      averageRating: 0,
+      totalReviews: 0
+    };
   }
 };

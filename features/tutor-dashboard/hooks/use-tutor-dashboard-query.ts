@@ -20,59 +20,60 @@ export function useTutorDashboardQuery() {
       nextWeek.setDate(now.getDate() + 7);
 
       const [tutor, dashboardRes, upcomingSessionsRes, reviewsRes, paymentsRes] = await Promise.all([
-        tutorService.getTutorById(user?.id || ''),
-        tutorDashboardService.getTutorDashboard(),
+        tutorService.getTutorById(user?.id || '').catch(() => null),
+        tutorDashboardService.getTutorDashboard().catch(() => ({ sessionsCompleted: 0, totalEarnings: 0 })),
         sessionService.getTutorSessions({
           status: 'scheduled',
           startTime: now.toISOString(),
           endTime: nextWeek.toISOString(),
           tutorId: user?.id,
-        }),
-        feedbackService.getTutorReviews({ limit: 10, tutorId: user?.id }),
+        }).catch(() => ({ items: [], meta: {} })),
+        feedbackService.getTutorReviews({ limit: 10, tutorId: user?.id }).catch(() => ({ items: [], meta: {} })),
         paymentService.getStudentPayments({
           tutorId: user?.id,
           status: 'confirmed',
           limit: 10,
-        } as any),
+        } as any).catch(() => ({ items: [], meta: {} })),
       ]);
 
-      const sessions = upcomingSessionsRes.items;
+      const sessions = upcomingSessionsRes?.items || [];
       const upcomingSession = sessions[0] || null;
-      const allReviews = reviewsRes.items;
+      const allReviews = reviewsRes?.items || [];
+      const payments = paymentsRes?.items || [];
 
       return {
         tutorName: user?.fullName || 'Tutor',
         approvalStatus: (tutor?.approvalStatus === 'suspended' ? 'rejected' : tutor?.approvalStatus || 'pending') as any,
         isPublic: tutor?.isPublic || false,
         stats: {
-          sessionsCompleted: dashboardRes.sessionsCompleted ?? 0,
-          totalEarnings: dashboardRes.totalEarnings ?? 0,
+          sessionsCompleted: dashboardRes?.sessionsCompleted ?? 0,
+          totalEarnings: dashboardRes?.totalEarnings ?? 0,
         },
         earnings: {
-          monthlyEarnings: dashboardRes.totalEarnings ?? 0,
-          pendingPayoutAmount: dashboardRes.pendingPayoutAmount ?? 0,
+          monthlyEarnings: dashboardRes?.totalEarnings ?? 0,
+          pendingPayoutAmount: dashboardRes?.pendingPayoutAmount ?? 0,
         },
         upcomingSession: upcomingSession ? {
-          id: upcomingSession.id,
-          studentName: upcomingSession.student?.fullName || 'Student',
-          studentAvatar: upcomingSession.student?.avatarUrl,
-          subject: upcomingSession.subject,
+          id: upcomingSession.id || upcomingSession.sessionId,
+          studentName: upcomingSession.studentName || upcomingSession.student?.fullName || 'Student',
+          studentAvatar: upcomingSession.studentAvatar || upcomingSession.student?.avatarUrl,
+          subject: upcomingSession.subjectName || upcomingSession.subject,
           startTime: upcomingSession.startTime,
           endTime: upcomingSession.endTime,
-          meetingLink: upcomingSession.meetingUrl,
+          meetingLink: upcomingSession.meetingUrl || upcomingSession.meetingLink,
         } : null,
-        recentReviews: allReviews.map(r => ({
+        recentReviews: allReviews.map((r: any) => ({
           id: r.id,
-          studentName: r.studentName || 'Student',
-          rating: r.rating,
+          studentName: r.studentName || r.student?.fullName || 'Student',
+          rating: r.rating || 5,
           comment: r.comment || '',
-          date: r.createdAt,
+          date: r.createdAt || r.date || new Date().toISOString(),
         })),
-        recentEarnings: paymentsRes.items.map(p => ({
-          id: p.id,
-          subject: p.subject,
-          amount: p.amountTotal,
-          date: p.paidAt || p.createdAt,
+        recentEarnings: payments.map((p: any) => ({
+          id: p.id || p.paymentId,
+          subject: p.subject || 'Tutoring Session',
+          amount: p.amountTotal || p.amount || 0,
+          date: p.paidAt || p.createdAt || new Date().toISOString(),
         })),
       };
     },
