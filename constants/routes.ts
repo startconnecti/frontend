@@ -47,6 +47,6 @@ export const ROUTES = {
     SESSION_DETAIL: (id: string) => `/tutor/sessions/${id}`,
     REVIEWS: '/tutor/reviews',
     INCOME: '/tutor/income',
-    PAYOUTS: '/tutor/payouts',
+    PAYOUTS: '/tutor/payout',
   },
 } as const;

@@ -21,6 +21,8 @@ import { useUpdateTutorProfileMutation } from '../hooks/use-update-tutor-profile
 import { Badge } from '@/components/ui/badge';
 import { GraduationCap, Info } from 'lucide-react';
 import { setFormErrors } from '@/lib/api/query-utils';
+import { useAuthStore } from '@/stores/auth-store';
+import { toast } from 'sonner';
 
 const tutorProfileSchema = z.object({
   fullName: z.string().min(2, 'Name must be at least 2 characters'),
@@ -38,6 +40,7 @@ interface TutorProfileFormProps {
 
 export function TutorProfileForm({ initialData }: TutorProfileFormProps) {
   const updateMutation = useUpdateTutorProfileMutation();
+  const currentUserId = useAuthStore((state) => state.user?.id);
   
   const form = useForm<UpdateTutorProfileRequest>({
     resolver: zodResolver(tutorProfileSchema),
@@ -54,7 +57,17 @@ export function TutorProfileForm({ initialData }: TutorProfileFormProps) {
 
   const onSubmit = async (values: UpdateTutorProfileRequest) => {
     try {
-      await updateMutation.mutateAsync(values);
+      const payload = {
+        ...values,
+        tutorId: currentUserId,
+      };
+
+      if (!payload.tutorId) {
+        toast.error("User ID is missing");
+        return;
+      }
+
+      await updateMutation.mutateAsync(payload);
     } catch (err) {
       setFormErrors(err, form.setError);
     }
@@ -181,11 +194,15 @@ export function TutorProfileForm({ initialData }: TutorProfileFormProps) {
             </CardHeader>
             <CardContent className="p-10 space-y-4">
               <div className="flex flex-wrap gap-2">
-                {form.watch('subjects').map((subject) => (
-                  <Badge key={subject} variant="secondary" className="px-4 py-2 text-xs font-bold rounded-xl">
-                    {subject}
-                  </Badge>
-                ))}
+                {(form.watch('subjects') || []).map((subject: any) => {
+                  const name = typeof subject === 'string' ? subject : subject?.name || '';
+                  const id = typeof subject === 'string' ? subject : subject?.id || '';
+                  return (
+                    <Badge key={id || name} variant="secondary" className="px-4 py-2 text-xs font-bold rounded-xl">
+                      {name}
+                    </Badge>
+                  );
+                })}
               </div>
               <p className="text-xs text-muted-foreground italic">Subject management is coming soon in the next update.</p>
             </CardContent>

@@ -28,6 +28,14 @@ export function SettingsLayout({ children }: SettingsLayoutProps) {
     });
   }
 
+  if (user?.role === 'tutor') {
+    navItems.push({
+      label: 'Tutor Profile',
+      href: '/settings/tutor-profile',
+      icon: BookOpen,
+    });
+  }
+
   return (
     <PageContainer className="py-8 space-y-8">
       <SectionHeader 

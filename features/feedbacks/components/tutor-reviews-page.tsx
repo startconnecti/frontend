@@ -24,12 +24,12 @@ export function TutorReviewsPage() {
               <div className="h-12 w-12 bg-primary/10 rounded-full flex items-center justify-center mb-2">
                 <TrendingUp className="h-6 w-6 text-primary" />
               </div>
-              <p className="text-4xl font-black text-primary">{data.summary.averageRating}</p>
+              <p className="text-4xl font-black text-primary">{data?.summary?.averageRating ?? 0}</p>
               <div className="flex gap-1">
                 {[1, 2, 3, 4, 5].map((star) => (
                   <Star 
                     key={star} 
-                    className={`h-4 w-4 ${star <= Math.round(data.summary.averageRating) ? "fill-primary text-primary" : "text-muted-foreground/20"}`} 
+                    className={`h-4 w-4 ${star <= Math.round(data?.summary?.averageRating || 0) ? "fill-primary text-primary" : "text-muted-foreground/20"}`} 
                   />
                 ))}
               </div>
@@ -45,8 +45,9 @@ export function TutorReviewsPage() {
               </h4>
               <div className="space-y-2">
                 {[5, 4, 3, 2, 1].map((rating) => {
-                  const count = data.summary.distribution[rating] || 0;
-                  const percentage = data.summary.totalReviews > 0 ? (count / data.summary.totalReviews) * 100 : 0;
+                  const count = data?.summary?.distribution?.[rating] || 0;
+                  const totalReviews = data?.summary?.totalReviews || 0;
+                  const percentage = totalReviews > 0 ? (count / totalReviews) * 100 : 0;
                   
                   return (
                     <div key={rating} className="flex items-center gap-4">
@@ -79,7 +80,7 @@ export function TutorReviewsPage() {
         <ListState
           isLoading={isLoading}
           error={error as Error}
-          isEmpty={!data?.reviews || data.reviews.total === 0}
+          isEmpty={!data?.reviews || !data?.reviews?.items || data.reviews.items.length === 0}
           emptyTitle="No reviews yet"
           emptyDescription="You haven't received any reviews from students yet. Complete sessions to start gathering feedback."
           onRetry={() => refetch()}
