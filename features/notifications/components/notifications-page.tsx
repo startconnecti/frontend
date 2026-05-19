@@ -2,25 +2,45 @@
 
 import { useState } from 'react';
 import { CheckCheck, Bell } from 'lucide-react';
+import { formatDistanceToNow } from 'date-fns';
+import Link from 'next/link';
 
 import { PageContainer, SectionHeader, ListState } from '@/components/shared';
 import { Button } from '@/components/ui/button';
 import { useNotificationsQuery } from '../hooks/use-notifications-query';
 import { useMarkNotificationReadMutation } from '../hooks/use-mark-notification-read-mutation';
 import { useMarkAllNotificationsReadMutation } from '../hooks/use-mark-all-notifications-read-mutation';
-import { NotificationFilters, NotificationType } from '../types';
+import { Notification, NotificationFilters, NotificationType } from '../types';
 import { NotificationFilterTabs } from './notification-filter-tabs';
 import { NotificationList } from './notification-list';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from '@/components/ui/dialog';
 
 export function NotificationsPage() {
   const [filters, setFilters] = useState<NotificationFilters>({
     status: 'all',
     type: 'all',
   });
+  const [selectedNoti, setSelectedNoti] = useState<Notification | null>(null);
 
-  const { data: notifications = [], isLoading, isError, error, refetch } = useNotificationsQuery(filters);
+  const { data, isLoading, isError, error, refetch } = useNotificationsQuery(filters);
   const markReadMutation = useMarkNotificationReadMutation();
   const markAllReadMutation = useMarkAllNotificationsReadMutation();
+
+  const notifications: Notification[] = ((data as any)?.items || []).map((item: any) => ({
+    id: item.notificationId,
+    type: item.type,
+    title: item.title,
+    content: item.content,
+    isRead: item.isRead,
+    createdAt: item.createdAt,
+    actionHref: item.actionHref,
+  }));
 
   const handleTypeChange = (type: NotificationType | 'all') => {
     setFilters(prev => ({ ...prev, type }));
@@ -70,8 +90,34 @@ export function NotificationsPage() {
         <NotificationList 
           notifications={notifications} 
           onMarkRead={(id) => markReadMutation.mutate(id)}
+          onNotificationClick={(notification) => setSelectedNoti(notification)}
         />
       </ListState>
+
+      <Dialog open={!!selectedNoti} onOpenChange={(open) => !open && setSelectedNoti(null)}>
+        <DialogContent className="sm:max-w-[425px] rounded-3xl p-6">
+          <DialogHeader>
+            <DialogTitle className="text-xl font-black text-brand-dark pr-6">
+              {selectedNoti?.title}
+            </DialogTitle>
+            <DialogDescription className="text-xs text-muted-foreground pt-1">
+              {selectedNoti && formatDistanceToNow(new Date(selectedNoti.createdAt), { addSuffix: true })}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="mt-4 text-sm font-medium leading-relaxed text-foreground whitespace-pre-wrap">
+            {selectedNoti?.content}
+          </div>
+          {selectedNoti?.actionHref && (
+            <div className="mt-6 flex justify-end">
+              <Button asChild className="font-bold rounded-xl px-6">
+                <Link href={selectedNoti.actionHref} onClick={() => setSelectedNoti(null)}>
+                  Take Action
+                </Link>
+              </Button>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </PageContainer>
   );
 }

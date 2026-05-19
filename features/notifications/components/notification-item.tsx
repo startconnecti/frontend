@@ -18,6 +18,7 @@ import Link from 'next/link';
 interface NotificationItemProps {
   notification: Notification;
   onMarkRead: (id: string) => void;
+  onClick?: () => void;
 }
 
 const TYPE_ICONS = {
@@ -44,17 +45,22 @@ const TYPE_COLORS = {
   system: 'text-slate-600 bg-slate-100',
 };
 
-export function NotificationItem({ notification, onMarkRead }: NotificationItemProps) {
+export function NotificationItem({ notification, onMarkRead, onClick }: NotificationItemProps) {
   const Icon = TYPE_ICONS[notification.type] || Bell;
   const colorClass = TYPE_COLORS[notification.type] || 'text-slate-600 bg-slate-100';
 
   return (
     <div 
       className={cn(
-        "flex gap-4 p-5 rounded-2xl transition-all border border-transparent",
+        "flex gap-4 p-5 rounded-2xl transition-all border border-transparent cursor-pointer text-left w-full",
         !notification.isRead ? "bg-primary/5 border-primary/10 shadow-sm" : "hover:bg-muted/30"
       )}
-      onClick={() => !notification.isRead && onMarkRead(notification.id)}
+      onClick={() => {
+        if (!notification.isRead) {
+          onMarkRead(notification.id);
+        }
+        onClick?.();
+      }}
     >
       <div className={cn("h-12 w-12 rounded-xl flex items-center justify-center shrink-0", colorClass)}>
         <Icon className="h-6 w-6" />
@@ -74,7 +80,7 @@ export function NotificationItem({ notification, onMarkRead }: NotificationItemP
         </div>
         
         <p className={cn(
-          "text-sm font-medium leading-relaxed",
+          "text-sm font-medium leading-relaxed line-clamp-2",
           !notification.isRead ? "text-foreground" : "text-muted-foreground"
         )}>
           {notification.content}
@@ -85,6 +91,7 @@ export function NotificationItem({ notification, onMarkRead }: NotificationItemP
             <Link 
               href={notification.actionHref}
               className="inline-flex items-center gap-1.5 text-xs font-black text-primary hover:underline"
+              onClick={(e) => e.stopPropagation()}
             >
               Take Action
               <ExternalLink className="h-3 w-3" />

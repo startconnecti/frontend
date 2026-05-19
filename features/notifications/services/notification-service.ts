@@ -3,7 +3,16 @@ import { Notification, NotificationFilters } from '../types';
 
 export const notificationService = {
   async getNotifications(filters: NotificationFilters): Promise<Notification[]> {
-    return api.get<Notification[]>('/api/v1/notifications', { params: filters as any });
+    const params = { ...filters } as any;
+    if (params.status === 'unread') {
+      params.isRead = false;
+    }
+    delete params.status;
+
+    if (params.type === 'all') {
+      delete params.type;
+    }
+    return api.get<Notification[]>('/api/v1/notifications', { params });
   },
 
   async markNotificationAsRead(id: string): Promise<void> {
