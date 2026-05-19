@@ -59,6 +59,7 @@ export function TutorProfilePage({ id }: TutorProfilePageProps) {
             {/* Main Content */}
             <div className="lg:col-span-2 space-y-12">
               <TutorProfileHeader 
+                id={tutor.id}
                 name={tutor.fullName}
                 avatarUrl={tutor.avatarUrl}
                 subjects={tutor.subjects}

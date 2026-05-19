@@ -1,11 +1,13 @@
 'use client';
 
-import { Star, Heart, MessageSquare, ShieldCheck, GraduationCap, Clock } from 'lucide-react';
+import { Star, Heart, ShieldCheck, GraduationCap, Clock, MessageCircle } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { useRouter } from 'next/navigation';
+import { useToggleFavorite } from '@/features/tutors/hooks/use-toggle-favorite';
 
 interface TutorProfileHeaderProps {
+  id: string;
   name: string;
   avatarUrl?: string;
   subjects: string[];
@@ -18,6 +20,7 @@ interface TutorProfileHeaderProps {
 }
 
 export function TutorProfileHeader({
+  id,
   name,
   avatarUrl,
   subjects,
@@ -28,6 +31,8 @@ export function TutorProfileHeader({
   bio,
   isFavorite
 }: TutorProfileHeaderProps) {
+  const router = useRouter();
+  const { mutate: toggleFavorite, isPending } = useToggleFavorite();
   return (
     <div className="flex flex-col md:flex-row gap-6 items-start pb-8 border-b">
       <Avatar className="h-24 w-24 md:h-32 md:w-32 border-4 border-background shadow-lg">
@@ -53,13 +58,22 @@ export function TutorProfileHeader({
             </div>
           </div>
 
-          <div className="flex items-center gap-2">
-            <Button variant="outline" size="icon" className="rounded-full" aria-label="Add to favorites">
-              <Heart className={`h-5 w-5 ${isFavorite ? 'fill-primary text-primary' : ''}`} />
-            </Button>
-            <Button variant="outline" size="icon" className="rounded-full" aria-label="Send message">
-              <MessageSquare className="h-5 w-5" />
-            </Button>
+          <div className="flex items-center gap-4">
+            <button
+              onClick={() => toggleFavorite({ tutorId: id, isFavorite: !!isFavorite })}
+              disabled={isPending}
+              className={`transition-transform hover:scale-110 active:scale-95 focus:outline-none ${isPending ? 'opacity-50 cursor-not-allowed' : ''}`}
+              aria-label={isFavorite ? "Remove from favorites" : "Add to favorites"}
+            >
+              <Heart className={`w-6 h-6 text-red-500 ${isFavorite ? 'fill-red-500 scale-105' : 'fill-none hover:scale-110'}`} />
+            </button>
+            <button
+              onClick={() => router.push(`/student/messages?tutorId=${id}`)}
+              className="transition-transform focus:outline-none"
+              aria-label="Send message"
+            >
+              <MessageCircle className="w-6 h-6 text-primary hover:scale-110" />
+            </button>
           </div>
         </div>
 

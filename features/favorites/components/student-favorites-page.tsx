@@ -2,6 +2,7 @@
 
 import { Heart, Search, Trash2, Calendar } from 'lucide-react';
 import Link from 'next/link';
+import { useSearchParams, usePathname, useRouter } from 'next/navigation';
 
 import { PageContainer, SectionHeader, ListState } from '@/components/shared';
 import { TutorCard } from '@/components/client/tutor-card';
@@ -9,11 +10,29 @@ import { Button } from '@/components/ui/button';
 import { ROUTES } from '@/constants/routes';
 import { useFavoriteTutorsQuery } from '../hooks/use-favorite-tutors-query';
 import { useRemoveFavoriteTutorMutation } from '../hooks/use-remove-favorite-tutor-mutation';
+import { Pagination } from '@/components/shared/pagination';
 
 export function StudentFavoritesPage() {
-  const { data, isLoading, isError, error, refetch } = useFavoriteTutorsQuery();
+  const searchParams = useSearchParams();
+  const router = useRouter();
+  const pathname = usePathname();
+
+  const page = Number(searchParams.get('page')) || 1;
+  const limit = 10;
+
+  const { data, isLoading, isError, error, refetch } = useFavoriteTutorsQuery(page, limit);
   const favorites = data?.items || [];
+  const total = data?.total ?? 0;
+  const totalPages = Math.ceil(total / limit);
+
+  console.log("Data in Parent:", favorites);
   const removeMutation = useRemoveFavoriteTutorMutation();
+
+  const handlePageChange = (newPage: number) => {
+    const params = new URLSearchParams(searchParams.toString());
+    params.set('page', newPage.toString());
+    router.push(`${pathname}?${params.toString()}`);
+  };
 
   const handleRemove = (favoriteId: string) => {
     if (window.confirm('Are you sure you want to remove this tutor from your favorites?')) {
@@ -24,7 +43,7 @@ export function StudentFavoritesPage() {
   return (
     <PageContainer className="py-8 space-y-8">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
-        <SectionHeader 
+        <SectionHeader
           title="My Favorite Tutors"
           description="Keep track of the mentors you love and book sessions easily."
         />
@@ -45,39 +64,35 @@ export function StudentFavoritesPage() {
         onRetry={() => refetch()}
       >
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {favorites.map((fav) => (
-            <div key={fav.favoriteId} className="relative group">
-              <TutorCard
-                id={fav.tutor.id}
-                name={fav.tutor.fullName}
-                title={`${fav.tutor.yearsOfExperience}+ Years Experience`}
-                expertise={fav.tutor.subjects}
-                rating={fav.tutor.averageRating}
-                reviews={fav.tutor.reviewCount}
-                hourlyRate={fav.tutor.hourlyRate}
-                bio={fav.tutor.bio}
-                avatar={fav.tutor.avatarUrl}
-              />
-              
-              <div className="mt-3 flex items-center justify-between px-1">
-                <div className="flex items-center gap-1.5 text-[10px] text-muted-foreground font-medium">
-                  <Calendar className="h-3 w-3" />
-                  Favorited {new Date(fav.createdAt).toLocaleDateString()}
-                </div>
-                <Button 
-                  variant="ghost" 
-                  size="sm" 
-                  className="h-8 text-rose-600 hover:text-rose-700 hover:bg-rose-50 gap-2 font-bold text-xs"
-                  onClick={() => handleRemove(fav.favoriteId)}
-                  disabled={removeMutation.isPending}
-                >
-                  <Trash2 className="h-3.5 w-3.5" />
-                  Remove
-                </Button>
+          {favorites.map((fav) => {
+            const tutorData = {
+              tutorId: fav.tutorId,
+              fullName: fav.fullName,
+              avatarUrl: fav.avatarUrl,
+              bio: fav.bio,
+              hourlyRate: fav.hourlyRate,
+              rating: fav.ratingAvg || 0,
+              subjects: fav.subjects || [],
+              isFavorite: fav.isFavorite ?? true
+            };
+
+            return (
+              <div key={fav.favoriteId} className="relative group">
+                <TutorCard key={tutorData.tutorId} tutor={tutorData} />
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
+
+        {totalPages > 1 && (
+          <div className="mt-8 flex justify-center">
+            <Pagination
+              currentPage={page}
+              totalPages={totalPages}
+              onPageChange={handlePageChange}
+            />
+          </div>
+        )}
       </ListState>
     </PageContainer>
   );

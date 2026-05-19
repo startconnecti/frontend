@@ -1,24 +1,62 @@
 'use client';
 
+import { useSearchParams, useRouter, usePathname } from 'next/navigation';
 import { PageContainer, SectionHeader, ListState } from '@/components/shared';
 import { TutorCard } from '@/components/client/tutor-card';
-import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import { useTutorFilters } from '../hooks/use-tutor-filters';
-import { useTutorListQuery } from '../hooks/use-tutor-list-query';
+import { useGetTutors } from '../hooks/use-get-tutors';
 import { StudentTutorFilterForm } from './student-tutor-filter-form';
 import { TutorSortSelect } from './tutor-sort-select';
 import { TutorResultsSummary } from './tutor-results-summary';
+import { Pagination } from '@/components/shared/pagination';
 
 export function StudentTutorListPage() {
-  const { filters, updateFilter, resetFilters } = useTutorFilters();
-  const { data, isLoading, error, refetch } = useTutorListQuery(filters);
+  const searchParams = useSearchParams();
+  const router = useRouter();
+  const pathname = usePathname();
+
+  const page = searchParams.get('page') || '1';
+  const limit = 10;
+  const offset = (Number(page) - 1) * limit;
+
+  const filters = {
+    limit,
+    offset,
+    page: Number(page),
+    keyword: searchParams.get('keyword') || '',
+    subjectId: searchParams.get('subjectId') || undefined,
+    minPrice: searchParams.get('minPrice') ? Number(searchParams.get('minPrice')) : undefined,
+    maxPrice: searchParams.get('maxPrice') ? Number(searchParams.get('maxPrice')) : undefined,
+    minRating: searchParams.get('minRating') ? Number(searchParams.get('minRating')) : undefined,
+    availabilityDay: searchParams.get('availabilityDay') || undefined,
+    sortedBy: (searchParams.get('sortedBy') as any) || 'rate_high',
+  };
+
+  const { data, isLoading, error, refetch } = useGetTutors(filters);
   const tutors = data?.items ?? [];
-  const limit = data?.limit ?? filters.limit ?? 10;
-  const offset = data?.offset ?? filters.offset ?? 0;
-  const total = data?.total ?? tutors.length;
-  const canGoPrevious = offset > 0;
-  const canGoNext = offset + limit < total;
+  const total = data?.total ?? 0;
+
+  const updateFilter = (key: string, value: any) => {
+    const params = new URLSearchParams(searchParams.toString());
+    if (value === undefined || value === null || value === '') {
+      params.delete(key);
+    } else {
+      params.set(key, value.toString());
+    }
+    // Reset page to 1 on filter change
+    if (key !== 'page') {
+      params.set('page', '1');
+    }
+    router.push(`${pathname}?${params.toString()}`);
+  };
+
+  const resetFilters = () => {
+    router.push(pathname);
+  };
+
+  const handlePageChange = (newPage: number) => {
+    updateFilter('page', newPage);
+  };
 
   return (
     <PageContainer className="py-0 space-y-8">
@@ -67,27 +105,17 @@ export function StudentTutorListPage() {
                 hourlyRate={tutor.hourlyRate}
                 bio={tutor.bio}
                 avatar={tutor.avatarUrl}
+                isFavorite={tutor.isFavorite}
               />
             ))}
           </div>
+          
+          <Pagination 
+            currentPage={Number(page)} 
+            totalPages={Math.ceil(total / limit)} 
+            onPageChange={handlePageChange} 
+          />
         </ListState>
-
-        <div className="flex items-center justify-end gap-3">
-          <Button
-            variant="outline"
-            disabled={!canGoPrevious}
-            onClick={() => updateFilter('offset', Math.max(0, offset - limit))}
-          >
-            Previous
-          </Button>
-          <Button
-            variant="outline"
-            disabled={!canGoNext}
-            onClick={() => updateFilter('offset', offset + limit)}
-          >
-            Next
-          </Button>
-        </div>
       </div>
     </PageContainer>
   );

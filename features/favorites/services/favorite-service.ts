@@ -3,8 +3,9 @@ import { FavoriteTutor } from '../types';
 import { ListResponse } from '@/lib/api/types';
 
 export const favoriteService = {
-  async getFavoriteTutors(): Promise<ListResponse<FavoriteTutor>> {
-    const response = await api.get<any>('/api/v1/me/favorite-tutors');
+  async getFavoriteTutors(page: number = 1, limit: number = 10): Promise<ListResponse<FavoriteTutor>> {
+    const offset = (page - 1) * limit;
+    const response = await api.get<any>(`/api/v1/me/favorite-tutors?limit=${limit}&offset=${offset}`);
     if (Array.isArray(response)) {
       return { items: response, total: response.length, limit: response.length, offset: 0 };
     }
