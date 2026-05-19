@@ -3,23 +3,26 @@ import { Conversation, Message } from '../types';
 
 export const messageService = {
   async getConversations(): Promise<Conversation[]> {
-    return api.get<Conversation[]>('/api/v1/messages/conversations');
+    return api.get<Conversation[]>('/api/v1/conversations');
   },
 
   async getConversationById(id: string): Promise<Conversation> {
-    return api.get<Conversation>(`/api/v1/messages/conversations/${id}`);
+    return api.get<Conversation>(`/api/v1/conversations/${id}`);
   },
 
   async getMessagesByConversationId(conversationId: string): Promise<Message[]> {
-    // Assuming the detail endpoint returns the thread or we use a nested path
-    // For this phase, we map it to the conversation detail
-    return api.get<Message[]>(`/api/v1/messages/conversations/${conversationId}`);
+    return api.get<Message[]>(`/api/v1/conversations/${conversationId}/messages`);
   },
 
   async sendMessage(conversationId: string, content: string): Promise<Message> {
-    return api.post<Message>('/api/v1/messages', {
-      conversationId,
+    return api.post<Message>(`/api/v1/conversations/${conversationId}/messages`, {
       content,
+    });
+  },
+
+  async createConversation(tutorId: string): Promise<{ conversation: { id: string } }> {
+    return api.post<{ conversation: { id: string } }>('/api/v1/conversations', {
+      tutor_id: tutorId,
     });
   }
 };

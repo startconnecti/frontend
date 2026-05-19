@@ -9,12 +9,11 @@ import { ROUTES } from '@/constants/routes';
 
 interface ConversationListProps {
   conversations: Conversation[];
+  activeId?: string;
 }
 
-export function ConversationList({ conversations }: ConversationListProps) {
+export function ConversationList({ conversations, activeId }: ConversationListProps) {
   const router = useRouter();
-  const params = useParams();
-  const activeId = params.id as string;
 
   return (
     <div className="flex flex-col h-full overflow-y-auto">
