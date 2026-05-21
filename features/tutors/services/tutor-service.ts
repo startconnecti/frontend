@@ -78,6 +78,16 @@ function normalizeTutor(tutor: any): Tutor {
       ? tutor.weeklyAvailability
       : [];
 
+  const rawSubjectItems: any[] = Array.isArray(tutor.subjects) ? tutor.subjects : [];
+  // subjectObjects: preserve full {id, name} when the API returns objects
+  const subjectObjects = rawSubjectItems
+    .filter((s: any) => s && typeof s === 'object' && s.id)
+    .map((s: any) => ({ id: s.id as string, name: (s.name ?? s.slug ?? '') as string }));
+  // subjects: flat name strings for display
+  const subjects = rawSubjectItems
+    .map((s: any) => (typeof s === 'string' ? s : s.name ?? s.slug ?? ''))
+    .filter(Boolean);
+
   return {
     ...tutor,
     id: tutor.id ?? tutor.tutorId ?? '',
@@ -85,9 +95,8 @@ function normalizeTutor(tutor: any): Tutor {
     avatarUrl: tutor.avatarUrl ?? tutor.avatar ?? undefined,
     bio: tutor.bio ?? '',
     experienceText: tutor.experienceText ?? '',
-    subjects: Array.isArray(tutor.subjects)
-      ? tutor.subjects.map((s: any) => (typeof s === 'string' ? s : s.name ?? s.slug ?? '')).filter(Boolean)
-      : [],
+    subjects,
+    subjectObjects: subjectObjects.length > 0 ? subjectObjects : undefined,
     approvalStatus: tutor.approvalStatus ?? 'approved',
     isPublic: tutor.isPublic ?? true,
     certificates,

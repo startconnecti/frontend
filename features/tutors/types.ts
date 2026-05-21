@@ -16,7 +16,7 @@ export interface Certificate {
 }
 
 export interface AvailabilitySlot {
-  id?: string;
+  id: string; // maps to weekly_availability_id in booking payload
   day?: 'monday' | 'tuesday' | 'wednesday' | 'thursday' | 'friday' | 'saturday' | 'sunday';
   dayOfWeek?: 'monday' | 'tuesday' | 'wednesday' | 'thursday' | 'friday' | 'saturday' | 'sunday';
   startTime: string; // HH:mm
@@ -30,7 +30,8 @@ export interface Tutor {
   avatarUrl?: string;
   bio: string;
   experienceText: string;
-  subjects: string[];
+  subjects: string[];        // display names only — used for UI labels
+  subjectObjects?: Subject[]; // full { id, name } objects — used for booking payload
   hourlyRate: number;
   yearsOfExperience: number;
   averageRating: number;

@@ -40,12 +40,11 @@ export interface GetBookingsParams {
 }
 
 export interface CreateBookingRequest {
-  tutorId: string;
-  subject: string;
-  startTime: string;
-  endTime: string;
-  dayOfWeek: string;
-  availabilityId?: string;
+  tutor_id: string;
+  subject_id: string;
+  weekly_availability_id: string;
+  start_time: string; // ISO 8601
+  end_time: string;   // ISO 8601
 }
 
 export interface CancelBookingPayload {

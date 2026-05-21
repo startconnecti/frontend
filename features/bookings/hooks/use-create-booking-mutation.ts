@@ -15,7 +15,7 @@ export function useCreateBookingMutation() {
       toast.success('Booking request sent successfully');
       queryClient.invalidateQueries({ queryKey: ['sessions'] });
       queryClient.invalidateQueries({ queryKey: ['student-dashboard'] });
-      queryClient.invalidateQueries({ queryKey: ['tutors', 'detail', variables.tutorId] });
+      queryClient.invalidateQueries({ queryKey: ['tutors', 'detail', variables.tutor_id] });
     },
     onError: (error) => {
       handleMutationError(error, 'Failed to create booking');

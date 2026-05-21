@@ -3,21 +3,33 @@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { PaymentInstruction } from '../types/index';
-import { Copy, Check } from 'lucide-react';
+import { Copy, Check, Loader2 } from 'lucide-react';
 import { useState } from 'react';
+import { useMarkPaymentSuccessMutation } from '../hooks/use-mark-payment-success-mutation';
 
 interface PaymentInstructionModalProps {
   isOpen: boolean;
   onClose: () => void;
   instruction: PaymentInstruction;
+  paymentId: string;
 }
 
 export function PaymentInstructionModal({
   isOpen,
   onClose,
   instruction,
+  paymentId,
 }: PaymentInstructionModalProps) {
   const [copiedField, setCopiedField] = useState<string | null>(null);
+  const markSuccessMutation = useMarkPaymentSuccessMutation();
+
+  const handleTransferred = () => {
+    markSuccessMutation.mutate(paymentId, {
+      onSuccess: () => {
+        onClose();
+      }
+    });
+  };
 
   const copyToClipboard = (text: string, field: string) => {
     navigator.clipboard.writeText(text);
@@ -114,9 +126,13 @@ export function PaymentInstructionModal({
           )}
         </div>
 
-        <DialogFooter>
-          <Button onClick={onClose} className="w-full">
-            I Have Transferred
+        <DialogFooter className="flex space-x-2 justify-end mt-4">
+          <Button variant="outline" onClick={onClose} disabled={markSuccessMutation.isPending}>
+            Cancel
+          </Button>
+          <Button onClick={handleTransferred} disabled={markSuccessMutation.isPending}>
+            {markSuccessMutation.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+            I have transferred the money
           </Button>
         </DialogFooter>
       </DialogContent>

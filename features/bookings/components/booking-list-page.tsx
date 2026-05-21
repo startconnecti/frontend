@@ -41,7 +41,7 @@ export function BookingListPage() {
   const total = data?.meta?.pagination?.total || 0;
 
   const [bookingToCancel, setBookingToCancel] = useState<Booking | null>(null);
-  const [paymentInstruction, setPaymentInstruction] = useState<PaymentInstruction | null>(null);
+  const [activePaymentData, setActivePaymentData] = useState<{ instruction: PaymentInstruction; paymentId: string } | null>(null);
 
   const { mutate: createPayment, isPending, variables } = useCreatePaymentMutation();
 
@@ -67,7 +67,15 @@ export function BookingListPage() {
   const handlePay = (bookingId: string) => {
     createPayment(bookingId, {
       onSuccess: (response) => {
-        setPaymentInstruction(response.data.paymentInstruction);
+        const payload = (response as any)?.data || response;
+        if (!payload?.paymentInstruction) {
+          toast.error("Missing payment instruction from server.");
+          return;
+        }
+        setActivePaymentData({
+          instruction: payload.paymentInstruction,
+          paymentId: payload.payment?.id || payload.payment?.paymentId
+        });
       },
     });
   };
@@ -128,11 +136,12 @@ export function BookingListPage() {
         />
       )}
 
-      {paymentInstruction && (
+      {activePaymentData && (
         <PaymentInstructionModal
-          isOpen={!!paymentInstruction}
-          onClose={() => setPaymentInstruction(null)}
-          instruction={paymentInstruction}
+          isOpen={!!activePaymentData}
+          onClose={() => setActivePaymentData(null)}
+          instruction={activePaymentData.instruction}
+          paymentId={activePaymentData.paymentId}
         />
       )}
     </PageContainer>

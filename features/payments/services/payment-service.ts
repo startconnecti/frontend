@@ -16,5 +16,9 @@ export const paymentService = {
 
   async createPayment(bookingId: string): Promise<PaymentResponse> {
     return api.post<PaymentResponse>('/api/v1/payments', { booking_id: bookingId });
+  },
+
+  async markPaymentSuccess(id: string): Promise<Payment> {
+    return api.patch<Payment>(`/api/v1/payments/${id}/mark-success`);
   }
 };
