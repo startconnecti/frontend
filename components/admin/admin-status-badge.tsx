@@ -17,6 +17,10 @@ const statusStyles: Record<string, { variant: StatusVariant; label: string }> = 
   confirmed: { variant: 'default', label: 'Confirmed' },
   completed: { variant: 'default', label: 'Completed' },
   cancelled: { variant: 'destructive', label: 'Cancelled' },
+  payment_processing: { variant: 'secondary', label: 'Processing' },
+  wait_for_admin_review: { variant: 'secondary', label: 'Review' },
+  expired: { variant: 'secondary', label: 'Expired' },
+  pending_payment: { variant: 'secondary', label: 'Pending Payment' },
 
   // Payment statuses
   processing: { variant: 'secondary', label: 'Processing' },

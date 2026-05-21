@@ -1,4 +1,4 @@
-export type AdminBookingStatus = 'pending' | 'confirmed' | 'completed' | 'cancelled';
+export type AdminBookingStatus = 'pending' | 'wait_for_admin_review' | 'payment_processing' | 'confirmed' | 'completed' | 'cancelled' | 'expired' | 'pending_payment' | string;
 export type AdminPaymentStatus = 'pending' | 'paid' | 'failed' | 'refunded';
 
 export interface AdminBookingStudent {

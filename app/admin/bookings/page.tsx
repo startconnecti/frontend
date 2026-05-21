@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import { Eye } from 'lucide-react';
+import { Eye, MoreHorizontal, CheckCircle, XCircle, Clock } from 'lucide-react';
 import { AdminPageHeader } from '@/components/admin/admin-page-header';
 import { AdminStatusBadge } from '@/components/admin/admin-status-badge';
 import { Button } from '@/components/ui/button';
@@ -10,8 +10,11 @@ import { Card } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Input } from '@/components/ui/input';
 import { Skeleton } from '@/components/ui/skeleton';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { PAGINATION } from '@/constants/pagination';
-import { useAdminBookingsQuery } from '@/features/admin-bookings';
+import { useAdminBookingsQuery, useConfirmBookingMutation, useCancelBookingMutation, useExpireBookingMutation } from '@/features/admin-bookings';
+import { toast } from 'sonner';
 
 function formatDate(dateString: string): string {
   try {
@@ -27,8 +30,11 @@ function formatDate(dateString: string): string {
 
 export default function BookingsPage() {
   const [searchQuery, setSearchQuery] = useState('');
-  const [statusFilter, setStatusFilter] = useState<'all' | 'pending' | 'confirmed' | 'completed' | 'cancelled'>('all');
+  const [statusFilter, setStatusFilter] = useState<string>('all');
   const [page, setPage] = useState(1);
+
+  const [bookingToCancel, setBookingToCancel] = useState<string | null>(null);
+  const [bookingToExpire, setBookingToExpire] = useState<string | null>(null);
 
   const { data: bookingsData, isLoading, isError } = useAdminBookingsQuery({
     keyword: searchQuery || undefined,
@@ -37,7 +43,39 @@ export default function BookingsPage() {
     limit: PAGINATION.DEFAULT_PAGE_SIZE,
   });
 
-  const statuses = ['all', 'pending', 'confirmed', 'completed', 'cancelled'] as const;
+  const confirmMutation = useConfirmBookingMutation();
+  const cancelMutation = useCancelBookingMutation();
+  const expireMutation = useExpireBookingMutation();
+
+  const handleConfirm = (id: string) => {
+    confirmMutation.mutate(id);
+  };
+
+  const handleCancel = () => {
+    if (bookingToCancel) {
+      cancelMutation.mutate({ id: bookingToCancel, reason: 'Cancelled by Admin' }, {
+        onSuccess: () => setBookingToCancel(null)
+      });
+    }
+  };
+
+  const handleExpire = () => {
+    if (bookingToExpire) {
+      expireMutation.mutate(bookingToExpire, {
+        onSuccess: () => setBookingToExpire(null)
+      });
+    }
+  };
+
+  const filterTabs = [
+    { label: 'All', value: 'all' },
+    { label: 'Pending', value: 'payment_processing' },
+    { label: 'Review', value: 'wait_for_admin_review' },
+    { label: 'Confirmed', value: 'confirmed' },
+    { label: 'Completed', value: 'completed' },
+    { label: 'Expired', value: 'expired' },
+    { label: 'Cancelled', value: 'cancelled' },
+  ];
 
   const renderTableRows = () => {
     if (isLoading) {
@@ -48,7 +86,6 @@ export default function BookingsPage() {
           <TableCell><Skeleton className="h-4 w-32" /></TableCell>
           <TableCell><Skeleton className="h-4 w-16" /></TableCell>
           <TableCell><Skeleton className="h-4 w-16" /></TableCell>
-          <TableCell><Skeleton className="h-4 w-20" /></TableCell>
           <TableCell><Skeleton className="h-4 w-10" /></TableCell>
         </TableRow>
       ));
@@ -57,7 +94,7 @@ export default function BookingsPage() {
     if (isError || !bookingsData) {
       return (
         <TableRow>
-          <TableCell colSpan={7} className="h-24 text-center text-destructive">
+          <TableCell colSpan={6} className="h-24 text-center text-destructive">
             Error loading bookings
           </TableCell>
         </TableRow>
@@ -67,34 +104,71 @@ export default function BookingsPage() {
     if (bookingsData.items.length === 0) {
       return (
         <TableRow>
-          <TableCell colSpan={7} className="h-24 text-center text-muted-foreground">
+          <TableCell colSpan={6} className="h-24 text-center text-muted-foreground">
             No bookings found
           </TableCell>
         </TableRow>
       );
     }
 
-    return bookingsData.items.map(booking => (
-      <TableRow key={booking.id}>
-        <TableCell className="font-mono text-sm">{booking.id}</TableCell>
-        <TableCell>{booking.subjectName}</TableCell>
-        <TableCell className="text-sm">{formatDate(booking.startTime)}</TableCell>
-        <TableCell>
-          <AdminStatusBadge status={booking.status} />
-        </TableCell>
-        <TableCell>${booking.amount.toFixed(2)}</TableCell>
-        <TableCell>
-          <AdminStatusBadge status={booking.paymentStatus} />
-        </TableCell>
-        <TableCell>
-          <Link href={`/admin/bookings/${booking.id}`}>
-            <Button variant="ghost" size="sm">
-              <Eye className="h-4 w-4" />
-            </Button>
-          </Link>
-        </TableCell>
-      </TableRow>
-    ));
+    return bookingsData.items.map(booking => {
+      const showConfirm = booking.status === 'pending' || booking.status === 'wait_for_admin_review';
+      const showCancel = !['cancelled', 'completed', 'expired'].includes(booking.status);
+      const showExpire = booking.status === 'pending' || booking.status === 'pending_payment';
+
+      return (
+        <TableRow key={booking.id}>
+          <TableCell className="font-mono text-sm">{booking.id}</TableCell>
+          <TableCell>{booking.subjectName}</TableCell>
+          <TableCell className="text-sm">{formatDate(booking.startTime)}</TableCell>
+          <TableCell>
+            <AdminStatusBadge status={booking.status} />
+          </TableCell>
+          <TableCell>${booking.amount.toFixed(2)}</TableCell>
+          <TableCell>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                  <MoreHorizontal className="h-4 w-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <Link href={`/admin/bookings/${booking.id}`}>
+                  <DropdownMenuItem className="cursor-pointer">
+                    <Eye className="mr-2 h-4 w-4" /> View Details
+                  </DropdownMenuItem>
+                </Link>
+                {showConfirm && (
+                  <DropdownMenuItem 
+                    className="cursor-pointer"
+                    onClick={() => handleConfirm(booking.id)}
+                    disabled={confirmMutation.isPending}
+                  >
+                    <CheckCircle className="mr-2 h-4 w-4 text-green-600" /> Confirm
+                  </DropdownMenuItem>
+                )}
+                {showExpire && (
+                  <DropdownMenuItem 
+                    className="cursor-pointer text-orange-600"
+                    onClick={() => setBookingToExpire(booking.id)}
+                  >
+                    <Clock className="mr-2 h-4 w-4" /> Expire
+                  </DropdownMenuItem>
+                )}
+                {showCancel && (
+                  <DropdownMenuItem 
+                    className="cursor-pointer text-destructive"
+                    onClick={() => setBookingToCancel(booking.id)}
+                  >
+                    <XCircle className="mr-2 h-4 w-4" /> Cancel
+                  </DropdownMenuItem>
+                )}
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </TableCell>
+        </TableRow>
+      );
+    });
   };
 
   return (
@@ -114,18 +188,17 @@ export default function BookingsPage() {
             className="max-w-sm"
           />
           <div className="flex gap-2 flex-wrap">
-            {statuses.map(status => (
+            {filterTabs.map(tab => (
               <Button
-                key={status}
-                variant={statusFilter === status ? 'default' : 'outline'}
+                key={tab.value}
+                variant={statusFilter === tab.value ? 'default' : 'outline'}
                 size="sm"
                 onClick={() => {
-                  setStatusFilter(status);
+                  setStatusFilter(tab.value);
                   setPage(1);
                 }}
-                className="capitalize"
               >
-                {status}
+                {tab.label}
               </Button>
             ))}
           </div>
@@ -141,7 +214,6 @@ export default function BookingsPage() {
                 <TableHead>Start Time</TableHead>
                 <TableHead>Status</TableHead>
                 <TableHead>Amount</TableHead>
-                <TableHead>Payment</TableHead>
                 <TableHead>Actions</TableHead>
               </TableRow>
             </TableHeader>
@@ -178,6 +250,48 @@ export default function BookingsPage() {
           </div>
         )}
       </Card>
+
+      <AlertDialog open={!!bookingToCancel} onOpenChange={(open) => !open && setBookingToCancel(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Cancel Booking</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to cancel this booking? This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Go Back</AlertDialogCancel>
+            <AlertDialogAction 
+              onClick={(e) => { e.preventDefault(); handleCancel(); }}
+              className="bg-destructive hover:bg-destructive/90"
+              disabled={cancelMutation.isPending}
+            >
+              Cancel Booking
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      <AlertDialog open={!!bookingToExpire} onOpenChange={(open) => !open && setBookingToExpire(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Expire Booking</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to manually expire this booking? This is typically used for unpaid or neglected bookings.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Go Back</AlertDialogCancel>
+            <AlertDialogAction 
+              onClick={(e) => { e.preventDefault(); handleExpire(); }}
+              className="bg-orange-600 hover:bg-orange-600/90"
+              disabled={expireMutation.isPending}
+            >
+              Expire Booking
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </>
   );
 }

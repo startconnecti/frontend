@@ -39,6 +39,7 @@ interface RawBookingListItem {
   status?: string;
   paymentStatus?: string;
   amount?: number;
+  totalAmount?: number;
   createdAt?: string;
   updatedAt?: string;
 }
@@ -61,14 +62,7 @@ interface RawBookingDetailResponse {
 
 function normalizeBookingStatus(status?: string): AdminBookingStatus {
   if (!status) return 'pending';
-  
-  const lowerStatus = status.toLowerCase();
-  if (lowerStatus === 'pending' || lowerStatus === 'pending_payment') return 'pending';
-  if (lowerStatus === 'confirmed' || lowerStatus === 'approved') return 'confirmed';
-  if (lowerStatus === 'completed' || lowerStatus === 'finished') return 'completed';
-  if (lowerStatus === 'cancelled') return 'cancelled';
-  
-  return 'pending';
+  return status;
 }
 
 function normalizePaymentStatus(status?: string): AdminPaymentStatus {
@@ -117,7 +111,7 @@ function normalizeBooking(item: RawBookingListItem | null | undefined): AdminBoo
     endTime: item.endTime ?? new Date(0).toISOString(),
     status: normalizeBookingStatus(item.status),
     paymentStatus: normalizePaymentStatus(item.paymentStatus),
-    amount: item.amount ?? 0,
+    amount: item.totalAmount ?? item.amount ?? 0,
     createdAt: item.createdAt ?? new Date(0).toISOString(),
     updatedAt: item.updatedAt ?? null,
   };
@@ -202,5 +196,17 @@ export const adminBookingsService = {
       description: response.booking.description ?? null,
       notes: response.booking.notes ?? null,
     };
+  },
+
+  async confirmBooking(id: string): Promise<void> {
+    await adminApi.post(`/api/v1/admin/bookings/${id}/confirm`);
+  },
+
+  async cancelBooking(id: string, reason?: string): Promise<void> {
+    await adminApi.post(`/api/v1/admin/bookings/${id}/cancel`, { cancellation_reason: reason });
+  },
+
+  async expireBooking(id: string): Promise<void> {
+    await adminApi.post(`/api/v1/admin/bookings/${id}/expire`);
   },
 };
