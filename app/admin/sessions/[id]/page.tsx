@@ -3,7 +3,7 @@
 import { useParams } from 'next/navigation';
 import Link from 'next/link';
 import { useState } from 'react';
-import { ArrowLeft, Calendar, User, DollarSign, CheckCircle, XCircle, Clock } from 'lucide-react';
+import { ArrowLeft, Calendar, User, DollarSign, CheckCircle, XCircle, Clock, Link as LinkIcon } from 'lucide-react';
 import { AdminPageHeader } from '@/components/admin/admin-page-header';
 import { AdminStatusBadge } from '@/components/admin/admin-status-badge';
 import { AdminRecordNotFound } from '@/components/admin/admin-record-not-found';
@@ -13,7 +13,8 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { useAdminSessionDetailQuery, useAdminCancelSessionMutation, useAdminForceCompleteSessionMutation } from '@/features/admin-sessions';
 
-function formatDate(dateString: string): string {
+function formatDate(dateString: string | null | undefined): string {
+  if (!dateString) return '-';
   try {
     const date = new Date(dateString);
     if (isNaN(date.getTime()) || date.getFullYear() === 1970) {
@@ -36,7 +37,7 @@ export default function SessionDetailPage() {
   const forceCompleteMutation = useAdminForceCompleteSessionMutation();
 
   const {
-    data: session,
+    data: apiResponse,
     isLoading,
     isError,
   } = useAdminSessionDetailQuery(sessionId);
@@ -84,6 +85,10 @@ export default function SessionDetailPage() {
       </>
     );
   }
+
+  // Safely extract from the real API response structure
+  const session = apiResponse?.data?.session || apiResponse?.session;
+  const paymentSummary = apiResponse?.data?.paymentSummary || apiResponse?.paymentSummary;
 
   if (isError || !session) {
     return (
@@ -139,7 +144,7 @@ export default function SessionDetailPage() {
           {/* Overview Info */}
           <Card className="p-6">
             <div className="mb-4 flex items-center justify-between">
-              <h2 className="text-2xl font-bold text-foreground">{session.subjectName}</h2>
+              <h2 className="text-2xl font-bold text-foreground">Overview</h2>
               <AdminStatusBadge status={session.status} />
             </div>
             <div className="space-y-4 mt-6">
@@ -149,11 +154,9 @@ export default function SessionDetailPage() {
                   <p className="font-mono text-sm mt-1">{session.id}</p>
                 </div>
                 <div>
-                  <p className="text-xs text-muted-foreground">Booking ID</p>
-                  <p className="font-mono text-sm mt-1">
-                    <Link href={`/admin/bookings/${session.bookingId}`} className="text-primary hover:underline">
-                      {session.bookingId}
-                    </Link>
+                  <p className="text-xs text-muted-foreground">Booking Code</p>
+                  <p className="font-mono text-sm mt-1 text-primary font-medium">
+                    {session.booking?.bookingCode || '-'}
                   </p>
                 </div>
               </div>
@@ -173,25 +176,22 @@ export default function SessionDetailPage() {
                   </div>
                 </div>
               </div>
-              <div className="grid grid-cols-2 gap-4 pt-4 border-t border-border">
-                <div className="flex items-start gap-3">
-                  <DollarSign className="h-5 w-5 text-muted-foreground flex-shrink-0 mt-0.5" />
-                  <div>
-                    <p className="text-xs text-muted-foreground">Total Amount</p>
-                    <p className="text-sm font-bold mt-1">${session.amount?.toFixed(2) || '0.00'}</p>
+              
+              {session.meetingUrl && (
+                <div className="pt-4 border-t border-border">
+                  <div className="flex items-start gap-3">
+                    <LinkIcon className="h-5 w-5 text-muted-foreground flex-shrink-0 mt-0.5" />
+                    <div>
+                      <p className="text-xs text-muted-foreground">Meeting Link</p>
+                      <p className="text-sm mt-1">
+                        <a href={session.meetingUrl} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline break-all">
+                          {session.meetingUrl}
+                        </a>
+                      </p>
+                    </div>
                   </div>
                 </div>
-                {session.meetingUrl && (
-                  <div>
-                    <p className="text-xs text-muted-foreground">Meeting Link</p>
-                    <p className="text-sm mt-1">
-                      <a href={session.meetingUrl} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline break-all">
-                        {session.meetingUrl}
-                      </a>
-                    </p>
-                  </div>
-                )}
-              </div>
+              )}
             </div>
           </Card>
 
@@ -203,20 +203,37 @@ export default function SessionDetailPage() {
                 <User className="h-5 w-5 text-muted-foreground flex-shrink-0 mt-0.5" />
                 <div className="flex-1">
                   <p className="font-medium text-foreground">Student</p>
-                  <p className="text-sm text-muted-foreground">{session.student?.name}</p>
-                  <p className="text-xs text-muted-foreground mt-1">{session.student?.email}</p>
+                  <p className="text-sm font-medium">{session.student?.fullName}</p>
+                  <p className="text-xs text-muted-foreground mt-1">ID: <span className="font-mono">{session.student?.id}</span></p>
                 </div>
               </div>
               <div className="flex items-start gap-4 rounded-lg border border-border p-4">
                 <User className="h-5 w-5 text-muted-foreground flex-shrink-0 mt-0.5" />
                 <div className="flex-1">
                   <p className="font-medium text-foreground">Tutor</p>
-                  <p className="text-sm text-muted-foreground">{session.tutor?.name}</p>
-                  <p className="text-xs text-muted-foreground mt-1">{session.tutor?.email}</p>
+                  <p className="text-sm font-medium">{session.tutor?.fullName}</p>
+                  <p className="text-xs text-muted-foreground mt-1">Profile ID: <span className="font-mono">{session.tutor?.tutorProfileId}</span></p>
                 </div>
               </div>
             </div>
           </Card>
+
+          {/* Cancellation Info (if applicable) */}
+          {session.status === 'cancelled' && (
+            <Card className="p-6 bg-destructive/5 border-destructive/20">
+              <h3 className="mb-4 text-lg font-bold text-destructive">Cancellation Details</h3>
+              <div className="space-y-4">
+                <div>
+                  <p className="text-xs text-destructive/80">Reason</p>
+                  <p className="text-sm font-medium text-destructive mt-1">{session.cancelReason || 'No reason provided'}</p>
+                </div>
+                <div>
+                  <p className="text-xs text-destructive/80">Cancelled At</p>
+                  <p className="text-sm font-medium text-destructive mt-1">{formatDate(session.cancelledAt)}</p>
+                </div>
+              </div>
+            </Card>
+          )}
         </div>
 
         {/* Sidebar Actions */}
@@ -236,8 +253,40 @@ export default function SessionDetailPage() {
                   <span className="font-medium">{formatDate(session.updatedAt)}</span>
                 </div>
               )}
+              {session.completedAt && (
+                <div className="flex items-center gap-2 text-xs text-green-700">
+                  <CheckCircle className="h-4 w-4" />
+                  <span className="w-20">Completed At:</span>
+                  <span className="font-medium">{formatDate(session.completedAt)}</span>
+                </div>
+              )}
             </div>
           </Card>
+
+          {paymentSummary && (
+            <Card className="p-6">
+              <h4 className="mb-4 text-sm font-bold text-foreground">Payment Summary</h4>
+              <div className="space-y-4">
+                <div className="flex items-start gap-3">
+                  <DollarSign className="h-5 w-5 text-muted-foreground flex-shrink-0 mt-0.5" />
+                  <div>
+                    <p className="text-xs text-muted-foreground">Payment Status</p>
+                    <div className="mt-1">
+                      <AdminStatusBadge status={paymentSummary.paymentStatus} type="payment" />
+                    </div>
+                  </div>
+                </div>
+                {paymentSummary.paymentId && (
+                  <div>
+                    <p className="text-xs text-muted-foreground">Payment ID</p>
+                    <p className="font-mono text-xs mt-1 truncate" title={paymentSummary.paymentId}>
+                      {paymentSummary.paymentId}
+                    </p>
+                  </div>
+                )}
+              </div>
+            </Card>
+          )}
         </div>
       </div>
 

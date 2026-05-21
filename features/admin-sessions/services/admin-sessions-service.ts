@@ -163,29 +163,7 @@ export const adminSessionsService = {
     const response = await adminApi.get<any>(
       `/api/v1/admin/sessions/${id}`
     );
-    
-    // Using loose any here as AdminSessionDetail type is not fully defined but similar to booking
-    const sessionData = response.session || response.data?.session || response;
-    
-    if (!sessionData) {
-      throw new Error('Session response is missing session data');
-    }
-
-    return {
-      ...normalizeSession(sessionData),
-      student: {
-        id: sessionData.studentId ?? sessionData.student?.userId ?? '',
-        name: sessionData.student?.name ?? '-',
-        email: sessionData.student?.email ?? '-',
-      },
-      tutor: {
-        id: sessionData.tutorId ?? sessionData.tutor?.tutorProfileId ?? '',
-        name: sessionData.tutor?.name ?? '-',
-        email: sessionData.tutor?.email ?? '-',
-      },
-      amount: sessionData.booking?.totalAmount ?? sessionData.booking?.amount ?? 0,
-      subjectName: sessionData.booking?.subject?.name ?? sessionData.subjectName ?? '-',
-    };
+    return response;
   },
 
   async cancelSession(id: string, reason?: string): Promise<void> {
