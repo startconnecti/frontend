@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import { Eye, MoreHorizontal, CheckCircle, XCircle, Clock } from 'lucide-react';
+import { Eye, MoreHorizontal, CheckCircle, XCircle, Clock, Loader2 } from 'lucide-react';
 import { AdminPageHeader } from '@/components/admin/admin-page-header';
 import { AdminStatusBadge } from '@/components/admin/admin-status-badge';
 import { Button } from '@/components/ui/button';
@@ -13,8 +13,9 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Textarea } from '@/components/ui/textarea';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
+import { CancelBookingDialog } from '@/features/admin-bookings/components/cancel-booking-dialog';
 import { PAGINATION } from '@/constants/pagination';
-import { useAdminBookingsQuery, useConfirmBookingMutation, useCancelBookingMutation, useExpireBookingMutation } from '@/features/admin-bookings';
+import { useAdminBookingsQuery, useConfirmBookingMutation, useExpireBookingMutation } from '@/features/admin-bookings';
 import { toast } from 'sonner';
 
 function formatDate(dateString: string): string {
@@ -34,9 +35,7 @@ export default function BookingsPage() {
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [page, setPage] = useState(1);
 
-  const [bookingToCancel, setBookingToCancel] = useState<string | null>(null);
-  const [cancelReason, setCancelReason] = useState('');
-  const [cancelReasonError, setCancelReasonError] = useState('');
+  const [bookingToCancel, setBookingToCancel] = useState<{ id: string; warning?: string | null } | null>(null);
   const [bookingToExpire, setBookingToExpire] = useState<string | null>(null);
 
   const { data: bookingsData, isLoading, isError } = useAdminBookingsQuery({
@@ -47,31 +46,10 @@ export default function BookingsPage() {
   });
 
   const confirmMutation = useConfirmBookingMutation();
-  const cancelMutation = useCancelBookingMutation();
   const expireMutation = useExpireBookingMutation();
 
   const handleConfirm = (id: string) => {
     confirmMutation.mutate(id);
-  };
-
-  const handleCancel = () => {
-    if (!cancelReason.trim()) {
-      setCancelReasonError('Reason is required');
-      return;
-    }
-    if (cancelReason.length > 1000) {
-      setCancelReasonError('Reason must be less than 1000 characters');
-      return;
-    }
-    setCancelReasonError('');
-    if (bookingToCancel) {
-      cancelMutation.mutate({ id: bookingToCancel, reason: cancelReason.trim() }, {
-        onSuccess: () => {
-          setBookingToCancel(null);
-          setCancelReason('');
-        }
-      });
-    }
   };
 
   const handleExpire = () => {
@@ -94,14 +72,9 @@ export default function BookingsPage() {
 
   const renderTableRows = () => {
     if (isLoading) {
-      return Array.from({ length: 5 }).map((_, i) => (
+      return Array.from({ length: PAGINATION.DEFAULT_PAGE_SIZE }).map((_, i) => (
         <TableRow key={i}>
-          <TableCell><Skeleton className="h-4 w-20" /></TableCell>
-          <TableCell><Skeleton className="h-4 w-24" /></TableCell>
-          <TableCell><Skeleton className="h-4 w-32" /></TableCell>
-          <TableCell><Skeleton className="h-4 w-16" /></TableCell>
-          <TableCell><Skeleton className="h-4 w-16" /></TableCell>
-          <TableCell><Skeleton className="h-4 w-10" /></TableCell>
+          <TableCell colSpan={6}><Skeleton className="h-10 w-full" /></TableCell>
         </TableRow>
       ));
     }
@@ -154,7 +127,7 @@ export default function BookingsPage() {
                   </DropdownMenuItem>
                 </Link>
                 {showConfirm && (
-                  <DropdownMenuItem 
+                  <DropdownMenuItem
                     className="cursor-pointer"
                     onClick={() => handleConfirm(booking.id)}
                     disabled={confirmMutation.isPending}
@@ -163,7 +136,7 @@ export default function BookingsPage() {
                   </DropdownMenuItem>
                 )}
                 {showExpire && (
-                  <DropdownMenuItem 
+                  <DropdownMenuItem
                     className="cursor-pointer text-orange-600"
                     onClick={() => setBookingToExpire(booking.id)}
                   >
@@ -171,9 +144,9 @@ export default function BookingsPage() {
                   </DropdownMenuItem>
                 )}
                 {showCancel && (
-                  <DropdownMenuItem 
+                  <DropdownMenuItem
                     className="cursor-pointer text-destructive"
-                    onClick={() => setBookingToCancel(booking.id)}
+                    onClick={() => setBookingToCancel({ id: booking.id, warning: booking.warning })}
                   >
                     <XCircle className="mr-2 h-4 w-4" /> Cancel
                   </DropdownMenuItem>
@@ -194,7 +167,7 @@ export default function BookingsPage() {
         {/* Filters */}
         <div className="border-b border-border px-6 py-4 space-y-4">
           <Input
-            placeholder="Search booking ID..."
+            placeholder="Search by booking ID, student ID, or tutor ID"
             value={searchQuery}
             onChange={(e) => {
               setSearchQuery(e.target.value);
@@ -266,58 +239,12 @@ export default function BookingsPage() {
         )}
       </Card>
 
-      <AlertDialog 
-        open={!!bookingToCancel} 
-        onOpenChange={(open) => {
-          if (!open) {
-            setBookingToCancel(null);
-            setCancelReason('');
-            setCancelReasonError('');
-          }
-        }}
-      >
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Cancel Booking</AlertDialogTitle>
-            <AlertDialogDescription>
-              Are you sure you want to cancel this booking? This action cannot be undone.
-              Please provide a reason for cancellation below.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <div className="py-4">
-            <label htmlFor="cancel-reason" className="text-sm font-medium mb-2 block">
-              Reason for Cancellation <span className="text-destructive">*</span>
-            </label>
-            <Textarea 
-              id="cancel-reason"
-              placeholder="E.g., Requested by user, tutor unavailable..."
-              value={cancelReason}
-              onChange={(e) => {
-                setCancelReason(e.target.value);
-                if (cancelReasonError) setCancelReasonError('');
-              }}
-              className="resize-none"
-              rows={3}
-            />
-            {cancelReasonError && (
-              <p className="text-destructive text-xs mt-2">{cancelReasonError}</p>
-            )}
-            <p className="text-muted-foreground text-xs mt-2 text-right">
-              {cancelReason.length} / 1000
-            </p>
-          </div>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Go Back</AlertDialogCancel>
-            <AlertDialogAction 
-              onClick={(e) => { e.preventDefault(); handleCancel(); }}
-              className="bg-destructive hover:bg-destructive/90"
-              disabled={cancelMutation.isPending}
-            >
-              Cancel Booking
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+      <CancelBookingDialog
+        isOpen={!!bookingToCancel}
+        onClose={() => setBookingToCancel(null)}
+        bookingId={bookingToCancel?.id || null}
+        warningMessage={bookingToCancel?.warning || null}
+      />
 
       <AlertDialog open={!!bookingToExpire} onOpenChange={(open) => !open && setBookingToExpire(null)}>
         <AlertDialogContent>
@@ -329,7 +256,7 @@ export default function BookingsPage() {
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Go Back</AlertDialogCancel>
-            <AlertDialogAction 
+            <AlertDialogAction
               onClick={(e) => { e.preventDefault(); handleExpire(); }}
               className="bg-orange-600 hover:bg-orange-600/90"
               disabled={expireMutation.isPending}

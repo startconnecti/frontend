@@ -3,16 +3,17 @@
 import { useParams } from 'next/navigation';
 import Link from 'next/link';
 import { useState } from 'react';
-import { ArrowLeft, Calendar, DollarSign, User, CheckCircle, XCircle, Clock } from 'lucide-react';
+import { ArrowLeft, Calendar, DollarSign, User, CheckCircle, XCircle, Clock, Loader2, AlertTriangle } from 'lucide-react';
 import { AdminPageHeader } from '@/components/admin/admin-page-header';
 import { AdminStatusBadge } from '@/components/admin/admin-status-badge';
 import { AdminRecordNotFound } from '@/components/admin/admin-record-not-found';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Textarea } from '@/components/ui/textarea';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
-import { useAdminBookingDetailQuery, useConfirmBookingMutation, useCancelBookingMutation, useExpireBookingMutation } from '@/features/admin-bookings';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { CancelBookingDialog } from '@/features/admin-bookings/components/cancel-booking-dialog';
+import { useAdminBookingDetailQuery, useConfirmBookingMutation, useExpireBookingMutation } from '@/features/admin-bookings';
 
 function formatDate(dateString: string): string {
   try {
@@ -31,12 +32,9 @@ export default function BookingDetailPage() {
   const bookingId = params.id as string;
 
   const [showCancelDialog, setShowCancelDialog] = useState(false);
-  const [cancelReason, setCancelReason] = useState('');
-  const [cancelReasonError, setCancelReasonError] = useState('');
   const [showExpireDialog, setShowExpireDialog] = useState(false);
 
   const confirmMutation = useConfirmBookingMutation();
-  const cancelMutation = useCancelBookingMutation();
   const expireMutation = useExpireBookingMutation();
 
   const {
@@ -47,24 +45,6 @@ export default function BookingDetailPage() {
 
   const handleConfirm = () => {
     confirmMutation.mutate(bookingId);
-  };
-
-  const handleCancel = () => {
-    if (!cancelReason.trim()) {
-      setCancelReasonError('Reason is required');
-      return;
-    }
-    if (cancelReason.length > 1000) {
-      setCancelReasonError('Reason must be less than 1000 characters');
-      return;
-    }
-    setCancelReasonError('');
-    cancelMutation.mutate({ id: bookingId, reason: cancelReason.trim() }, {
-      onSuccess: () => {
-        setShowCancelDialog(false);
-        setCancelReason('');
-      }
-    });
   };
 
   const handleExpire = () => {
@@ -140,6 +120,42 @@ export default function BookingDetailPage() {
         </div>
       </div>
 
+      {(booking.warning || booking.cancellationReason || booking.expirationReason || booking.reason || booking.notes) && (
+        <div className="mb-6 space-y-4">
+          {booking.warning && (
+            <Alert className="border-amber-500 bg-amber-50 text-amber-900 dark:bg-amber-950 dark:text-amber-200">
+              <AlertTriangle className="h-4 w-4 stroke-amber-600 dark:stroke-amber-400" />
+              <AlertTitle className="text-amber-800 dark:text-amber-300">Attention</AlertTitle>
+              <AlertDescription className="text-amber-700 dark:text-amber-200">
+                {booking.warning}
+              </AlertDescription>
+            </Alert>
+          )}
+          {(booking.cancellationReason || (booking.status === 'cancelled' && booking.reason)) && (
+            <Alert variant="destructive">
+              <XCircle className="h-4 w-4" />
+              <AlertTitle>Cancellation Reason</AlertTitle>
+              <AlertDescription>{booking.cancellationReason || booking.reason}</AlertDescription>
+            </Alert>
+          )}
+          {booking.expirationReason && (
+            <Alert className="border-orange-500 bg-orange-50 text-orange-900 dark:bg-orange-950 dark:text-orange-200">
+              <Clock className="h-4 w-4 stroke-orange-600 dark:stroke-orange-400" />
+              <AlertTitle className="text-orange-800 dark:text-orange-300">Expiration Reason</AlertTitle>
+              <AlertDescription className="text-orange-700 dark:text-orange-200">
+                {booking.expirationReason}
+              </AlertDescription>
+            </Alert>
+          )}
+          {booking.notes && (
+            <Alert>
+              <AlertTitle>Internal Notes</AlertTitle>
+              <AlertDescription>{booking.notes}</AlertDescription>
+            </Alert>
+          )}
+        </div>
+      )}
+
       <div className="grid gap-8 lg:grid-cols-3">
         {/* Main Content */}
         <div className="lg:col-span-2 space-y-6">
@@ -150,17 +166,9 @@ export default function BookingDetailPage() {
               <AdminStatusBadge status={booking.status} />
             </div>
             <div className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <p className="text-xs text-muted-foreground">Booking ID</p>
-                  <p className="font-mono text-sm mt-1">{booking.id}</p>
-                </div>
-                <div>
-                  <p className="text-xs text-muted-foreground">Status</p>
-                  <div className="mt-2">
-                    <AdminStatusBadge status={booking.status} />
-                  </div>
-                </div>
+              <div>
+                <p className="text-xs text-muted-foreground">Booking ID</p>
+                <p className="font-mono text-sm mt-1">{booking.id}</p>
               </div>
             </div>
           </Card>
@@ -236,7 +244,12 @@ export default function BookingDetailPage() {
             <div className="space-y-3">
               {showConfirmBtn && (
                 <Button className="w-full justify-start" onClick={handleConfirm} disabled={confirmMutation.isPending}>
-                  <CheckCircle className="mr-2 h-4 w-4 text-green-600" /> Confirm Booking
+                  {confirmMutation.isPending ? (
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin text-green-600" />
+                  ) : (
+                    <CheckCircle className="mr-2 h-4 w-4 text-green-600" />
+                  )}
+                  Confirm Booking
                 </Button>
               )}
               {showExpireBtn && (
@@ -245,7 +258,7 @@ export default function BookingDetailPage() {
                 </Button>
               )}
               {showCancelBtn && (
-                <Button variant="destructive" className="w-full justify-start" onClick={() => setShowCancelDialog(true)} disabled={cancelMutation.isPending}>
+                <Button variant="destructive" className="w-full justify-start" onClick={() => setShowCancelDialog(true)}>
                   <XCircle className="mr-2 h-4 w-4" /> Cancel Booking
                 </Button>
               )}
@@ -257,60 +270,12 @@ export default function BookingDetailPage() {
         </div>
       </div>
 
-      <AlertDialog 
-        open={showCancelDialog} 
-        onOpenChange={(open) => {
-          if (!open) {
-            setShowCancelDialog(false);
-            setCancelReason('');
-            setCancelReasonError('');
-          } else {
-            setShowCancelDialog(true);
-          }
-        }}
-      >
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Cancel Booking</AlertDialogTitle>
-            <AlertDialogDescription>
-              Are you sure you want to cancel this booking? This action cannot be undone.
-              Please provide a reason for cancellation below.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <div className="py-4">
-            <label htmlFor="cancel-reason" className="text-sm font-medium mb-2 block">
-              Reason for Cancellation <span className="text-destructive">*</span>
-            </label>
-            <Textarea 
-              id="cancel-reason"
-              placeholder="E.g., Requested by user, tutor unavailable..."
-              value={cancelReason}
-              onChange={(e) => {
-                setCancelReason(e.target.value);
-                if (cancelReasonError) setCancelReasonError('');
-              }}
-              className="resize-none"
-              rows={3}
-            />
-            {cancelReasonError && (
-              <p className="text-destructive text-xs mt-2">{cancelReasonError}</p>
-            )}
-            <p className="text-muted-foreground text-xs mt-2 text-right">
-              {cancelReason.length} / 1000
-            </p>
-          </div>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Go Back</AlertDialogCancel>
-            <AlertDialogAction 
-              onClick={(e) => { e.preventDefault(); handleCancel(); }}
-              className="bg-destructive hover:bg-destructive/90"
-              disabled={cancelMutation.isPending}
-            >
-              Cancel Booking
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+      <CancelBookingDialog 
+        isOpen={showCancelDialog} 
+        onClose={() => setShowCancelDialog(false)}
+        bookingId={bookingId}
+        warningMessage={booking?.warning || null}
+      />
 
       <AlertDialog open={showExpireDialog} onOpenChange={setShowExpireDialog}>
         <AlertDialogContent>
@@ -327,7 +292,14 @@ export default function BookingDetailPage() {
               className="bg-orange-600 hover:bg-orange-600/90"
               disabled={expireMutation.isPending}
             >
-              Expire Booking
+              {expireMutation.isPending ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Expiring...
+                </>
+              ) : (
+                'Expire Booking'
+              )}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

@@ -29,6 +29,7 @@ export interface AdminBookingListItem {
   amount: number;
   createdAt: string;
   updatedAt?: string | null;
+  warning?: string | null;
 }
 
 export interface AdminBookingsQueryParams {
@@ -52,4 +53,8 @@ export interface AdminBookingDetail extends AdminBookingListItem {
   tutor: AdminBookingTutor;
   description?: string | null;
   notes?: string | null;
+  warning?: string | null;
+  cancellationReason?: string | null;
+  expirationReason?: string | null;
+  reason?: string | null;
 }

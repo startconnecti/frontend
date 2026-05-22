@@ -114,6 +114,7 @@ function normalizeBooking(item: RawBookingListItem | null | undefined): AdminBoo
     amount: item.totalAmount ?? item.amount ?? 0,
     createdAt: item.createdAt ?? new Date(0).toISOString(),
     updatedAt: item.updatedAt ?? null,
+    warning: (item as any).warning ?? null,
   };
 }
 
@@ -195,18 +196,25 @@ export const adminBookingsService = {
       },
       description: response.booking.description ?? null,
       notes: response.booking.notes ?? null,
+      warning: (response.booking as any).warning ?? null,
+      cancellationReason: (response.booking as any).cancellationReason ?? null,
+      expirationReason: (response.booking as any).expirationReason ?? null,
+      reason: (response.booking as any).reason ?? null,
     };
   },
 
-  async confirmBooking(id: string): Promise<void> {
-    await adminApi.post(`/api/v1/admin/bookings/${id}/confirm`);
+  async confirmBooking(id: string): Promise<any> {
+    const res = await adminApi.post(`/api/v1/admin/bookings/${id}/confirm`);
+    return res;
   },
 
-  async cancelBooking(id: string, reason?: string): Promise<void> {
-    await adminApi.post(`/api/v1/admin/bookings/${id}/cancel`, { reason });
+  async cancelBooking(id: string, reason?: string): Promise<any> {
+    const res = await adminApi.post(`/api/v1/admin/bookings/${id}/cancel`, { reason });
+    return res;
   },
 
-  async expireBooking(id: string): Promise<void> {
-    await adminApi.post(`/api/v1/admin/bookings/${id}/expire`);
+  async expireBooking(id: string): Promise<any> {
+    const res = await adminApi.post(`/api/v1/admin/bookings/${id}/expire`);
+    return res;
   },
 };
