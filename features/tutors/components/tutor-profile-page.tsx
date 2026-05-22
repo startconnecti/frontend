@@ -18,6 +18,7 @@ import { TutorProfileCertificates } from './tutor-profile-certificates';
 import { TutorProfileAvailability } from './tutor-profile-availability';
 import { TutorProfileReviews } from './tutor-profile-reviews';
 import { TutorBookingSummaryCard } from './tutor-booking-summary-card';
+import { TutorBookingsHistory } from './tutor-bookings-history';
 
 interface TutorProfilePageProps {
   id: string;
@@ -76,6 +77,8 @@ export function TutorProfilePage({ id }: TutorProfilePageProps) {
               <TutorProfileCertificates certificates={tutor.certifications ?? tutor.certificates} />
 
               <TutorProfileAvailability slots={tutor.weeklyAvailability ?? tutor.availabilitySlots} />
+
+              <TutorBookingsHistory tutorId={tutor.id} tutorName={tutor.fullName} />
 
               <TutorProfileReviews 
                 feedbacks={feedbacks} 

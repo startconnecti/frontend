@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { Calendar, CheckCircle2, ShieldCheck, Loader2, AlertTriangle } from 'lucide-react';
+import { useQueryClient } from '@tanstack/react-query';
 import { Card, CardContent, CardFooter, CardHeader } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { PriceDisplay } from '@/components/shared';
@@ -83,17 +84,14 @@ function getNextSlotOccurrence(dayOfWeekStr: string, startTimeStr: string, endTi
 
 export function TutorBookingSummaryCard({ tutor }: TutorBookingSummaryCardProps) {
   const router = useRouter();
+  const queryClient = useQueryClient();
   const { isAuthenticated, user } = useAuthStore();
   // selectedSubjectId stores the UUID from the subjects master list
   const [selectedSubjectId, setSelectedSubjectId] = useState<string>('');
   const [selectedSlotIndex, setSelectedSlotIndex] = useState<string>('');
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
-  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('manual_bank_transfer');
-  const [bookingResponse, setBookingResponse] = useState<Booking | null>(null);
-  const [activePaymentData, setActivePaymentData] = useState<{ instruction: PaymentInstruction; paymentId: string } | null>(null);
   
   const bookingMutation = useCreateBookingMutation();
-  const paymentMutation = useCreatePaymentMutation();
 
   // Fetch the master subjects list (used as fallback if tutor.subjectObjects is absent)
   const { data: allSubjects = [] } = useSubjectsQuery();
@@ -209,7 +207,17 @@ export function TutorBookingSummaryCard({ tutor }: TutorBookingSummaryCardProps)
     bookingMutation.mutate(payload, {
       onSuccess: (data) => {
         console.log('[handleBook] booking success:', data);
-        setBookingResponse(data);
+        const booking = (data as any)?.booking || (data as any)?.data?.booking || data;
+        const bookingCode = booking?.bookingCode || booking?.id?.slice(-6)?.toUpperCase() || 'PENDING';
+        toast.success(`Booking created successfully! Reference: #${bookingCode}`);
+        
+        // Reset selections
+        setSelectedSlotIndex('');
+        setSelectedDate(undefined);
+        
+        // Invalidate queries
+        queryClient.invalidateQueries({ queryKey: ['student-bookings'] });
+        queryClient.invalidateQueries({ queryKey: ['student-dashboard'] });
       },
       onError: (error: any) => {
         const backendErrorMessage = error?.response?.data?.error?.message || error?.error?.message || error?.message;
@@ -218,116 +226,8 @@ export function TutorBookingSummaryCard({ tutor }: TutorBookingSummaryCardProps)
     });
   };
 
-
-  const handlePay = () => {
-    // Safely extract booking ID (accommodating unwrapped or wrapped API responses)
-    const booking = (bookingResponse as any)?.booking || (bookingResponse as any)?.data?.booking || bookingResponse;
-    const paymentId = booking?.paymentId;
-    const bookingId = booking?.id || booking?.bookingId;
-
-    // Case B: If paymentId already exists in booking response, redirect directly
-    if (paymentId) {
-      router.push(ROUTES.STUDENT.PAYMENT_DETAIL(paymentId));
-      return;
-    }
-
-    if (!bookingId) return;
-    
-    paymentMutation.mutate(bookingId, {
-      onSuccess: (response) => {
-        const payload = (response as any)?.data || response;
-        if (!payload?.paymentInstruction) {
-          toast.error("Missing payment instruction from server.");
-          return;
-        }
-        setActivePaymentData({
-          instruction: payload.paymentInstruction,
-          paymentId: payload.payment?.id || payload.payment?.paymentId
-        });
-      }
-    });
-  };
-
   const isTutorSelf = user?.id === tutor.id;
   const isBookingDisabled = bookingMutation.isPending || !selectedSlotIndex || isTutorSelf;
-
-  if (bookingResponse) {
-    const booking = (bookingResponse as any)?.booking || (bookingResponse as any)?.data?.booking || bookingResponse;
-    const bookingCode = booking?.bookingCode || booking?.id?.slice(-6)?.toUpperCase() || booking?.bookingId?.slice(-6)?.toUpperCase() || 'PENDING';
-    const paymentId = booking?.paymentId;
-
-    return (
-      <>
-        <Card className="sticky top-24 border-emerald-500/20 shadow-xl shadow-emerald-500/5 bg-background overflow-hidden animate-in fade-in zoom-in duration-300">
-        <CardHeader className="bg-emerald-500/5 p-6 border-b border-emerald-500/10">
-          <div className="flex items-center gap-3">
-            <div className="h-10 w-10 rounded-full bg-emerald-500/20 flex items-center justify-center">
-              <CheckCircle2 className="h-6 w-6 text-emerald-600" />
-            </div>
-            <div>
-              <h3 className="font-black text-emerald-900">Booking Created!</h3>
-              <p className="text-xs text-emerald-700 font-medium">Reference: #{bookingCode}</p>
-            </div>
-          </div>
-        </CardHeader>
-        <CardContent className="p-6 space-y-6">
-          <div className="space-y-4">
-            {!paymentId && (
-              <div className="p-4 rounded-2xl bg-muted/50 border border-border/40 space-y-3">
-                <p className="text-xs font-black uppercase tracking-widest text-muted-foreground">Select Payment Method</p>
-                <Select value={paymentMethod} onValueChange={(v) => setPaymentMethod(v as PaymentMethod)}>
-                  <SelectTrigger className="rounded-xl border-border/40 font-medium bg-background">
-                    <SelectValue placeholder="Select payment method" />
-                  </SelectTrigger>
-                  <SelectContent className="rounded-xl">
-                    <SelectItem value="manual_bank_transfer">Manual Bank Transfer</SelectItem>
-                    <SelectItem value="vnpay">VNPay</SelectItem>
-                    <SelectItem value="momo">MoMo</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            )}
-            
-            <Button 
-              className="w-full h-12 text-base font-bold shadow-lg shadow-primary/20 rounded-xl" 
-              onClick={handlePay}
-              disabled={paymentMutation.isPending}
-            >
-              {paymentMutation.isPending ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Processing...
-                </>
-              ) : bookingResponse.paymentId ? (
-                'View Payment Details'
-              ) : (
-                'Continue to Payment'
-              )}
-            </Button>
-            
-            <div className="flex gap-2">
-              <Button variant="ghost" className="flex-1 h-10 text-xs font-bold rounded-xl" asChild>
-                <Link href={ROUTES.STUDENT.SESSIONS}>View Sessions</Link>
-              </Button>
-              <Button variant="ghost" className="flex-1 h-10 text-xs font-bold rounded-xl" asChild>
-                <Link href={ROUTES.STUDENT.DASHBOARD}>Dashboard</Link>
-              </Button>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-      
-      {activePaymentData && (
-        <PaymentInstructionModal
-          isOpen={!!activePaymentData}
-          onClose={() => setActivePaymentData(null)}
-          instruction={activePaymentData.instruction}
-          paymentId={activePaymentData.paymentId}
-        />
-      )}
-    </>
-    );
-  }
 
   return (
     <Card className="sticky top-24 border-primary/20 shadow-xl shadow-primary/5 bg-background overflow-hidden">

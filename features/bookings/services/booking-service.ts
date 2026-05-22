@@ -11,6 +11,7 @@ export const bookingService = {
     if (params.limit) queryParams.limit = params.limit;
     if (params.page) queryParams.page = params.page;
     if (params.status && params.status !== 'all') queryParams.status = params.status;
+    if (params.tutorId) queryParams.tutorId = params.tutorId;
     
     return api.get<BookingListResponse>('/api/v1/bookings', { params: queryParams });
   },

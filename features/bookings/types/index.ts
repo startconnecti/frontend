@@ -37,6 +37,7 @@ export interface GetBookingsParams {
   limit?: number;
   page?: number;
   status?: BookingStatus | 'all';
+  tutorId?: string;
 }
 
 export interface CreateBookingRequest {

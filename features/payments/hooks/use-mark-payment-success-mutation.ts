@@ -14,6 +14,8 @@ export function useMarkPaymentSuccessMutation() {
       queryClient.invalidateQueries({ queryKey: ['student-bookings'] });
       queryClient.invalidateQueries({ queryKey: ['student-payments'] });
       queryClient.invalidateQueries({ queryKey: ['payments'] });
+      queryClient.invalidateQueries({ queryKey: ['student-dashboard'] });
+      queryClient.invalidateQueries({ queryKey: ['student-sessions'] });
     },
     onError: (error: any) => {
       toast.error(error.message || 'Failed to update payment status');

@@ -60,10 +60,10 @@ export function BookingCard({
               </div>
             )}
             
-            {status === 'pending_payment' && onPay && (
+            {(status === 'pending_payment' || status === 'payment_processing') && onPay && (
               <Button variant="default" size="sm" onClick={onPay} disabled={isPaying}>
                 {isPaying && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                Pay Now
+                {status === 'payment_processing' ? 'Retry Payment' : 'Pay Now'}
               </Button>
             )}
             
