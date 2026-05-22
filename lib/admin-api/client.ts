@@ -251,6 +251,11 @@ export async function adminRequest<T>(
       throw createAdminFallbackError(data, response.status);
     }
 
+    // Explicitly throw if the backend returns success: false, even with a 2xx status code
+    if (isAdminApiErrorResponse(data)) {
+      throw AdminApiError.fromResponse(data, response.status);
+    }
+
     if (isAdminApiSuccessResponse<T>(data)) {
       return data.data;
     }

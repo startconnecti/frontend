@@ -10,6 +10,7 @@ import { Card } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Input } from '@/components/ui/input';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Textarea } from '@/components/ui/textarea';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { PAGINATION } from '@/constants/pagination';
@@ -34,6 +35,8 @@ export default function BookingsPage() {
   const [page, setPage] = useState(1);
 
   const [bookingToCancel, setBookingToCancel] = useState<string | null>(null);
+  const [cancelReason, setCancelReason] = useState('');
+  const [cancelReasonError, setCancelReasonError] = useState('');
   const [bookingToExpire, setBookingToExpire] = useState<string | null>(null);
 
   const { data: bookingsData, isLoading, isError } = useAdminBookingsQuery({
@@ -52,9 +55,21 @@ export default function BookingsPage() {
   };
 
   const handleCancel = () => {
+    if (!cancelReason.trim()) {
+      setCancelReasonError('Reason is required');
+      return;
+    }
+    if (cancelReason.length > 1000) {
+      setCancelReasonError('Reason must be less than 1000 characters');
+      return;
+    }
+    setCancelReasonError('');
     if (bookingToCancel) {
-      cancelMutation.mutate({ id: bookingToCancel, reason: 'Cancelled by Admin' }, {
-        onSuccess: () => setBookingToCancel(null)
+      cancelMutation.mutate({ id: bookingToCancel, reason: cancelReason.trim() }, {
+        onSuccess: () => {
+          setBookingToCancel(null);
+          setCancelReason('');
+        }
       });
     }
   };
@@ -251,14 +266,46 @@ export default function BookingsPage() {
         )}
       </Card>
 
-      <AlertDialog open={!!bookingToCancel} onOpenChange={(open) => !open && setBookingToCancel(null)}>
+      <AlertDialog 
+        open={!!bookingToCancel} 
+        onOpenChange={(open) => {
+          if (!open) {
+            setBookingToCancel(null);
+            setCancelReason('');
+            setCancelReasonError('');
+          }
+        }}
+      >
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Cancel Booking</AlertDialogTitle>
             <AlertDialogDescription>
               Are you sure you want to cancel this booking? This action cannot be undone.
+              Please provide a reason for cancellation below.
             </AlertDialogDescription>
           </AlertDialogHeader>
+          <div className="py-4">
+            <label htmlFor="cancel-reason" className="text-sm font-medium mb-2 block">
+              Reason for Cancellation <span className="text-destructive">*</span>
+            </label>
+            <Textarea 
+              id="cancel-reason"
+              placeholder="E.g., Requested by user, tutor unavailable..."
+              value={cancelReason}
+              onChange={(e) => {
+                setCancelReason(e.target.value);
+                if (cancelReasonError) setCancelReasonError('');
+              }}
+              className="resize-none"
+              rows={3}
+            />
+            {cancelReasonError && (
+              <p className="text-destructive text-xs mt-2">{cancelReasonError}</p>
+            )}
+            <p className="text-muted-foreground text-xs mt-2 text-right">
+              {cancelReason.length} / 1000
+            </p>
+          </div>
           <AlertDialogFooter>
             <AlertDialogCancel>Go Back</AlertDialogCancel>
             <AlertDialogAction 

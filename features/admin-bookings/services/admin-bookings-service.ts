@@ -203,7 +203,7 @@ export const adminBookingsService = {
   },
 
   async cancelBooking(id: string, reason?: string): Promise<void> {
-    await adminApi.post(`/api/v1/admin/bookings/${id}/cancel`, { cancellation_reason: reason });
+    await adminApi.post(`/api/v1/admin/bookings/${id}/cancel`, { reason });
   },
 
   async expireBooking(id: string): Promise<void> {
