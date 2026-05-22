@@ -7,40 +7,17 @@ import { toast } from 'sonner';
 
 export function QueryProvider({ children }: { children: ReactNode }) {
   const [queryClient] = useState(() => {
-    const handleGlobalError = (error: any, queryOrMutation: any) => {
-      // Extract from Axios response structure or direct AdminApiError
-      const backendError = error?.response?.data?.error || error?.data?.error || (error?.code ? error : undefined);
-      
-      // Skip global toast for inline form validation failures if preferred
-      if (backendError?.code === 'Validation.Failed') return;
 
-      // Allow queries or mutations to explicitly disable global error toasts
-      if (queryOrMutation?.meta?.showErrorToast === false) return;
-
-      if (backendError?.code) {
-        toast.error(backendError.message || "An error occurred.");
-        return;
-      }
-
-      const errorMessage = error?.message || "An unexpected error occurred.";
-      toast.error(errorMessage);
-    };
 
     return new QueryClient({
       queryCache: new QueryCache({
-        onError: (error, query) => handleGlobalError(error, query),
+        // We no longer show global error toasts for queries to avoid noise.
+        // Page components should handle query errors via inline UI (isError, ErrorBoundary).
       }),
       mutationCache: new MutationCache({
-        onSuccess: (data: any, variables, context, mutation) => {
-          // Extract success message from common backend response structures
-          const successMessage = data?.message || data?.data?.message || "Action completed successfully!";
-          
-          // Allow individual mutations to explicitly disable global toast
-          if (mutation.meta?.showToast === false) return;
-
-          toast.success(successMessage);
-        },
-        onError: (error, variables, context, mutation) => handleGlobalError(error, mutation),
+        // We no longer show global success/error toasts for mutations.
+        // Mutation hooks or page-level handlers are strictly responsible for user-facing toasts
+        // to prevent duplicate notifications.
       }),
       defaultOptions: {
         queries: {
