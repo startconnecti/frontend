@@ -14,6 +14,10 @@ export const paymentService = {
     return api.get<Payment>(`/api/v1/payments/${id}`);
   },
 
+  async getPaymentDetail(id: string): Promise<{ payment: Payment; paymentInstruction: PaymentInstruction | null }> {
+    return api.get(`/api/v1/payments/${id}`);
+  },
+
   async createPayment(bookingId: string): Promise<PaymentResponse> {
     return api.post<PaymentResponse>('/api/v1/payments', { booking_id: bookingId });
   },

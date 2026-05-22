@@ -13,9 +13,12 @@ import { Booking } from '../types';
 import { useCreatePaymentMutation } from '@/features/payments/hooks/use-create-payment-mutation';
 import { PaymentInstructionModal } from '@/features/payments/components/payment-instruction-modal';
 import { PaymentInstruction } from '@/features/payments/types/index';
+import { useQueryClient } from '@tanstack/react-query';
+import { paymentService } from '@/features/payments/services/payment-service';
 import { Pagination } from '@/components/shared/pagination';
 
 export function BookingListPage() {
+  const queryClient = useQueryClient();
   const searchParams = useSearchParams();
   const router = useRouter();
   const pathname = usePathname();
@@ -42,6 +45,7 @@ export function BookingListPage() {
 
   const [bookingToCancel, setBookingToCancel] = useState<Booking | null>(null);
   const [activePaymentData, setActivePaymentData] = useState<{ instruction: PaymentInstruction; paymentId: string } | null>(null);
+  const [isFetchingExistingPayment, setIsFetchingExistingPayment] = useState<string | null>(null);
 
   const { mutate: createPayment, isPending, variables } = useCreatePaymentMutation();
 
@@ -64,20 +68,41 @@ export function BookingListPage() {
     router.push(`?${params.toString()}`);
   };
 
-  const handlePay = (bookingId: string) => {
-    createPayment(bookingId, {
-      onSuccess: (response) => {
-        const payload = (response as any)?.data || response;
-        if (!payload?.paymentInstruction) {
-          toast.error("Missing payment instruction from server.");
-          return;
-        }
-        setActivePaymentData({
-          instruction: payload.paymentInstruction,
-          paymentId: payload.payment?.id || payload.payment?.paymentId
+  const handlePay = (bookingId: string, paymentSummary?: Booking['paymentSummary']) => {
+    if (paymentSummary && paymentSummary.paymentId) {
+      setIsFetchingExistingPayment(bookingId);
+      paymentService.getPaymentDetail(paymentSummary.paymentId)
+        .then((detail) => {
+          if (!detail.paymentInstruction) {
+            toast.error("No active payment instructions available.");
+            return;
+          }
+          setActivePaymentData({
+            instruction: detail.paymentInstruction,
+            paymentId: detail.payment.paymentId || paymentSummary.paymentId,
+          });
+        })
+        .catch((err) => {
+          toast.error("Failed to load payment instructions. Please try again.");
+        })
+        .finally(() => {
+          setIsFetchingExistingPayment(null);
         });
-      },
-    });
+    } else {
+      createPayment(bookingId, {
+        onSuccess: (response) => {
+          const payload = (response as any)?.data || response;
+          if (!payload?.paymentInstruction) {
+            toast.error("Missing payment instruction from server.");
+            return;
+          }
+          setActivePaymentData({
+            instruction: payload.paymentInstruction,
+            paymentId: payload.payment?.id || payload.payment?.paymentId
+          });
+        },
+      });
+    }
   };
 
   return (
@@ -113,8 +138,9 @@ export function BookingListPage() {
               status={booking.status}
               expiresAt={booking.expiresAt}
               onCancel={() => setBookingToCancel(booking)}
-              onPay={() => handlePay(booking.bookingId)}
-              isPaying={isPending && variables === booking.bookingId}
+              onPay={() => handlePay(booking.bookingId, booking.paymentSummary)}
+              isPaying={(isPending && variables === booking.bookingId) || isFetchingExistingPayment === booking.bookingId}
+              paymentSummary={booking.paymentSummary}
             />
           ))}
         </div>

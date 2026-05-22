@@ -19,6 +19,12 @@ interface BookingCardProps {
   onCancel: () => void;
   onPay?: () => void;
   isPaying?: boolean;
+  paymentSummary?: {
+    paymentId: string;
+    status: 'waiting' | 'processing' | 'paid' | 'failed' | 'cancelled';
+    paymentMethod?: string;
+    paymentUrl?: string | null;
+  };
 }
 
 export function BookingCard({
@@ -32,6 +38,7 @@ export function BookingCard({
   onCancel,
   onPay,
   isPaying,
+  paymentSummary,
 }: BookingCardProps) {
   const isCancellable = ['pending_payment', 'payment_processing', 'confirmed'].includes(status);
 
@@ -60,10 +67,30 @@ export function BookingCard({
               </div>
             )}
             
-            {(status === 'pending_payment' || status === 'payment_processing') && onPay && (
+            {/* Conditional Payment/Retry/Continue actions */}
+            {!paymentSummary && status === 'pending_payment' && onPay && (
               <Button variant="default" size="sm" onClick={onPay} disabled={isPaying}>
                 {isPaying && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                {status === 'payment_processing' ? 'Retry Payment' : 'Pay Now'}
+                Pay Now
+              </Button>
+            )}
+
+            {paymentSummary && (paymentSummary.status === 'waiting' || paymentSummary.status === 'processing') && onPay && (
+              <Button variant="default" size="sm" onClick={onPay} disabled={isPaying}>
+                {isPaying && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                Continue Payment
+              </Button>
+            )}
+
+            {paymentSummary && paymentSummary.status === 'failed' && (
+              <Button variant="ghost" size="sm" disabled className="text-destructive font-bold">
+                Payment Failed
+              </Button>
+            )}
+
+            {paymentSummary && paymentSummary.status === 'cancelled' && (
+              <Button variant="ghost" size="sm" disabled className="text-muted-foreground font-bold">
+                Payment Cancelled
               </Button>
             )}
             

@@ -13,6 +13,12 @@ export interface Booking {
   paymentId?: string;
   createdAt: string; // ISO string
   expiresAt?: string; // ISO string (for pending_payment hold window)
+  paymentSummary?: {
+    paymentId: string;
+    status: 'waiting' | 'processing' | 'paid' | 'failed' | 'cancelled';
+    paymentMethod?: string;
+    paymentUrl?: string | null;
+  };
 }
 
 export interface BookingPagination {

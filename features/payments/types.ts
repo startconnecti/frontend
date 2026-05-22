@@ -44,3 +44,5 @@ export interface PaymentFilters {
   limit?: number;
   page?: number;
 }
+
+export * from './types/index';
