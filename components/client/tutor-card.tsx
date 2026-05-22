@@ -1,4 +1,4 @@
-import { Star, MessageCircle, Heart } from 'lucide-react';
+import { Star, Heart } from 'lucide-react';
 import { Card, CardContent, CardFooter, CardHeader } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -7,7 +7,6 @@ import Link from 'next/link';
 import { useAuthStore } from '@/stores/auth-store';
 import { useToggleFavorite } from '@/features/tutors/hooks/use-toggle-favorite';
 import { useRouter } from 'next/navigation';
-import { useCreateConversationMutation } from '@/features/messages/hooks/use-create-conversation-mutation';
 import { ROUTES } from '@/constants/routes';
 
 interface TutorCardProps {
@@ -53,7 +52,6 @@ export function TutorCard({
   const { user, isAuthenticated } = useAuthStore();
   console.log("Data inside Card:", tutor);
   const { mutate: toggleFavorite, isPending } = useToggleFavorite();
-  const { mutate: createConversation, isPending: isCreating } = useCreateConversationMutation();
 
   const isStudent = isAuthenticated && user?.role === 'student';
 
@@ -139,19 +137,11 @@ export function TutorCard({
           <Button 
             size="sm" 
             className="flex-1 gap-2"
-            onClick={(e) => {
-              e.stopPropagation();
-              e.preventDefault();
-              createConversation(actualId, {
-                onSuccess: (data) => {
-                  router.push(`${ROUTES.MESSAGES}?conversationId=${data.conversation.id}`);
-                }
-              });
-            }}
-            disabled={isCreating}
+            asChild
           >
-            <MessageCircle className="h-4 w-4" />
-            {isCreating ? 'Connecting...' : 'Connect'}
+            <Link href={actualHref}>
+              Book Lesson
+            </Link>
           </Button>
         </div>
       </CardFooter>

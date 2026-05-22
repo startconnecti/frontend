@@ -21,5 +21,14 @@ export const sessionService = {
 
   async cancelSession(sessionId: string, payload: { cancellation_reason?: string }): Promise<void> {
     return api.post<void>(`/api/v1/sessions/${sessionId}/cancel`, payload);
+  },
+
+  async getSessionById(sessionId: string): Promise<any> {
+    const response = await api.get<{ session: any }>(`/api/v1/sessions/${sessionId}`);
+    return response.session;
+  },
+
+  async completeSession(sessionId: string): Promise<void> {
+    return api.post<void>(`/api/v1/sessions/${sessionId}/complete`);
   }
 };

@@ -1,6 +1,5 @@
-import { Video, Calendar, Clock, MapPin } from 'lucide-react';
-import { Card, CardContent, CardFooter, CardHeader } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
+import { ChevronRight } from 'lucide-react';
+import { Card, CardContent } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { ClientStatusBadge, AllStatuses } from '@/components/shared/client-status-badge';
 
@@ -13,13 +12,9 @@ interface SessionCardProps {
   date: string;
   status: AllStatuses;
   avatar?: string;
-  joinUrl?: string;
-  onJoin?: () => void;
-  onReschedule?: () => void;
 }
 
 export function SessionCard({
-  id,
   participantName,
   subject,
   startTime,
@@ -27,12 +22,7 @@ export function SessionCard({
   date,
   status,
   avatar,
-  joinUrl,
-  onJoin,
-  onReschedule
 }: SessionCardProps) {
-  const isUpcoming = status === 'scheduled';
-
   return (
     <Card className="border-l-4 border-l-primary overflow-hidden shadow-sm hover:shadow-md transition-shadow">
       <CardContent className="p-5 flex flex-col sm:flex-row sm:items-center gap-6">
@@ -58,16 +48,8 @@ export function SessionCard({
           </div>
         </div>
 
-        <div className="flex flex-wrap gap-2 mt-4 sm:mt-0">
-          {isUpcoming && (
-            <Button size="sm" className="gap-2" onClick={onJoin}>
-              <Video className="h-4 w-4" />
-              Join Session
-            </Button>
-          )}
-          <Button variant="ghost" size="sm" onClick={onReschedule}>
-            Reschedule
-          </Button>
+        <div className="flex items-center text-muted-foreground">
+          <ChevronRight className="h-5 w-5" />
         </div>
       </CardContent>
     </Card>

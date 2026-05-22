@@ -1,10 +1,8 @@
-'use client';
-
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
 import { SessionStatus } from '../types/index';
-import { Check } from 'lucide-react';
+import { ChevronRight } from 'lucide-react';
+import Link from 'next/link';
 
 interface SessionCardProps {
   id: string;
@@ -13,72 +11,40 @@ interface SessionCardProps {
   date: string;
   time: string;
   status: SessionStatus;
-  meetingUrl?: string;
-  onCancel?: () => void;
-  onFeedback?: () => void;
-  hasFeedback?: boolean;
 }
 
 export function SessionCard({
+  id,
   tutorName,
   subjectName,
   date,
   time,
   status,
-  meetingUrl,
-  onCancel,
-  onFeedback,
-  hasFeedback,
 }: SessionCardProps) {
   const isScheduled = status === 'scheduled';
   const isCompleted = status === 'completed' || status === 'auto_completed';
 
   return (
-    <Card className="hover:shadow-md transition-shadow">
-      <CardContent className="p-6 flex flex-col md:flex-row justify-between gap-4">
-        <div className="space-y-2">
-          <div className="flex items-center gap-2">
-            <h3 className="text-lg font-bold">{tutorName}</h3>
-            <Badge variant={isScheduled ? 'default' : isCompleted ? 'secondary' : 'outline'}>
-              {status.replace('_', ' ')}
-            </Badge>
+    <Link href={`/student/sessions/${id}`} className="block">
+      <Card className="hover:shadow-md transition-shadow cursor-pointer">
+        <CardContent className="p-6 flex items-center justify-between gap-4">
+          <div className="space-y-2">
+            <div className="flex items-center gap-2">
+              <h3 className="text-lg font-bold">{tutorName}</h3>
+              <Badge variant={isScheduled ? 'default' : isCompleted ? 'secondary' : 'outline'}>
+                {status.replace('_', ' ')}
+              </Badge>
+            </div>
+            <p className="text-sm text-muted-foreground">{subjectName}</p>
+            <p className="text-sm">
+              {date} | {time}
+            </p>
           </div>
-          <p className="text-sm text-muted-foreground">{subjectName}</p>
-          <p className="text-sm">
-            {date} | {time}
-          </p>
-        </div>
-        <div className="flex flex-col items-end justify-between gap-4">
-          <div className="flex items-center gap-2">
-            {isScheduled && meetingUrl && (
-              <Button asChild size="sm">
-                <a href={meetingUrl} target="_blank" rel="noopener noreferrer">
-                  Join Class
-                </a>
-              </Button>
-            )}
-            
-            {isScheduled && onCancel && (
-              <Button variant="outline" size="sm" onClick={onCancel} className="text-destructive hover:text-destructive hover:bg-destructive/10">
-                Cancel Session
-              </Button>
-            )}
-
-            {isCompleted && onFeedback && !hasFeedback && (
-              <Button variant="outline" size="sm" onClick={onFeedback}>
-                Leave Feedback
-              </Button>
-            )}
-
-            {isCompleted && hasFeedback && (
-              <Button variant="ghost" size="sm" disabled className="gap-1">
-                <Check className="h-4 w-4" />
-                Feedback Submitted
-              </Button>
-            )}
+          <div className="flex items-center text-muted-foreground">
+            <ChevronRight className="h-5 w-5" />
           </div>
-        </div>
-      </CardContent>
-    </Card>
+        </CardContent>
+      </Card>
+    </Link>
   );
 }

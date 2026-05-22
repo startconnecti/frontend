@@ -5,13 +5,10 @@ import { PageContainer, SectionHeader, ListState } from '@/components/shared';
 import { SessionFilterTabs, SessionStatusFilter } from './session-filter-tabs';
 import { SessionCard } from './session-card';
 import { useStudentSessionsQuery } from '../hooks/use-student-sessions-query';
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import { getErrorMessage } from '@/lib/api/query-utils';
 import { toast } from 'sonner';
-import { SessionStatus, Session } from '../types/index';
-import { CancelSessionModal } from './cancel-session-modal';
-import { LeaveFeedbackModal } from '@/features/feedbacks/components/leave-feedback-modal';
-import { Button } from '@/components/ui/button';
+import { SessionStatus } from '../types/index';
 import { Pagination } from '@/components/shared/pagination';
 
 export function SessionListPage() {
@@ -32,9 +29,6 @@ export function SessionListPage() {
 
   const sessions = data?.items || [];
   const total = data?.meta?.pagination?.total || 0;
-
-  const [sessionToCancel, setSessionToCancel] = useState<Session | null>(null);
-  const [sessionForFeedback, setSessionForFeedback] = useState<Session | null>(null);
 
   useEffect(() => {
     if (isError && error) {
@@ -86,15 +80,11 @@ export function SessionListPage() {
             <SessionCard 
               key={session.sessionId} 
               id={session.sessionId}
-              hasFeedback={session.hasFeedback}
               tutorName={session.tutorName}
               subjectName={session.subjectName}
               date={new Date(session.startTime).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
               time={`${new Date(session.startTime).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })} - ${new Date(session.endTime).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })}`}
               status={session.status}
-              meetingUrl={session.meetingUrl}
-              onCancel={() => setSessionToCancel(session)}
-              onFeedback={() => setSessionForFeedback(session)}
             />
           ))}
         </div>
@@ -105,22 +95,6 @@ export function SessionListPage() {
           onPageChange={handlePageChange} 
         />
       </ListState>
-
-      {sessionToCancel && (
-        <CancelSessionModal
-          isOpen={!!sessionToCancel}
-          onClose={() => setSessionToCancel(null)}
-          sessionId={sessionToCancel.sessionId}
-        />
-      )}
-
-      {sessionForFeedback && (
-        <LeaveFeedbackModal
-          isOpen={!!sessionForFeedback}
-          onClose={() => setSessionForFeedback(null)}
-          sessionId={sessionForFeedback.sessionId}
-        />
-      )}
     </PageContainer>
   );
 }

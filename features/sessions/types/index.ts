@@ -10,6 +10,19 @@ export interface Session {
   meetingUrl?: string;
   hasFeedback: boolean;
   studentName?: string;
+  bookingId?: string;
+  bookingCode?: string | null;
+  studentId?: string;
+  tutorProfileId?: string;
+  bufferEndTime?: string | null;
+  meetingProvider?: string | null;
+  completedAt?: string | null;
+  cancelledAt?: string | null;
+  cancellationReason?: string | null;
+  paymentSummary?: {
+    amount: number;
+    status: string;
+  } | null;
 }
 
 export interface SessionListResponse {

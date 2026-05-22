@@ -488,12 +488,6 @@ export function TutorBookingSummaryCard({ tutor }: TutorBookingSummaryCardProps)
               )}
             </Button>
           )}
-          
-          <Button variant="outline" className="w-full h-12 text-base font-bold rounded-xl" asChild>
-            <Link href={isAuthenticated ? ROUTES.MESSAGES : ROUTES.LOGIN}>
-              Send a Message
-            </Link>
-          </Button>
         </div>
       </CardContent>
       

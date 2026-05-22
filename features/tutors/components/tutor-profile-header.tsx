@@ -67,13 +67,6 @@ export function TutorProfileHeader({
             >
               <Heart className={`w-6 h-6 text-red-500 ${isFavorite ? 'fill-red-500 scale-105' : 'fill-none hover:scale-110'}`} />
             </button>
-            <button
-              onClick={() => router.push(`/student/messages?tutorId=${id}`)}
-              className="transition-transform focus:outline-none"
-              aria-label="Send message"
-            >
-              <MessageCircle className="w-6 h-6 text-primary hover:scale-110" />
-            </button>
           </div>
         </div>
 
