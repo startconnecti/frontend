@@ -1,4 +1,5 @@
 import { adminApi } from '@/lib/admin-api/client';
+import { PLATFORM_CURRENCY } from '@/lib/constants/currency';
 import type {
   AdminRefundListItem,
   AdminRefundListQueryParams,
@@ -69,7 +70,7 @@ function normalizeRefund(item: RawRefundListItem | null | undefined): AdminRefun
       studentName: '-',
       studentEmail: '-',
       amount: 0,
-      currency: 'USD',
+      currency: PLATFORM_CURRENCY,
       status: 'pending',
       reason: '-',
       note: null,
@@ -87,7 +88,7 @@ function normalizeRefund(item: RawRefundListItem | null | undefined): AdminRefun
     studentName: item.student?.name ?? item.studentName ?? '-',
     studentEmail: item.student?.email ?? item.studentEmail ?? '-',
     amount: item.amount ?? item.refundAmount ?? 0,
-    currency: item.currency ?? 'USD',
+    currency: item.currency ?? PLATFORM_CURRENCY,
     status: normalizeRefundStatus(item.status),
     reason: item.reason ?? '-',
     note: item.note ?? null,

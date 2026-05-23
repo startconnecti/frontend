@@ -1,4 +1,5 @@
 import type { User, Tutor, Booking, Session, Payment, Refund, Dispute, Subject, Admin, Role } from './types';
+import { PLATFORM_CURRENCY } from '@/lib/constants/currency';
 
 export const mockUsers: User[] = [
   {
@@ -191,7 +192,7 @@ export const mockPayments: Payment[] = [
     id: 'payment-1',
     bookingId: 'booking-1',
     amount: 50,
-    currency: 'USD',
+    currency: PLATFORM_CURRENCY,
     status: 'succeeded',
     method: 'card',
     studentId: 'user-1',
@@ -204,7 +205,7 @@ export const mockPayments: Payment[] = [
     id: 'payment-2',
     bookingId: 'booking-2',
     amount: 35,
-    currency: 'USD',
+    currency: PLATFORM_CURRENCY,
     status: 'pending',
     method: 'card',
     studentId: 'user-2',

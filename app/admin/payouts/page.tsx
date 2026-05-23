@@ -10,15 +10,14 @@ import { Input } from '@/components/ui/input';
 import { Skeleton } from '@/components/ui/skeleton';
 import { PAGINATION } from '@/constants/pagination';
 import { useAdminPayoutsQuery } from '@/features/admin-payouts';
+import { PLATFORM_CURRENCY } from '@/lib/constants/currency';
 
 function formatCurrency(amount: number, currency: string): string {
   try {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: currency || 'USD',
-    }).format(amount);
+    const formattedAmount = new Intl.NumberFormat('en-US').format(amount);
+    return `${formattedAmount} ${currency || PLATFORM_CURRENCY}`;
   } catch {
-    return `${amount} ${currency || 'USD'}`;
+    return `${amount} ${currency || PLATFORM_CURRENCY}`;
   }
 }
 

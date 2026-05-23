@@ -7,8 +7,19 @@ import {
 
 export const tutorIncomeService = {
   async getSummary(): Promise<TutorIncomeSummary> {
-    const response = await api.get<{ data: TutorIncomeSummary }>('/api/v1/tutors/me/income/summary');
-    return response.data;
+    try {
+      const data = await api.get<TutorIncomeSummary>('/api/v1/tutors/me/income/summary');
+      return data || {
+        totalEarnings: 0,
+        thisMonth: 0,
+        pendingAmount: 0,
+        availableAmount: 0,
+        refundedAmount: 0,
+        currency: 'VND',
+      };
+    } catch (error) {
+      throw error;
+    }
   },
 
   async getTransactions(params: GetTutorIncomeFilters): Promise<TutorIncomeListResponse> {
@@ -19,7 +30,11 @@ export const tutorIncomeService = {
     if (params.from) queryParams.from = params.from;
     if (params.to) queryParams.to = params.to;
 
-    const response = await api.get<{ data: TutorIncomeListResponse }>('/api/v1/tutors/me/income', { params: queryParams });
-    return response.data;
+    try {
+      const data = await api.get<TutorIncomeListResponse>('/api/v1/tutors/me/income', { params: queryParams });
+      return data || { items: [], pagination: { page: params.page || 1, limit: params.limit || 10, total: 0 } };
+    } catch (error) {
+      throw error;
+    }
   }
 };

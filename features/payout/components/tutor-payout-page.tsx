@@ -1,6 +1,8 @@
 'use client';
 
 import { useState } from 'react';
+import { payoutQueryKeys } from '../queries';
+import { PLATFORM_CURRENCY } from '@/lib/constants/currency';
 import { ArrowUpRight, Calendar, Landmark, CheckCircle2, Clock, XCircle, AlertCircle } from 'lucide-react';
 import { PageContainer, SectionHeader } from '@/components/shared';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -51,7 +53,7 @@ export function TutorPayoutPage() {
   
   const formatCurrency = (amount: number | undefined, currency?: string) => {
     if (amount === undefined || isNaN(amount)) return '₩0';
-    if (currency === 'KRW' || !currency) {
+    if (currency === PLATFORM_CURRENCY || !currency) {
       return `₩${amount.toLocaleString('ko-KR')}`;
     }
     // Fallback for other currencies if they ever appear

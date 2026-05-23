@@ -1,4 +1,5 @@
 import { adminApi } from '@/lib/admin-api/client';
+import { PLATFORM_CURRENCY } from '@/lib/constants/currency';
 import type {
   AdminPaymentListItem,
   AdminPaymentListQueryParams,
@@ -93,7 +94,7 @@ function normalizePayment(item: RawPaymentListItem | null | undefined): AdminPay
       tutorName: '-',
       tutorEmail: '-',
       amount: 0,
-      currency: 'USD',
+      currency: PLATFORM_CURRENCY,
       method: 'card',
       status: 'pending',
       transactionId: null,
@@ -113,7 +114,7 @@ function normalizePayment(item: RawPaymentListItem | null | undefined): AdminPay
     tutorName: item.tutor?.name ?? item.tutorName ?? '-',
     tutorEmail: item.tutor?.email ?? item.tutorEmail ?? '-',
     amount: item.amount ?? item.totalAmount ?? 0,
-    currency: item.currency ?? 'USD',
+    currency: item.currency ?? PLATFORM_CURRENCY,
     method: normalizePaymentMethod(item.method ?? item.paymentMethod),
     status: normalizePaymentStatus(item.status),
     transactionId: item.transactionId ?? item.gatewayTransactionId ?? null,

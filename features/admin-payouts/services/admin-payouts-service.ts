@@ -1,4 +1,5 @@
 import { adminApi } from '@/lib/admin-api/client';
+import { PLATFORM_CURRENCY } from '@/lib/constants/currency';
 import type {
   AdminPayoutListItem,
   AdminPayoutListQueryParams,
@@ -68,7 +69,7 @@ function normalizePayout(item: RawPayoutListItem | null | undefined): AdminPayou
       netAmount: 0,
       platformCommission: 0,
       paymentMethod: '-',
-      currency: 'USD',
+      currency: PLATFORM_CURRENCY,
       status: 'pending',
       note: null,
       requestedAt: new Date(0).toISOString(),
@@ -91,7 +92,7 @@ function normalizePayout(item: RawPayoutListItem | null | undefined): AdminPayou
     netAmount: amount,
     platformCommission,
     paymentMethod: item.paymentMethod ?? '-',
-    currency: item.currency ?? 'USD',
+    currency: item.currency ?? PLATFORM_CURRENCY,
     status: normalizePayoutStatus(item.status),
     note: item.note ?? null,
     requestedAt: item.requestedAt ?? new Date(0).toISOString(),
