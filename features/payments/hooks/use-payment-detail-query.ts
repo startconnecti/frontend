@@ -7,7 +7,7 @@ export function usePaymentDetailQuery(id: string) {
   return useQuery({
     queryKey: ['payment-detail', id],
     queryFn: () => paymentService.getPaymentById(id),
-    enabled: !!id,
+    enabled: Boolean(id && id !== 'undefined' && id !== 'null'),
     refetchOnWindowFocus: true,
     staleTime: 1000 * 30, // 30 seconds
     refetchInterval: (query) => {

@@ -2,20 +2,27 @@ import { api } from '@/lib/api/client';
 import { Payment, PaymentFilters } from '../types';
 import { PaymentResponse } from '../types/index';
 import { ListResponse } from '@/lib/api/types';
+import { normalizePayment, normalizePaymentDetailResponse } from '../utils/payment-normalizer';
 
 export const paymentService = {
   async getStudentPayments(filters: PaymentFilters): Promise<{ items: Payment[]; meta: { pagination: { total: number; page: number; limit: number; totalPages: number; } } }> {
     const params = { ...filters };
     if (params.status === 'all') delete params.status;
-    return api.get('/api/v1/payments', { params });
+    const response = await api.get<{ items: any[]; meta: any }>('/api/v1/payments', { params });
+    return {
+      items: response.items.map(normalizePayment),
+      meta: response.meta,
+    };
   },
 
   async getPaymentById(id: string): Promise<Payment> {
-    return api.get<Payment>(`/api/v1/payments/${id}`);
+    const raw = await api.get(`/api/v1/payments/${id}`);
+    return normalizePaymentDetailResponse(raw);
   },
 
-  async getPaymentDetail(id: string): Promise<{ payment: Payment; paymentInstruction: PaymentInstruction | null }> {
-    return api.get(`/api/v1/payments/${id}`);
+  async getPaymentDetail(id: string): Promise<Payment> {
+    const raw = await api.get(`/api/v1/payments/${id}`);
+    return normalizePaymentDetailResponse(raw);
   },
 
   async createPayment(bookingId: string): Promise<PaymentResponse> {

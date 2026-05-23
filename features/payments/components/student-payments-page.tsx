@@ -74,15 +74,15 @@ export function StudentPaymentsPage() {
       >
         <div className="grid grid-cols-1 gap-4">
           {payments.map((payment) => (
-            <div key={payment.paymentId} className="cursor-pointer" onClick={() => router.push(ROUTES.STUDENT.PAYMENT_DETAIL(payment.paymentId))}>
+            <div key={payment.id} className="cursor-pointer" onClick={() => router.push(ROUTES.STUDENT.PAYMENT_DETAIL(payment.id))}>
               <PaymentCard
-                id={payment.paymentId}
+                id={payment.id}
                 amount={payment.amount}
                 currency={payment.currency}
                 status={payment.status}
                 date={new Date(payment.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
                 description={`Session with ${payment.tutorName ?? 'Unknown Tutor'}`}
-                method={payment.method.replace(/_/g, ' ')}
+                method={payment.method}
               />
             </div>
           ))}

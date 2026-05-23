@@ -77,16 +77,16 @@ export function PaymentDetailCard({ payment, onRefresh, isRefreshing }: PaymentD
             <div className="space-y-3 p-6 rounded-2xl bg-primary/5 border border-primary/10">
               <div className="flex justify-between items-baseline">
                 <span className="text-sm text-muted-foreground">Total Paid</span>
-                <span className="text-3xl font-black text-brand-dark">${payment.amountTotal}</span>
+                <span className="text-3xl font-black text-brand-dark">${payment.amountTotal ?? payment.amount ?? 0}</span>
               </div>
               <div className="pt-3 border-t border-primary/10 space-y-2">
                 <div className="flex justify-between text-xs">
                   <span className="text-muted-foreground">Tutor Fee</span>
-                  <span className="font-bold">${payment.amountTotal - payment.platformFee}</span>
+                  <span className="font-bold">${(payment.amountTotal ?? payment.amount ?? 0) - (payment.platformFee ?? 0)}</span>
                 </div>
                 <div className="flex justify-between text-xs">
                   <span className="text-muted-foreground">Platform Fee</span>
-                  <span className="font-bold">${payment.platformFee}</span>
+                  <span className="font-bold">${payment.platformFee ?? 0}</span>
                 </div>
               </div>
             </div>
@@ -104,7 +104,7 @@ export function PaymentDetailCard({ payment, onRefresh, isRefreshing }: PaymentD
                   <User className="h-4 w-4 text-primary mt-0.5" />
                   <div>
                     <p className="text-xs text-muted-foreground font-medium">Tutor</p>
-                    <p className="text-sm font-bold">{payment.tutor?.fullName || 'Unknown Tutor'}</p>
+                    <p className="text-sm font-bold">{payment.tutorName || 'Unknown Tutor'}</p>
                   </div>
                 </div>
                 <div className="flex items-start gap-3">
@@ -192,7 +192,7 @@ export function PaymentDetailCard({ payment, onRefresh, isRefreshing }: PaymentD
         <div className="p-6 rounded-2xl border border-border/40 bg-muted/5 flex flex-col md:flex-row md:items-center justify-between gap-6">
           <div className="space-y-1">
             <h4 className="text-xs font-black uppercase tracking-widest text-muted-foreground">Payment Method</h4>
-            <p className="text-sm font-bold capitalize">{payment.method.replace(/_/g, ' ')}</p>
+            <p className="text-sm font-bold capitalize">{payment.method}</p>
           </div>
           {payment.transferReference && payment.status !== 'pending' && (
             <div className="space-y-1 md:text-right">

@@ -25,10 +25,11 @@ export function PaymentCard({
   method,
   onViewReceipt
 }: PaymentCardProps) {
-  
-  // Helper to format method
+
   const formatMethod = (m?: string) => {
-    if (!m) return 'N/A';
+    if (!m) return 'Unknown';
+    // If it's already formatted by the normalizer, it might not have underscores
+    if (!m.includes('_') && m !== m.toLowerCase()) return m;
     return m.replace(/_/g, ' ').replace(/\b\w/g, (l) => l.toUpperCase());
   };
 
@@ -41,13 +42,13 @@ export function PaymentCard({
   };
 
   return (
-    <Card 
+    <Card
       className="rounded-xl border border-border bg-card hover:shadow-md transition-shadow cursor-pointer overflow-hidden"
       onClick={onViewReceipt}
     >
       {/* Header */}
       <CardHeader className="p-4 flex flex-row justify-between items-center border-b border-border/50">
-        <span className="text-xs font-mono text-muted-foreground">ID: {id.slice(0, 8)}...</span>
+        <span className="text-xs font-mono text-muted-foreground truncate max-w-[200px]" title={`ID: ${id}`}>ID: {id}</span>
         <ClientStatusBadge status={status} className="text-[10px] h-5 px-2" />
       </CardHeader>
 

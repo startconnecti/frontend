@@ -14,18 +14,10 @@ export function PaymentDetailPage() {
   const params = useParams();
   const router = useRouter();
   const id = params.id as string;
+  const isInvalidId = !id || id === 'undefined' || id === 'null';
   const { data: payment, isLoading, isError, refetch } = usePaymentDetailQuery(id);
 
-  if (isLoading) {
-    return (
-      <PageContainer className="py-8 space-y-6">
-        <Skeleton className="h-8 w-32" />
-        <Skeleton className="h-[500px] w-full rounded-xl" />
-      </PageContainer>
-    );
-  }
-
-  if (isError || !payment) {
+  if (isInvalidId || isError || (!isLoading && !payment)) {
     return (
       <PageContainer className="py-20 flex flex-col items-center justify-center text-center space-y-6">
         <div className="h-20 w-20 bg-rose-100 rounded-full flex items-center justify-center text-rose-600">
@@ -39,6 +31,17 @@ export function PaymentDetailPage() {
       </PageContainer>
     );
   }
+
+  if (isLoading) {
+    return (
+      <PageContainer className="py-8 space-y-6">
+        <Skeleton className="h-8 w-32" />
+        <Skeleton className="h-[500px] w-full rounded-xl" />
+      </PageContainer>
+    );
+  }
+
+
 
   return (
     <PageContainer className="py-8 space-y-6">

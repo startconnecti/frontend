@@ -20,17 +20,26 @@ export interface RefundSummary {
 }
 
 export interface Payment {
-  paymentId: string;
+  id: string;
   paymentCode: string;
   bookingId: string;
   tutorProfileId?: string;
   tutorName?: string;
+  subject?: string;
   amount: number;
+  amountTotal?: number;
+  platformFee?: number;
   currency: string;
   method: string;
   status: PaymentStatus;
   createdAt: string;
-  confirmedAt?: string;
+  paidAt?: string | null;
+
+  transferInstructions?: string | null;
+  transferReference?: string | null;
+  paymentUrl?: string | null;
+  proofFileUrl?: string | null;
+  refundSummary?: RefundSummary | null;
 }
 
 export interface CreatePaymentRequest {
