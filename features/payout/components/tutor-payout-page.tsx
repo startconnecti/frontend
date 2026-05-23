@@ -7,7 +7,9 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { Skeleton } from '@/components/ui/skeleton';
 import { useToast } from '@/hooks/use-toast';
+import { useTutorPayoutSummaryQuery } from '../hooks/use-tutor-payout-summary-query';
 
 // Mock Payout History Data
 const mockPayouts = [
@@ -44,7 +46,19 @@ const mockPayouts = [
 export function TutorPayoutPage() {
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [availableBalance, setAvailableBalance] = useState(370.00);
+  
+  const { data: summary, isLoading, isError, refetch } = useTutorPayoutSummaryQuery();
+  
+  const formatCurrency = (amount: number | undefined, currency?: string) => {
+    if (amount === undefined || isNaN(amount)) return '₩0';
+    if (currency === 'KRW' || !currency) {
+      return `₩${amount.toLocaleString('ko-KR')}`;
+    }
+    // Fallback for other currencies if they ever appear
+    return new Intl.NumberFormat('en-US', { style: 'currency', currency: currency }).format(amount);
+  };
+
+  const availableBalance = summary?.availableBalance ?? 0;
 
   const handleRequestPayout = () => {
     if (availableBalance <= 0) {
@@ -61,7 +75,8 @@ export function TutorPayoutPage() {
     // Simulate API call
     setTimeout(() => {
       setIsSubmitting(false);
-      setAvailableBalance(0);
+      // Removed setAvailableBalance(0) since it's driven by real query data now
+      // Query cache invalidation would go here in real mutation
       toast({
         title: 'Payout Requested Successfully',
         description: 'Your payout request of $370.00 has been submitted and is processing.',
@@ -91,8 +106,27 @@ export function TutorPayoutPage() {
               <span className="text-sm font-bold uppercase tracking-wider">Current Available Balance</span>
             </div>
             <div className="space-y-1">
-              <h2 className="text-5xl lg:text-6xl font-black tracking-tight">${availableBalance.toFixed(2)}</h2>
-              <p className="text-xs text-primary-foreground/50 font-medium">Clearance period has ended. Ready for withdrawal.</p>
+              {isLoading ? (
+                <Skeleton className="h-[60px] lg:h-[72px] w-[200px] bg-primary-foreground/20 rounded-xl" />
+              ) : isError ? (
+                <div className="flex flex-col items-start gap-2 py-2">
+                  <h2 className="text-2xl font-bold tracking-tight text-red-300 flex items-center gap-2">
+                    <AlertCircle className="h-6 w-6" />
+                    Unable to load payout summary
+                  </h2>
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    onClick={() => refetch()} 
+                    className="text-primary-foreground border-primary-foreground/20 bg-transparent hover:bg-primary-foreground/10"
+                  >
+                    Retry
+                  </Button>
+                </div>
+              ) : (
+                <h2 className="text-5xl lg:text-6xl font-black tracking-tight">{formatCurrency(availableBalance, summary?.currency)}</h2>
+              )}
+              {!isError && <p className="text-xs text-primary-foreground/50 font-medium">Clearance period has ended. Ready for withdrawal.</p>}
             </div>
           </div>
           
@@ -115,6 +149,33 @@ export function TutorPayoutPage() {
           </Button>
         </CardContent>
       </Card>
+
+      {/* Secondary Metrics */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        {[
+          { label: 'Pending Clearance', value: summary?.pendingPayoutAmount },
+          { label: 'Processing Payouts', value: summary?.processingPayoutAmount },
+          { label: 'Completed This Month', value: summary?.completedThisMonthAmount },
+          { label: 'Lifetime Earnings', value: summary?.lifetimeEarningsAmount },
+        ].map((metric, i) => (
+          <Card key={i} className="border-border/60 shadow-sm">
+            <CardContent className="p-4 md:p-6 space-y-2">
+              <p className="text-xs font-bold uppercase tracking-widest text-muted-foreground">{metric.label}</p>
+              {isLoading ? (
+                <Skeleton className="h-8 w-[120px] rounded-lg" />
+              ) : isError ? (
+                <p className="text-sm font-bold text-destructive flex items-center gap-1.5">
+                  <AlertCircle className="h-4 w-4" /> Error
+                </p>
+              ) : (
+                <p className="text-xl md:text-2xl font-black text-brand-dark tracking-tight">
+                  {formatCurrency(metric.value, summary?.currency)}
+                </p>
+              )}
+            </CardContent>
+          </Card>
+        ))}
+      </div>
 
       {/* Payout History Section */}
       <div className="space-y-6">
