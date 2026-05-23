@@ -28,6 +28,7 @@ import { useCreateConversationMutation } from '@/features/messages/hooks/use-cre
 import { useCompleteSessionMutation } from '../hooks/use-complete-session-mutation';
 import { useState } from 'react';
 import { CancelSessionModal } from './cancel-session-modal';
+import { formatCurrency } from '@/lib/utils';
 
 interface SessionDetailCardProps {
   session: Session;
@@ -204,7 +205,7 @@ export function SessionDetailCard({ session }: SessionDetailCardProps) {
                   <div>
                     <span className="text-xs text-muted-foreground font-semibold block mb-1">Amount Paid</span>
                     <span className="font-black text-lg text-primary">
-                      {session.paymentSummary.amount.toLocaleString('vi-VN')} đ
+                      {formatCurrency(session.paymentSummary.amount)}
                     </span>
                   </div>
                   <div>

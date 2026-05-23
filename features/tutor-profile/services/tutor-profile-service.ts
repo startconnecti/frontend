@@ -22,6 +22,21 @@ export const tutorProfileService = {
     return normalizeTutorProfile(response);
   },
 
+  async createTutorProfile(request: any): Promise<TutorProfile> {
+    const payload = {
+      fullName: request.fullName,
+      phoneNumber: request.phoneNumber,
+      bio: request.bio,
+      experienceText: request.experienceText,
+      hourlyRate: Number(request.hourlyRate),
+      subject_ids: Array.isArray(request.subjects)
+        ? request.subjects.map((s: any) => typeof s === 'string' ? s : s.id || s)
+        : [],
+    };
+    const response = await api.post<any>('/api/v1/tutor/profile', payload);
+    return normalizeTutorProfile(response);
+  },
+
   async updateTutorProfile(request: any): Promise<TutorProfile> {
     const payload = {
       bio: request.bio,

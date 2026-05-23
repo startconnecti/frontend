@@ -11,7 +11,7 @@ import {
 import { Card, CardContent } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { TutorIncomeTransaction } from '../types/index';
-import { cn } from '@/lib/utils';
+import { cn, formatCurrency } from '@/lib/utils';
 import { format } from 'date-fns';
 
 interface TutorIncomeHistoryTableProps {
@@ -20,8 +20,6 @@ interface TutorIncomeHistoryTableProps {
 }
 
 export function TutorIncomeHistoryTable({ transactions, isLoading }: TutorIncomeHistoryTableProps) {
-  const formatCurrency = (amount: number) => `${amount.toLocaleString('vi-VN')} đ`;
-
   const getStatusConfig = (status: TutorIncomeTransaction['status']) => {
     switch (status) {
       case 'available':

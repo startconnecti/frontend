@@ -1,7 +1,6 @@
 'use client';
 
 import { useState } from 'react';
-import { payoutQueryKeys } from '../queries';
 import { PLATFORM_CURRENCY } from '@/lib/constants/currency';
 import { ArrowUpRight, Calendar, Landmark, CheckCircle2, Clock, XCircle, AlertCircle } from 'lucide-react';
 import { PageContainer, SectionHeader } from '@/components/shared';
@@ -11,54 +10,18 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useToast } from '@/hooks/use-toast';
+import { formatCurrency } from '@/lib/utils';
 import { useTutorPayoutSummaryQuery } from '../hooks/use-tutor-payout-summary-query';
+import { useTutorPayoutsQuery } from '../hooks/use-tutor-payouts-query';
 
-// Mock Payout History Data
-const mockPayouts = [
-  {
-    id: 'PO-9001',
-    date: '2026-05-15',
-    amount: 250.00,
-    method: 'Bank Transfer (ACB ****5678)',
-    status: 'processed',
-  },
-  {
-    id: 'PO-9002',
-    date: '2026-05-01',
-    amount: 180.00,
-    method: 'Bank Transfer (ACB ****5678)',
-    status: 'processed',
-  },
-  {
-    id: 'PO-9003',
-    date: '2026-05-18',
-    amount: 370.00,
-    method: 'Bank Transfer (ACB ****5678)',
-    status: 'pending',
-  },
-  {
-    id: 'PO-9004',
-    date: '2026-04-15',
-    amount: 300.00,
-    method: 'PayPal (tutor.payment@example.com)',
-    status: 'failed',
-  },
-];
+
 
 export function TutorPayoutPage() {
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
   
   const { data: summary, isLoading, isError, refetch } = useTutorPayoutSummaryQuery();
-  
-  const formatCurrency = (amount: number | undefined, currency?: string) => {
-    if (amount === undefined || isNaN(amount)) return '₩0';
-    if (currency === PLATFORM_CURRENCY || !currency) {
-      return `₩${amount.toLocaleString('ko-KR')}`;
-    }
-    // Fallback for other currencies if they ever appear
-    return new Intl.NumberFormat('en-US', { style: 'currency', currency: currency }).format(amount);
-  };
+  const { data: payoutsData, isLoading: isLoadingPayouts, isError: isErrorPayouts } = useTutorPayoutsQuery({ limit: 10, offset: 0 });
 
   const availableBalance = summary?.availableBalance ?? 0;
 
@@ -194,45 +157,71 @@ export function TutorPayoutPage() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {mockPayouts.map((payout) => (
-                <TableRow key={payout.id} className="hover:bg-muted/5 transition-colors">
-                  <TableCell className="font-medium text-sm py-4 pl-6">
-                    <div className="flex items-center gap-2">
-                      <Calendar className="h-4 w-4 text-muted-foreground" />
-                      {new Date(payout.date).toLocaleDateString(undefined, {
-                        year: 'numeric',
-                        month: 'short',
-                        day: 'numeric'
-                      })}
+              {isLoadingPayouts ? (
+                Array.from({ length: 4 }).map((_, i) => (
+                  <TableRow key={i}>
+                    <TableCell className="py-4 pl-6"><Skeleton className="h-5 w-24" /></TableCell>
+                    <TableCell className="py-4"><Skeleton className="h-5 w-20" /></TableCell>
+                    <TableCell className="py-4"><Skeleton className="h-5 w-32" /></TableCell>
+                    <TableCell className="py-4 pr-6 text-right"><Skeleton className="h-6 w-20 ml-auto rounded-full" /></TableCell>
+                  </TableRow>
+                ))
+              ) : isErrorPayouts ? (
+                <TableRow>
+                  <TableCell colSpan={4} className="h-32 text-center text-rose-600 font-medium">
+                    <div className="flex flex-col items-center justify-center gap-2">
+                      <AlertCircle className="h-6 w-6" />
+                      Unable to load payout history
                     </div>
                   </TableCell>
-                  <TableCell className="font-black text-sm text-brand-dark py-4">
-                    ${payout.amount.toFixed(2)}
-                  </TableCell>
-                  <TableCell className="text-sm font-bold text-muted-foreground py-4">
-                    {payout.method}
-                  </TableCell>
-                  <TableCell className="py-4 pr-6 text-right">
-                    <Badge 
-                      variant="outline" 
-                      className={`font-black tracking-wider text-[10px] uppercase px-3 py-1 rounded-full ${
-                        payout.status === 'processed' 
-                          ? 'bg-emerald-500/10 text-emerald-600 border-emerald-500/20' 
-                          : payout.status === 'pending'
-                          ? 'bg-amber-500/10 text-amber-600 border-amber-500/20'
-                          : 'bg-rose-500/10 text-rose-600 border-rose-500/20'
-                      }`}
-                    >
-                      <span className="flex items-center gap-1.5">
-                        {payout.status === 'processed' && <CheckCircle2 className="h-3 w-3 stroke-[2.5]" />}
-                        {payout.status === 'pending' && <Clock className="h-3 w-3 stroke-[2.5]" />}
-                        {payout.status === 'failed' && <XCircle className="h-3 w-3 stroke-[2.5]" />}
-                        {payout.status}
-                      </span>
-                    </Badge>
+                </TableRow>
+              ) : !payoutsData?.items || payoutsData.items.length === 0 ? (
+                <TableRow>
+                  <TableCell colSpan={4} className="h-32 text-center text-muted-foreground font-medium">
+                    No payouts yet
                   </TableCell>
                 </TableRow>
-              ))}
+              ) : (
+                payoutsData.items.map((payout) => (
+                  <TableRow key={payout.payoutId} className="hover:bg-muted/5 transition-colors">
+                    <TableCell className="font-medium text-sm py-4 pl-6">
+                      <div className="flex items-center gap-2">
+                        <Calendar className="h-4 w-4 text-muted-foreground" />
+                        {payout.periodEnd ? new Date(payout.periodEnd).toLocaleDateString(undefined, {
+                          year: 'numeric',
+                          month: 'short',
+                          day: 'numeric'
+                        }) : 'Unknown'}
+                      </div>
+                    </TableCell>
+                    <TableCell className="font-black text-sm text-brand-dark py-4">
+                      {formatCurrency(payout.netAmount, PLATFORM_CURRENCY)}
+                    </TableCell>
+                    <TableCell className="text-sm font-bold text-muted-foreground py-4">
+                      {payout.method || 'Bank Transfer'}
+                    </TableCell>
+                    <TableCell className="py-4 pr-6 text-right">
+                      <Badge 
+                        variant="outline" 
+                        className={`font-black tracking-wider text-[10px] uppercase px-3 py-1 rounded-full ${
+                          ['processed', 'completed', 'paid', 'approved'].includes(payout.status.toLowerCase())
+                            ? 'bg-emerald-500/10 text-emerald-600 border-emerald-500/20' 
+                            : ['pending', 'processing'].includes(payout.status.toLowerCase())
+                            ? 'bg-amber-500/10 text-amber-600 border-amber-500/20'
+                            : 'bg-rose-500/10 text-rose-600 border-rose-500/20'
+                        }`}
+                      >
+                        <span className="flex items-center gap-1.5">
+                          {['processed', 'completed', 'paid', 'approved'].includes(payout.status.toLowerCase()) && <CheckCircle2 className="h-3 w-3 stroke-[2.5]" />}
+                          {['pending', 'processing'].includes(payout.status.toLowerCase()) && <Clock className="h-3 w-3 stroke-[2.5]" />}
+                          {['failed', 'cancelled'].includes(payout.status.toLowerCase()) && <XCircle className="h-3 w-3 stroke-[2.5]" />}
+                          {payout.status}
+                        </span>
+                      </Badge>
+                    </TableCell>
+                  </TableRow>
+                ))
+              )}
             </TableBody>
           </Table>
         </Card>

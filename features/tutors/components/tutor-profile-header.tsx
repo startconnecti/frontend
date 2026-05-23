@@ -5,6 +5,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { useRouter } from 'next/navigation';
 import { useToggleFavorite } from '@/features/tutors/hooks/use-toggle-favorite';
+import { formatCurrency } from '@/lib/utils';
 
 interface TutorProfileHeaderProps {
   id: string;
@@ -86,7 +87,7 @@ export function TutorProfileHeader({
           </div>
           <div className="flex items-center gap-2 text-muted-foreground">
             <Clock className="h-5 w-5" />
-            <span className="font-semibold text-foreground">{hourlyRate.toLocaleString()} / hour</span>
+            <span className="font-semibold text-foreground">{formatCurrency(hourlyRate)} / hour</span>
           </div>
         </div>
       </div>

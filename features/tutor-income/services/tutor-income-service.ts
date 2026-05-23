@@ -1,4 +1,5 @@
 import { api } from '@/lib/api/client';
+import { PLATFORM_CURRENCY } from '@/lib/constants/currency';
 import { 
   TutorIncomeSummary, 
   TutorIncomeListResponse, 
@@ -9,13 +10,17 @@ export const tutorIncomeService = {
   async getSummary(): Promise<TutorIncomeSummary> {
     try {
       const data = await api.get<TutorIncomeSummary>('/api/v1/tutors/me/income/summary');
-      return data || {
+      if (data) {
+        data.currency = PLATFORM_CURRENCY;
+        return data;
+      }
+      return {
         totalEarnings: 0,
         thisMonth: 0,
         pendingAmount: 0,
         availableAmount: 0,
         refundedAmount: 0,
-        currency: 'VND',
+        currency: PLATFORM_CURRENCY,
       };
     } catch (error) {
       throw error;
@@ -32,7 +37,11 @@ export const tutorIncomeService = {
 
     try {
       const data = await api.get<TutorIncomeListResponse>('/api/v1/tutors/me/income', { params: queryParams });
-      return data || { items: [], pagination: { page: params.page || 1, limit: params.limit || 10, total: 0 } };
+      if (data && data.items) {
+        data.items = data.items.map(item => ({ ...item, currency: PLATFORM_CURRENCY }));
+        return data;
+      }
+      return { items: [], pagination: { page: params.page || 1, limit: params.limit || 10, total: 0 } };
     } catch (error) {
       throw error;
     }

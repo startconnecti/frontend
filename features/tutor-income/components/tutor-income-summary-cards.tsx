@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useTutorIncomeSummaryQuery } from '../hooks/use-tutor-income-summary-query';
 import { Wallet, DollarSign, Clock, ArrowDownToLine, RefreshCcw } from 'lucide-react';
-import { cn } from '@/lib/utils';
+import { cn, formatCurrency } from '@/lib/utils';
 
 export function TutorIncomeSummaryCards() {
   const { data: summary, isLoading, isError, refetch } = useTutorIncomeSummaryQuery();
@@ -25,11 +25,6 @@ export function TutorIncomeSummaryCards() {
       </Card>
     );
   }
-
-  const formatCurrency = (amount: number | undefined) => {
-    if (amount === undefined || isNaN(amount)) return '0 đ';
-    return `${amount.toLocaleString('vi-VN')} đ`;
-  };
 
   const cards = [
     {

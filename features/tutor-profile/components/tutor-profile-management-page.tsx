@@ -3,12 +3,21 @@
 import { PageContainer, SectionHeader } from '@/components/shared';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useTutorProfileQuery } from '../hooks/use-tutor-profile-query';
+import { useTutorProfileChangeRequestsQuery } from '../hooks/use-tutor-profile-change-requests';
 import { TutorProfileApprovalBanner } from './tutor-profile-approval-banner';
 import { TutorProfileSummaryCard } from './tutor-profile-summary-card';
 import { TutorProfileForm } from './tutor-profile-form';
+import { TutorProfileEmptyState } from './tutor-profile-empty-state';
+import { Button } from '@/components/ui/button';
+import { History, AlertCircle } from 'lucide-react';
+import Link from 'next/link';
+import { ROUTES } from '@/constants/routes';
 
 export function TutorProfileManagementPage() {
-  const { data: profile, isLoading, isError } = useTutorProfileQuery();
+  const { data: profile, isLoading, isError, error } = useTutorProfileQuery();
+  const { data: changeRequestsData, isLoading: isLoadingRequests } = useTutorProfileChangeRequestsQuery({ status: 'pending', limit: 1 });
+  
+  const hasPendingRequest = changeRequestsData?.items && changeRequestsData.items.length > 0;
 
   if (isLoading) {
     return (
@@ -20,10 +29,21 @@ export function TutorProfileManagementPage() {
     );
   }
 
-  if (isError || !profile) {
+  const isNotFound = isError && (error as any)?.response?.status === 404;
+
+  if (isNotFound || (!isLoading && !profile)) {
+    return (
+      <PageContainer className="py-8 space-y-10 max-w-5xl">
+        <TutorProfileEmptyState />
+      </PageContainer>
+    );
+  }
+
+  if (isError && !isNotFound) {
     return (
       <PageContainer className="py-20 text-center">
         <div className="max-w-md mx-auto space-y-4">
+          <AlertCircle className="h-12 w-12 text-rose-500 mx-auto" />
           <h3 className="text-2xl font-black text-brand-dark">Unable to load profile</h3>
           <p className="text-muted-foreground font-medium">There was an error retrieving your tutor profile information. Please try again later.</p>
         </div>
@@ -33,19 +53,36 @@ export function TutorProfileManagementPage() {
 
   return (
     <PageContainer className="py-8 space-y-10 max-w-5xl">
-      <SectionHeader 
-        title="Tutor Profile Management"
-        description="Curate your professional presence and maintain your teaching credentials."
-      />
+      <div className="flex flex-col md:flex-row md:items-start justify-between gap-4">
+        <SectionHeader 
+          title="Tutor Profile Management"
+          description="Curate your professional presence and maintain your teaching credentials."
+        />
+        <Button variant="outline" className="gap-2 font-bold whitespace-nowrap shrink-0" asChild>
+          {/* Note: Ideally use ROUTES constant if it exists, otherwise fallback to path */}
+          <Link href="/tutor/settings/tutor-profile/change-requests">
+            <History className="h-4 w-4" />
+            View Change Requests
+          </Link>
+        </Button>
+      </div>
 
-      <TutorProfileApprovalBanner 
-        status={profile.approvalStatus} 
-        reviewNote={profile.reviewNote} 
-      />
+      {profile && (
+        <>
+          <TutorProfileApprovalBanner 
+            status={profile.approvalStatus} 
+            reviewNote={profile.reviewNote} 
+          />
 
-      <TutorProfileSummaryCard profile={profile} />
+          <TutorProfileSummaryCard profile={profile} />
 
-      <TutorProfileForm initialData={profile} />
+          <TutorProfileForm 
+            initialData={profile} 
+            hasPendingRequest={hasPendingRequest}
+            isCreating={false}
+          />
+        </>
+      )}
     </PageContainer>
   );
 }

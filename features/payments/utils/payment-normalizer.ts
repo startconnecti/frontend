@@ -1,4 +1,5 @@
 import { Payment } from '../types';
+import { PLATFORM_CURRENCY } from '@/lib/constants/currency';
 
 export function formatPaymentMethod(method?: string | null): string {
   if (!method) return 'Unknown';
@@ -21,7 +22,7 @@ export function normalizePayment(raw: any): Payment {
     amount: p?.amount ?? p?.amountTotal ?? p?.totalAmount ?? 0,
     amountTotal: p?.amountTotal ?? p?.totalAmount ?? p?.amount ?? 0,
     platformFee: p?.platformFee || 0,
-    currency: p?.currency || 'VND',
+    currency: PLATFORM_CURRENCY,
     method: formatPaymentMethod(p?.method || p?.paymentMethod),
     status: p?.status || 'pending',
     createdAt: p?.createdAt || new Date().toISOString(),

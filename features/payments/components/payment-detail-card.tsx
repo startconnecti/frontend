@@ -19,6 +19,7 @@ import { Button } from '@/components/ui/button';
 import { PaymentDetail } from '../types';
 import Link from 'next/link';
 import { ROUTES } from '@/constants/routes';
+import { formatCurrency } from '@/lib/utils';
 
 interface PaymentDetailCardProps {
   paymentDetail: PaymentDetail;
@@ -79,16 +80,16 @@ export function PaymentDetailCard({ paymentDetail, onRefresh, isRefreshing }: Pa
             <div className="space-y-3 p-6 rounded-2xl bg-primary/5 border border-primary/10">
               <div className="flex justify-between items-baseline">
                 <span className="text-sm text-muted-foreground">Total Paid</span>
-                <span className="text-3xl font-black text-brand-dark">${payment.amountTotal ?? payment.amount ?? 0}</span>
+                <span className="text-3xl font-black text-brand-dark">{formatCurrency(payment.amountTotal ?? payment.amount ?? 0)}</span>
               </div>
               <div className="pt-3 border-t border-primary/10 space-y-2">
                 <div className="flex justify-between text-xs">
                   <span className="text-muted-foreground">Tutor Fee</span>
-                  <span className="font-bold">${(payment.amountTotal ?? payment.amount ?? 0) - (payment.platformFee ?? 0)}</span>
+                  <span className="font-bold">{formatCurrency((payment.amountTotal ?? payment.amount ?? 0) - (payment.platformFee ?? 0))}</span>
                 </div>
                 <div className="flex justify-between text-xs">
                   <span className="text-muted-foreground">Platform Fee</span>
-                  <span className="font-bold">${payment.platformFee ?? 0}</span>
+                  <span className="font-bold">{formatCurrency(payment.platformFee ?? 0)}</span>
                 </div>
               </div>
             </div>
@@ -242,7 +243,7 @@ export function PaymentDetailCard({ paymentDetail, onRefresh, isRefreshing }: Pa
             <RotateCcw className="h-6 w-6 text-purple-600 shrink-0" />
             <div className="space-y-1">
               <p className="text-xs font-bold text-purple-900 uppercase tracking-widest">Refund Summary</p>
-              <p className="text-lg font-black text-purple-900">-${payment.refundSummary.amount}</p>
+              <p className="text-lg font-black text-purple-900">-{formatCurrency(payment.refundSummary.amount)}</p>
               <p className="text-sm text-purple-800 italic">"{payment.refundSummary.reason}"</p>
               <p className="text-[10px] text-purple-600 font-medium">Refunded on {new Date(payment.refundSummary.refundedAt).toLocaleString()}</p>
             </div>

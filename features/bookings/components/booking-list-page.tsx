@@ -79,7 +79,7 @@ export function BookingListPage() {
           }
           setActivePaymentData({
             instruction: detail.paymentInstruction,
-            paymentId: detail.payment.paymentId || paymentSummary.paymentId,
+            paymentId: detail.payment.id || paymentSummary.paymentId,
           });
         })
         .catch((err) => {
@@ -134,7 +134,7 @@ export function BookingListPage() {
               subject={(booking as any).subjectName || "Unknown Subject"}
               date={new Date(booking.startTime).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
               time={`${new Date(booking.startTime).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })} - ${new Date(booking.endTime).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })}`}
-              amount={`$${((booking as any).totalAmount ?? 0).toFixed(2)}`}
+              amount={`${((booking as any).totalAmount ?? 0)}đ`}
               status={booking.status}
               expiresAt={booking.expiresAt}
               onCancel={() => setBookingToCancel(booking)}
@@ -145,10 +145,10 @@ export function BookingListPage() {
           ))}
         </div>
 
-        <Pagination 
-          currentPage={Number(page)} 
-          totalPages={Math.ceil(total / limit)} 
-          onPageChange={handlePageChange} 
+        <Pagination
+          currentPage={Number(page)}
+          totalPages={Math.ceil(total / limit)}
+          onPageChange={handlePageChange}
         />
       </ListState>
 

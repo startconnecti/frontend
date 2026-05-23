@@ -19,10 +19,13 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { TutorProfile, UpdateTutorProfileRequest } from '../types';
 import { useUpdateTutorProfileMutation } from '../hooks/use-update-tutor-profile-mutation';
 import { Badge } from '@/components/ui/badge';
-import { GraduationCap, Info } from 'lucide-react';
+import { Info, Lock, Edit3 } from 'lucide-react';
 import { setFormErrors } from '@/lib/api/query-utils';
 import { useAuthStore } from '@/stores/auth-store';
 import { toast } from 'sonner';
+import { useState } from 'react';
+import { useCreateTutorProfileMutation } from '../hooks/use-create-tutor-profile-mutation';
+import { useCreateTutorProfileChangeRequestMutation } from '../hooks/use-tutor-profile-change-requests';
 
 const tutorProfileSchema = z.object({
   fullName: z.string().min(2, 'Name must be at least 2 characters'),
@@ -35,28 +38,55 @@ const tutorProfileSchema = z.object({
 });
 
 interface TutorProfileFormProps {
-  initialData: TutorProfile;
+  initialData: TutorProfile | null;
+  isCreating?: boolean;
+  hasPendingRequest?: boolean;
 }
 
-export function TutorProfileForm({ initialData }: TutorProfileFormProps) {
+export function TutorProfileForm({ initialData, isCreating = false, hasPendingRequest = false }: TutorProfileFormProps) {
   const updateMutation = useUpdateTutorProfileMutation();
+  const createMutation = useCreateTutorProfileMutation();
+  const changeRequestMutation = useCreateTutorProfileChangeRequestMutation();
   const currentUserId = useAuthStore((state) => state.user?.id);
+  
+  const isApprovedOrSuspended = initialData && ['approved', 'suspended'].includes(initialData.approvalStatus);
+  const [isDraftMode, setIsDraftMode] = useState(false);
+  
+  const isReadonly = !isCreating && isApprovedOrSuspended && !isDraftMode;
   
   const form = useForm<UpdateTutorProfileRequest>({
     resolver: zodResolver(tutorProfileSchema),
     defaultValues: {
-      fullName: initialData.fullName,
-      phoneNumber: initialData.phoneNumber,
-      bio: initialData.bio,
-      experienceText: initialData.experienceText,
-      yearsOfExperience: initialData.yearsOfExperience,
-      hourlyRate: initialData.hourlyRate,
-      subjects: initialData.subjects,
+      fullName: initialData?.fullName || '',
+      phoneNumber: initialData?.phoneNumber || '',
+      bio: initialData?.bio || '',
+      experienceText: initialData?.experienceText || '',
+      yearsOfExperience: initialData?.yearsOfExperience || 0,
+      hourlyRate: initialData?.hourlyRate || 0,
+      subjects: initialData?.subjects || [],
     },
   });
 
   const onSubmit = async (values: UpdateTutorProfileRequest) => {
     try {
+      if (isCreating) {
+        await createMutation.mutateAsync(values);
+        return;
+      }
+
+      if (isDraftMode) {
+        await changeRequestMutation.mutateAsync({
+          change_payload: {
+            type: 'profile_update',
+            data: values,
+          },
+          request_note: 'Updating profile details',
+        });
+        setIsDraftMode(false);
+        toast.success("Change request submitted successfully");
+        return;
+      }
+
       const payload = {
         ...values,
         tutorId: currentUserId,
@@ -73,8 +103,48 @@ export function TutorProfileForm({ initialData }: TutorProfileFormProps) {
     }
   };
 
+  const isPending = updateMutation.isPending || createMutation.isPending || changeRequestMutation.isPending;
+
   return (
     <div className="space-y-8">
+      {hasPendingRequest && (
+        <div className="bg-amber-50 border border-amber-200 text-amber-800 p-4 rounded-2xl flex items-start gap-3">
+          <Lock className="h-5 w-5 shrink-0 mt-0.5" />
+          <div>
+            <h4 className="font-bold">Pending Request</h4>
+            <p className="text-sm">You already have a pending change request awaiting admin review. You cannot make further edits until it is resolved.</p>
+          </div>
+        </div>
+      )}
+      
+      {!isCreating && isApprovedOrSuspended && !isDraftMode && !hasPendingRequest && (
+        <div className="bg-blue-50 border border-blue-100 text-blue-800 p-4 rounded-2xl flex items-start justify-between gap-3">
+          <div className="flex gap-3">
+            <Info className="h-5 w-5 shrink-0 mt-0.5" />
+            <div>
+              <h4 className="font-bold">Profile is Readonly</h4>
+              <p className="text-sm">Your profile is approved. Direct edits are disabled. If you need to update your details, you must submit a change request.</p>
+            </div>
+          </div>
+          <Button variant="outline" size="sm" className="bg-white" onClick={() => setIsDraftMode(true)}>
+            <Edit3 className="h-4 w-4 mr-2" /> Request Changes
+          </Button>
+        </div>
+      )}
+
+      {isDraftMode && (
+        <div className="bg-indigo-50 border border-indigo-100 text-indigo-800 p-4 rounded-2xl flex items-center justify-between gap-3">
+          <div className="flex gap-3">
+            <Edit3 className="h-5 w-5 shrink-0 mt-0.5" />
+            <div>
+              <h4 className="font-bold">Draft Mode Active</h4>
+              <p className="text-sm">You are preparing a change request. Submit when ready.</p>
+            </div>
+          </div>
+          <Button variant="ghost" size="sm" onClick={() => setIsDraftMode(false)}>Cancel Draft</Button>
+        </div>
+      )}
+
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
           <Card className="border-border/60 shadow-sm rounded-3xl overflow-hidden">
@@ -93,7 +163,7 @@ export function TutorProfileForm({ initialData }: TutorProfileFormProps) {
                     <FormItem>
                       <FormLabel>Full Name</FormLabel>
                       <FormControl>
-                        <Input placeholder="Enter your full name" {...field} />
+                        <Input placeholder="Enter your full name" disabled={isReadonly || hasPendingRequest} {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -107,7 +177,7 @@ export function TutorProfileForm({ initialData }: TutorProfileFormProps) {
                     <FormItem>
                       <FormLabel>Phone Number</FormLabel>
                       <FormControl>
-                        <Input placeholder="e.g. +84 901 234 567" {...field} />
+                        <Input placeholder="e.g. +84 901 234 567" disabled={isReadonly || hasPendingRequest} {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -121,7 +191,7 @@ export function TutorProfileForm({ initialData }: TutorProfileFormProps) {
                     <FormItem>
                       <FormLabel>Hourly Rate ($)</FormLabel>
                       <FormControl>
-                        <Input type="number" {...field} />
+                        <Input type="number" disabled={isReadonly || hasPendingRequest} {...field} />
                       </FormControl>
                       <FormDescription>This is your public rate per hour.</FormDescription>
                       <FormMessage />
@@ -136,7 +206,7 @@ export function TutorProfileForm({ initialData }: TutorProfileFormProps) {
                     <FormItem>
                       <FormLabel>Years of Experience</FormLabel>
                       <FormControl>
-                        <Input type="number" {...field} />
+                        <Input type="number" disabled={isReadonly || hasPendingRequest} {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -154,6 +224,7 @@ export function TutorProfileForm({ initialData }: TutorProfileFormProps) {
                       <Textarea 
                         placeholder="Tell students about yourself and your teaching style..." 
                         className="min-h-[120px] resize-none"
+                        disabled={isReadonly || hasPendingRequest}
                         {...field} 
                       />
                     </FormControl>
@@ -173,6 +244,7 @@ export function TutorProfileForm({ initialData }: TutorProfileFormProps) {
                       <Textarea 
                         placeholder="Describe your background, methodologies, and successes..." 
                         className="min-h-[180px] resize-none"
+                        disabled={isReadonly || hasPendingRequest}
                         {...field} 
                       />
                     </FormControl>
@@ -208,42 +280,48 @@ export function TutorProfileForm({ initialData }: TutorProfileFormProps) {
             </CardContent>
           </Card>
 
-          {/* Certificates (Preview Only) */}
-          <Card className="border-border/60 shadow-sm rounded-3xl overflow-hidden">
-            <CardHeader className="bg-muted/10 border-b border-border/40 p-6">
-              <CardTitle className="text-lg font-black uppercase tracking-widest flex items-center gap-2 text-muted-foreground">
-                <GraduationCap className="h-5 w-5" />
-                Certificates & Qualifications
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="p-10 space-y-6">
-              <div className="space-y-4">
-                {initialData.certificates.map((cert) => (
-                  <div key={cert.id} className="flex items-center justify-between p-4 rounded-xl border border-border/40 bg-muted/5">
-                    <div>
-                      <p className="text-sm font-bold">{cert.title}</p>
-                      <p className="text-xs text-muted-foreground">{cert.organization} • {cert.year}</p>
+          {!isCreating && initialData && (
+            <Card className="border-border/60 shadow-sm rounded-3xl overflow-hidden">
+              <CardHeader className="bg-muted/10 border-b border-border/40 p-6">
+                <CardTitle className="text-lg font-black uppercase tracking-widest flex items-center gap-2 text-muted-foreground">
+                  <Info className="h-5 w-5" />
+                  Certificates & Qualifications
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="p-10 space-y-6">
+                <div className="space-y-4">
+                  {initialData.certificates.map((cert) => (
+                    <div key={cert.id} className="flex items-center justify-between p-4 rounded-xl border border-border/40 bg-muted/5">
+                      <div>
+                        <p className="text-sm font-bold">{cert.title}</p>
+                        <p className="text-xs text-muted-foreground">{cert.organization} • {cert.year}</p>
+                      </div>
                     </div>
-                  </div>
-                ))}
-              </div>
-              <div className="flex items-center gap-2 p-4 rounded-xl bg-blue-50 border border-blue-100 text-blue-800">
-                <Info className="h-4 w-4 shrink-0" />
-                <p className="text-xs font-medium">Certificate updates require high-level verification. Contact support to add new credentials.</p>
-              </div>
-            </CardContent>
-          </Card>
+                  ))}
+                  {initialData.certificates.length === 0 && (
+                    <p className="text-sm text-muted-foreground">No certificates added.</p>
+                  )}
+                </div>
+                <div className="flex items-center gap-2 p-4 rounded-xl bg-blue-50 border border-blue-100 text-blue-800">
+                  <Info className="h-4 w-4 shrink-0" />
+                  <p className="text-xs font-medium">This change requires admin approval. Adding or modifying certificates will submit a change request instead of a direct mutation.</p>
+                </div>
+              </CardContent>
+            </Card>
+          )}
 
-          <div className="flex justify-end pt-4 sticky bottom-8 z-20">
-            <Button 
-              type="submit" 
-              size="lg"
-              className="font-black px-12 shadow-2xl shadow-primary/40 h-14 text-lg rounded-2xl transition-all active:scale-95" 
-              disabled={updateMutation.isPending || !form.formState.isDirty}
-            >
-              {updateMutation.isPending ? 'Submitting Changes...' : 'Save & Submit Profile'}
-            </Button>
-          </div>
+          {!isReadonly && !hasPendingRequest && (
+            <div className="flex justify-end pt-4 sticky bottom-8 z-20">
+              <Button 
+                type="submit" 
+                size="lg"
+                className="font-black px-12 shadow-2xl shadow-primary/40 h-14 text-lg rounded-2xl transition-all active:scale-95" 
+                disabled={isPending || (!form.formState.isDirty && !isCreating)}
+              >
+                {isPending ? 'Submitting...' : isCreating ? 'Create Profile' : isDraftMode ? 'Submit Change Request' : 'Save & Submit Profile'}
+              </Button>
+            </div>
+          )}
         </form>
       </Form>
     </div>

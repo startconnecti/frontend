@@ -22,6 +22,7 @@ import { useRouter } from 'next/navigation';
 import { useCreateConversationMutation } from '@/features/messages/hooks/use-create-conversation-mutation';
 import { useState } from 'react';
 import { CancelSessionModal } from './cancel-session-modal';
+import { formatCurrency } from '@/lib/utils';
 
 interface TutorSessionDetailCardProps {
   session: Session;
@@ -189,7 +190,7 @@ export function TutorSessionDetailCard({ session }: TutorSessionDetailCardProps)
                     <div>
                       <span className="text-xs text-muted-foreground font-semibold block mb-1">Session Amount</span>
                       <span className="font-black text-lg text-primary">
-                        {session.paymentSummary.amount.toLocaleString('vi-VN')} đ
+                        {formatCurrency(session.paymentSummary.amount)}
                       </span>
                     </div>
                     <div>
