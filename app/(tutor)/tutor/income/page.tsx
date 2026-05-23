@@ -1,11 +1,15 @@
-import { TutorIncomePage } from '@/features/income/components/tutor-income-page';
 import { Metadata } from 'next';
+import { TutorIncomePage } from '@/features/tutor-income/components/tutor-income-page';
 
 export const metadata: Metadata = {
-  title: 'Income & Earnings | Connecti',
-  description: 'View your tutor earnings and payment transactions.',
+  title: 'Income | Connecti Tutor',
+  description: 'View your earnings, payouts, and income history.',
 };
 
-export default function IncomePage() {
-  return <TutorIncomePage />;
+export default function IncomeRoute() {
+  return (
+    <div className="flex flex-col gap-8">
+      <TutorIncomePage />
+    </div>
+  );
 }
