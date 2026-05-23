@@ -25,11 +25,14 @@ export function ChatBox({ conversationId }: ChatBoxProps) {
   const markReadMutation = useMarkConversationReadMutation();
   const user = useAuthStore((state) => state.user);
 
+  const messagesList = (detail?.messages as any)?.items || [];
+  const messagesCount = messagesList.length;
+
   useEffect(() => {
-    if (conversationId) {
+    if (conversationId && messagesCount > 0) {
       markReadMutation.mutate(conversationId);
     }
-  }, [conversationId]);
+  }, [conversationId, messagesCount]);
 
   const conversationData = (detail?.conversation as any)?.conversation;
   const isStudent = user?.role === 'student';

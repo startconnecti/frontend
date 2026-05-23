@@ -14,5 +14,6 @@ export function useConversationDetailQuery(id: string) {
       return { conversation, messages };
     },
     enabled: !!id,
+    refetchInterval: 15000,
   });
 }

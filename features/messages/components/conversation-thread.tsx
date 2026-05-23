@@ -4,7 +4,7 @@ import { Message, Participant } from '../types';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useAuthStore } from '@/stores/auth-store';
 
 interface ConversationThreadProps {
@@ -23,12 +23,25 @@ export function ConversationThread({ messages, participant }: ConversationThread
     ).values()
   );
 
+  const [isNearBottom, setIsNearBottom] = useState(true);
+
+  const handleScroll = (e: React.UIEvent<HTMLDivElement>) => {
+    const { scrollTop, scrollHeight, clientHeight } = e.currentTarget;
+    const distanceToBottom = scrollHeight - scrollTop - clientHeight;
+    setIsNearBottom(distanceToBottom < 100);
+  };
+
   useEffect(() => {
-    bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [uniqueMessages]);
+    if (isNearBottom) {
+      bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
+    }
+  }, [uniqueMessages.length]);
 
   return (
-    <div className="flex-1 overflow-y-auto p-6 space-y-6 bg-[#FAF9F6]">
+    <div 
+      className="flex-1 overflow-y-auto p-6 space-y-6 bg-[#FAF9F6]"
+      onScroll={handleScroll}
+    >
       {uniqueMessages.map((msg: any, index) => {
         const senderId = msg.senderUserId || msg.senderId;
         const isMine = senderId === currentUserId;
