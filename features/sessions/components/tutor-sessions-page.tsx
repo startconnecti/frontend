@@ -87,9 +87,9 @@ export function TutorSessionsPage() {
                 participantName={session.studentName || 'Student'}
                 subject={session.subjectName}
                 status={session.status}
-                date={new Date(session.startTime).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
-                startTime={new Date(session.startTime).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })}
-                endTime={new Date(session.endTime).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })}
+                date={new Date(session.startTime).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                startTime={new Date(session.startTime).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false })}
+                endTime={new Date(session.endTime).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false })}
                 joinUrl={session.meetingUrl}
                 onJoin={() => session.meetingUrl && window.open(session.meetingUrl, '_blank')}
                 onReschedule={() => {}} // Disabled

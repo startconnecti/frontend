@@ -3,7 +3,8 @@
 import { useSearchParams, useRouter } from 'next/navigation';
 import { PageContainer, SectionHeader, ListState } from '@/components/shared';
 import { SessionFilterTabs, SessionStatusFilter } from './session-filter-tabs';
-import { SessionCard } from './session-card';
+import { SessionCard as ClientSessionCard } from '@/components/client/session-card';
+import { ROUTES } from '@/constants/routes';
 import { useStudentSessionsQuery } from '../hooks/use-student-sessions-query';
 import { useEffect } from 'react';
 import { getErrorMessage } from '@/lib/api/query-utils';
@@ -77,15 +78,18 @@ export function SessionListPage() {
       >
         <div className="grid grid-cols-1 gap-4">
           {sessions.map((session) => (
-            <SessionCard 
-              key={session.sessionId} 
-              id={session.sessionId}
-              tutorName={session.tutorName}
-              subjectName={session.subjectName}
-              date={new Date(session.startTime).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
-              time={`${new Date(session.startTime).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })} - ${new Date(session.endTime).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })}`}
-              status={session.status}
-            />
+            <div key={session.sessionId} className="cursor-pointer" onClick={() => router.push(ROUTES.STUDENT.SESSION_DETAIL(session.sessionId))}>
+              <ClientSessionCard
+                id={session.sessionId}
+                participantName={session.tutorName || 'Unknown Tutor'}
+                subject={session.subjectName || 'Standard Session'}
+                status={session.status}
+                date={new Date(session.startTime).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                startTime={new Date(session.startTime).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false })}
+                endTime={new Date(session.endTime).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false })}
+                joinUrl={session.meetingUrl}
+              />
+            </div>
           ))}
         </div>
         

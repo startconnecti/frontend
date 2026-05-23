@@ -10,20 +10,24 @@ import {
   MessageSquareQuote,
   CheckCircle,
   Star,
-  GraduationCap
+  GraduationCap,
+  ShieldAlert,
+  XCircle
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Session } from '../types';
+import { Session } from '../types/index';
 import { ROUTES } from '@/constants/routes';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useTutorDetailQuery } from '@/features/tutors/hooks/use-tutor-detail-query';
 import { useCreateConversationMutation } from '@/features/messages/hooks/use-create-conversation-mutation';
 import { useCompleteSessionMutation } from '../hooks/use-complete-session-mutation';
+import { useState } from 'react';
+import { CancelSessionModal } from './cancel-session-modal';
 
 interface SessionDetailCardProps {
   session: Session;
@@ -36,6 +40,7 @@ export function SessionDetailCard({ session }: SessionDetailCardProps) {
   const { data: tutor, isLoading: isLoadingTutor } = useTutorDetailQuery(session.tutorProfileId || '', true);
   const { mutate: createConversation, isPending: isCreatingConversation } = useCreateConversationMutation();
   const { mutate: completeSession, isPending: isCompleting } = useCompleteSessionMutation();
+  const [isCancelModalOpen, setIsCancelModalOpen] = useState(false);
 
   // Date Parsing
   const startDate = new Date(session.startTime);
@@ -85,7 +90,8 @@ export function SessionDetailCard({ session }: SessionDetailCardProps) {
   };
 
   return (
-    <Card className="border-border/60 shadow-xl shadow-primary/5 rounded-3xl overflow-hidden">
+    <>
+      <Card className="border-border/60 shadow-xl shadow-primary/5 rounded-3xl overflow-hidden">
       {/* Header */}
       <CardHeader className="bg-muted/10 border-b border-border/40 p-8 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
         <div className="space-y-1">
@@ -254,8 +260,8 @@ export function SessionDetailCard({ session }: SessionDetailCardProps) {
                         {tutor.fullName ? tutor.fullName.charAt(0) : session.tutorName.charAt(0)}
                       </AvatarFallback>
                     </Avatar>
-                    <div className="space-y-1">
-                      <h5 className="font-bold text-brand-dark leading-tight">{tutor.fullName}</h5>
+                    <div className="space-y-1 flex-1">
+                      <h5 className="font-bold text-brand-dark leading-tight">{tutor.fullName || session.tutorName || 'Unknown Tutor'}</h5>
                       <div className="flex items-center gap-1.5 text-xs">
                         <Star className="h-3.5 w-3.5 fill-yellow-400 text-yellow-400" />
                         <span className="font-bold">{(tutor.averageRating ?? 0).toFixed(1)}</span>
@@ -291,11 +297,25 @@ export function SessionDetailCard({ session }: SessionDetailCardProps) {
                     </div>
                   )}
 
-                  <Button variant="outline" size="sm" className="w-full text-xs font-bold" asChild>
-                    <Link href={`/tutors/${tutor.id}`}>
-                      View Full Profile
-                    </Link>
-                  </Button>
+                  <div className="grid grid-cols-2 gap-2 mt-4">
+                    <Button variant="outline" size="sm" className="w-full text-xs font-bold" asChild>
+                      <Link href={`/tutors/${tutor.id}`}>
+                        View Profile
+                      </Link>
+                    </Button>
+                    {(session.status === 'scheduled' || session.status === 'completed') && (
+                      <Button 
+                        variant="default" 
+                        size="sm" 
+                        className="w-full text-xs font-bold gap-2" 
+                        onClick={handleMessageTutor}
+                        disabled={isCreatingConversation}
+                      >
+                        <MessageCircle className="h-3 w-3" />
+                        {isCreatingConversation ? 'Opening...' : 'Message'}
+                      </Button>
+                    )}
+                  </div>
                 </div>
               ) : (
                 // Fallback if tutor detail endpoint fails or publicOnly has issues
@@ -306,11 +326,24 @@ export function SessionDetailCard({ session }: SessionDetailCardProps) {
                         {session.tutorName.charAt(0)}
                       </AvatarFallback>
                     </Avatar>
-                    <div>
-                      <h5 className="font-bold text-brand-dark">{session.tutorName}</h5>
+                    <div className="flex-1">
+                      <h5 className="font-bold text-brand-dark">{session.tutorName || 'Unknown Tutor'}</h5>
                       <span className="text-xs text-muted-foreground">Tutor Profile Details Unavailable</span>
                     </div>
                   </div>
+                  
+                  {(session.status === 'scheduled' || session.status === 'completed') && (
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      className="w-full text-xs font-bold gap-2 mt-2" 
+                      onClick={handleMessageTutor}
+                      disabled={isCreatingConversation}
+                    >
+                      <MessageCircle className="h-3 w-3" />
+                      {isCreatingConversation ? 'Opening Chat...' : 'Message Tutor'}
+                    </Button>
+                  )}
                 </div>
               )}
             </div>
@@ -321,19 +354,6 @@ export function SessionDetailCard({ session }: SessionDetailCardProps) {
       {/* Section C: Actions */}
       <CardFooter className="bg-muted/10 border-t border-border/40 p-6 flex flex-wrap gap-4 items-center justify-between">
         <div className="flex flex-wrap gap-3">
-          {/* Message Tutor Button */}
-          {(session.status === 'scheduled' || session.status === 'completed') && (
-            <Button 
-              variant="outline" 
-              className="font-bold gap-2" 
-              onClick={handleMessageTutor}
-              disabled={isCreatingConversation}
-            >
-              <MessageCircle className="h-4 w-4" />
-              {isCreatingConversation ? 'Opening Chat...' : 'Message Tutor'}
-            </Button>
-          )}
-
           {/* Leave Feedback Button */}
           {session.status === 'completed' && !session.hasFeedback && (
             <Button variant="default" className="font-bold gap-2" asChild>
@@ -351,6 +371,30 @@ export function SessionDetailCard({ session }: SessionDetailCardProps) {
               Feedback Submitted
             </div>
           )}
+
+          {/* Create Dispute Button */}
+          {session.status === 'completed' && (
+            <Button 
+              variant="outline" 
+              className="font-bold gap-2 hover:bg-rose-50 hover:text-rose-600 hover:border-rose-200" 
+              onClick={() => alert('Dispute flow coming soon')}
+            >
+              <ShieldAlert className="h-4 w-4" />
+              Report Issue
+            </Button>
+          )}
+
+          {/* Cancel Session Button */}
+          {(session.status === 'scheduled' || session.status === 'pending_payment' || session.status === 'payment_processing' as any) && (
+            <Button 
+              variant="outline" 
+              className="font-bold gap-2 hover:bg-rose-50 hover:text-rose-600 hover:border-rose-200" 
+              onClick={() => setIsCancelModalOpen(true)}
+            >
+              <XCircle className="h-4 w-4" />
+              Cancel Session
+            </Button>
+          )}
         </div>
 
         {/* Mark as Complete Button */}
@@ -365,6 +409,13 @@ export function SessionDetailCard({ session }: SessionDetailCardProps) {
           </Button>
         )}
       </CardFooter>
-    </Card>
+      </Card>
+
+      <CancelSessionModal 
+        isOpen={isCancelModalOpen} 
+        onClose={() => setIsCancelModalOpen(false)} 
+        sessionId={session.sessionId || (session as any).id} 
+      />
+    </>
   );
 }

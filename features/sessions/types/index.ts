@@ -13,6 +13,11 @@ export interface Session {
   bookingId?: string;
   bookingCode?: string | null;
   studentId?: string;
+  student?: {
+    id?: string;
+    fullName?: string;
+    avatarUrl?: string;
+  };
   tutorProfileId?: string;
   bufferEndTime?: string | null;
   meetingProvider?: string | null;

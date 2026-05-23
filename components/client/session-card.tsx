@@ -26,10 +26,11 @@ export function SessionCard({
   return (
     <Card className="border-l-4 border-l-primary overflow-hidden shadow-sm hover:shadow-md transition-shadow">
       <CardContent className="p-5 flex flex-col sm:flex-row sm:items-center gap-6">
-        <div className="flex flex-col gap-1 sm:w-32 shrink-0">
+        <div className="flex flex-col gap-1 sm:w-40 shrink-0">
           <p className="text-sm font-semibold text-primary uppercase tracking-tighter">{date}</p>
-          <p className="text-lg font-bold">{startTime}</p>
-          <p className="text-xs text-muted-foreground">to {endTime}</p>
+          <p className="text-base font-bold text-brand-dark">
+            {startTime} - {endTime}
+          </p>
         </div>
 
         <div className="h-10 w-px bg-border hidden sm:block" />

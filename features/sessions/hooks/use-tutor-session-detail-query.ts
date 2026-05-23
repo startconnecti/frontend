@@ -6,7 +6,7 @@ import { sessionService } from '../services/session-service';
 export function useTutorSessionDetailQuery(id: string) {
   return useQuery({
     queryKey: ['tutor-session-detail', id],
-    queryFn: () => sessionService.getTutorSessionById(id),
-    enabled: !!id,
+    queryFn: () => sessionService.getSessionById(id),
+    enabled: Boolean(id && id !== 'undefined' && id !== 'null'),
   });
 }

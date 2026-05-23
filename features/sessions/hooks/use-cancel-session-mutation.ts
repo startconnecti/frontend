@@ -13,6 +13,9 @@ export function useCancelSessionMutation() {
       sessionService.cancelSession(sessionId, payload),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['student-sessions'] });
+      queryClient.invalidateQueries({ queryKey: ['tutor-sessions'] });
+      queryClient.invalidateQueries({ queryKey: ['tutor-session-detail'] });
+      queryClient.invalidateQueries({ queryKey: ['session-detail'] });
       toast.success('Session cancelled successfully');
     },
     onError: (error) => {
