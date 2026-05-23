@@ -7,6 +7,8 @@ import { useUIStore } from '@/stores/ui-store';
 import { ROUTES } from '@/constants/routes';
 import { useAuthStore } from '@/stores/auth-store';
 import Link from 'next/link';
+import { useNotificationUnreadCountQuery } from '@/features/notifications/hooks/use-notification-unread-count-query';
+import { useMessageUnreadCountQuery } from '@/features/messages/hooks/use-message-unread-count-query';
 
 export function DashboardHeader() {
   const openMobileSidebar = useUIStore((state) => state.openMobileSidebar);
@@ -18,6 +20,22 @@ export function DashboardHeader() {
       .map((n) => n[0])
       .join('')
       .toUpperCase();
+  };
+
+  const { data: notificationData } = useNotificationUnreadCountQuery();
+  const { data: messageData } = useMessageUnreadCountQuery();
+
+  const unreadNotificationCount = notificationData?.count ?? 0;
+  const unreadMessageCount = messageData?.count ?? 0;
+
+  const renderBadge = (count: number) => {
+    if (count <= 0) return null;
+    const displayCount = count > 99 ? '99+' : count.toString();
+    return (
+      <span className="absolute top-1 right-1 flex h-4 min-w-[16px] items-center justify-center rounded-full bg-primary px-1 text-[10px] font-bold text-primary-foreground transform translate-x-1/4 -translate-y-1/4">
+        {displayCount}
+      </span>
+    );
   };
 
   return (
@@ -39,15 +57,14 @@ export function DashboardHeader() {
           <Button variant="ghost" size="icon" className="text-muted-foreground relative" aria-label="Messages" asChild>
             <Link href={ROUTES.MESSAGES}>
               <MessageSquare className="h-5 w-5" />
-              {/* Mock unread indicator */}
-              <span className="absolute top-2 right-2 flex h-2 w-2 rounded-full bg-primary" />
+              {renderBadge(unreadMessageCount)}
             </Link>
           </Button>
 
           <Button variant="ghost" size="icon" className="text-muted-foreground relative" aria-label="Notifications" asChild>
             <Link href={ROUTES.NOTIFICATIONS}>
               <Bell className="h-5 w-5" />
-              <span className="absolute top-2 right-2 flex h-2 w-2 rounded-full bg-primary" />
+              {renderBadge(unreadNotificationCount)}
             </Link>
           </Button>
 

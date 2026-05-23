@@ -21,5 +21,9 @@ export const notificationService = {
 
   async markAllNotificationsAsRead(): Promise<void> {
     await api.post('/api/v1/notifications/read-all');
+  },
+
+  async getUnreadCount(): Promise<{ count: number }> {
+    return api.get<{ count: number }>('/api/v1/notifications/unread-count');
   }
 };

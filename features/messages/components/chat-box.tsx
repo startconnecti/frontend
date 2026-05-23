@@ -4,7 +4,9 @@ import { MessageCircle, Phone, Video, MoreVertical, ArrowLeft } from 'lucide-rea
 import { useRouter } from 'next/navigation';
 import { useConversationDetailQuery } from '../hooks/use-conversation-detail-query';
 import { useSendMessageMutation } from '../hooks/use-send-message-mutation';
+import { useMarkConversationReadMutation } from '../hooks/use-mark-conversation-read-mutation';
 import { useAuthStore } from '@/stores/auth-store';
+import { useEffect } from 'react';
 import { ConversationThread } from './conversation-thread';
 import { MessageComposer } from './message-composer';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -20,7 +22,14 @@ export function ChatBox({ conversationId }: ChatBoxProps) {
   const router = useRouter();
   const { data: detail, isLoading: isDetailLoading } = useConversationDetailQuery(conversationId || '');
   const sendMutation = useSendMessageMutation();
+  const markReadMutation = useMarkConversationReadMutation();
   const user = useAuthStore((state) => state.user);
+
+  useEffect(() => {
+    if (conversationId) {
+      markReadMutation.mutate(conversationId);
+    }
+  }, [conversationId]);
 
   const conversationData = (detail?.conversation as any)?.conversation;
   const isStudent = user?.role === 'student';

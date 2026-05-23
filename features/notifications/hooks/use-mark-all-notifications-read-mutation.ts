@@ -12,7 +12,8 @@ export function useMarkAllNotificationsReadMutation() {
   return useMutation({
     mutationFn: () => notificationService.markAllNotificationsAsRead(),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['notifications'] });
+      queryClient.invalidateQueries({ queryKey: ['notifications', 'unread-count'] });
+      queryClient.invalidateQueries({ queryKey: ['notifications', 'list'] });
       toast.success('All notifications marked as read');
     },
     onError: (error) => {

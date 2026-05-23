@@ -20,6 +20,8 @@ import { ROUTES } from '@/constants/routes';
 import { useAuthStore } from '@/stores/auth-store';
 import { useRouter } from 'next/navigation';
 import { useQueryClient } from '@tanstack/react-query';
+import { useNotificationUnreadCountQuery } from '@/features/notifications/hooks/use-notification-unread-count-query';
+import { useMessageUnreadCountQuery } from '@/features/messages/hooks/use-message-unread-count-query';
 
 interface NavItem {
   label: string;
@@ -52,6 +54,22 @@ export function StudentSidebar() {
     logout();
     queryClient.clear();
     router.push(ROUTES.LOGIN);
+  };
+
+  const { data: notificationData } = useNotificationUnreadCountQuery();
+  const { data: messageData } = useMessageUnreadCountQuery();
+
+  const unreadNotificationCount = notificationData?.count ?? 0;
+  const unreadMessageCount = messageData?.count ?? 0;
+
+  const renderBadge = (count: number) => {
+    if (count <= 0) return null;
+    const displayCount = count > 99 ? '99+' : count.toString();
+    return (
+      <span className="ml-auto flex h-5 min-w-[20px] items-center justify-center rounded-full bg-primary px-1.5 text-[10px] font-bold text-primary-foreground">
+        {displayCount}
+      </span>
+    );
   };
 
   return (
@@ -90,6 +108,8 @@ export function StudentSidebar() {
             >
               <item.icon className={cn('h-4 w-4', isActive ? 'text-primary-foreground' : 'text-muted-foreground group-hover:text-foreground')} />
               {item.label}
+              {item.href === ROUTES.NOTIFICATIONS && renderBadge(unreadNotificationCount)}
+              {item.href === ROUTES.MESSAGES && renderBadge(unreadMessageCount)}
             </Link>
           );
         })}

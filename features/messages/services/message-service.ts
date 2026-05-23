@@ -24,5 +24,13 @@ export const messageService = {
     return api.post<{ conversation: { id: string } }>('/api/v1/conversations', {
       tutor_id: tutorId,
     });
+  },
+
+  async markConversationAsRead(id: string): Promise<void> {
+    await api.post(`/api/v1/conversations/${id}/read`);
+  },
+
+  async getUnreadCount(): Promise<{ count: number }> {
+    return api.get<{ count: number }>('/api/v1/conversations/unread-count');
   }
 };

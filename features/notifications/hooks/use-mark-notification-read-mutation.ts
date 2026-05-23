@@ -10,7 +10,8 @@ export function useMarkNotificationReadMutation() {
   return useMutation({
     mutationFn: (id: string) => notificationService.markNotificationAsRead(id),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['notifications'] });
+      queryClient.invalidateQueries({ queryKey: ['notifications', 'unread-count'] });
+      queryClient.invalidateQueries({ queryKey: ['notifications', 'list'] });
     },
     onError: (error) => {
       handleMutationError(error, 'Failed to mark notification as read');
