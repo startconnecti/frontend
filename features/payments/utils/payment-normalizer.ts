@@ -35,15 +35,22 @@ export function normalizePayment(raw: any): Payment {
   };
 }
 
-export function normalizePaymentDetailResponse(raw: any): Payment {
-  const p = raw?.payment || raw;
-  const normalized = normalizePayment(p);
+export function normalizePaymentDetailResponse(raw: any): any {
+  // It returns PaymentDetail now but we keep type simple to avoid circular imports here if not needed
+  const payment = normalizePayment(raw?.payment || raw);
   
   return {
-    ...normalized,
-    tutorName: raw?.tutorSummary?.tutorName || normalized.tutorName,
-    subject: raw?.bookingSummary?.subjectName || normalized.subject,
-    transferInstructions: raw?.paymentInstruction?.supportMessage || normalized.transferInstructions,
-    transferReference: raw?.paymentInstruction?.transferNote || normalized.transferReference,
+    payment,
+    bookingSummary: raw?.bookingSummary || null,
+    tutorSummary: raw?.tutorSummary || null,
+    session: raw?.session ? {
+      id: raw.session.id,
+      status: raw.session.status,
+      meetingStatus: raw.session.meetingStatus || null,
+      meetingUrl: raw.session.meetingUrl || null,
+      scheduledStartTime: raw.session.scheduledStartTime || raw.session.startTime || null,
+      scheduledEndTime: raw.session.scheduledEndTime || raw.session.endTime || null,
+    } : null,
+    paymentInstruction: raw?.paymentInstruction || null,
   };
 }

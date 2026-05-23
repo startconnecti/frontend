@@ -1,5 +1,5 @@
 import { api } from '@/lib/api/client';
-import { Payment, PaymentFilters } from '../types';
+import { Payment, PaymentDetail, PaymentFilters } from '../types';
 import { PaymentResponse } from '../types/index';
 import { ListResponse } from '@/lib/api/types';
 import { normalizePayment, normalizePaymentDetailResponse } from '../utils/payment-normalizer';
@@ -15,12 +15,12 @@ export const paymentService = {
     };
   },
 
-  async getPaymentById(id: string): Promise<Payment> {
+  async getPaymentById(id: string): Promise<PaymentDetail> {
     const raw = await api.get(`/api/v1/payments/${id}`);
     return normalizePaymentDetailResponse(raw);
   },
 
-  async getPaymentDetail(id: string): Promise<Payment> {
+  async getPaymentDetail(id: string): Promise<PaymentDetail> {
     const raw = await api.get(`/api/v1/payments/${id}`);
     return normalizePaymentDetailResponse(raw);
   },

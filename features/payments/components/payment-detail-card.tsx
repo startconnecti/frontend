@@ -16,17 +16,19 @@ import {
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Payment } from '../types';
+import { PaymentDetail } from '../types';
 import Link from 'next/link';
 import { ROUTES } from '@/constants/routes';
 
 interface PaymentDetailCardProps {
-  payment: Payment;
+  paymentDetail: PaymentDetail;
   onRefresh?: () => void;
   isRefreshing?: boolean;
 }
 
-export function PaymentDetailCard({ payment, onRefresh, isRefreshing }: PaymentDetailCardProps) {
+export function PaymentDetailCard({ paymentDetail, onRefresh, isRefreshing }: PaymentDetailCardProps) {
+  const { payment, bookingSummary, tutorSummary, session, paymentInstruction } = paymentDetail;
+
   const statusColors = {
     pending: 'bg-amber-100 text-amber-700 border-amber-200',
     waiting_admin_confirmation: 'bg-blue-100 text-blue-700 border-blue-200',
@@ -45,7 +47,7 @@ export function PaymentDetailCard({ payment, onRefresh, isRefreshing }: PaymentD
     refunded: RotateCcw,
   };
 
-  const StatusIcon = statusIcons[payment.status];
+  const StatusIcon = statusIcons[payment.status] || Clock;
 
   return (
     <Card className="border-border/60 shadow-xl shadow-primary/5 rounded-3xl overflow-hidden">
@@ -60,7 +62,7 @@ export function PaymentDetailCard({ payment, onRefresh, isRefreshing }: PaymentD
             </div>
             <p className="text-xs text-muted-foreground font-medium">Transaction ID: {payment.id}</p>
           </div>
-          <div className={`px-4 py-1.5 rounded-full text-xs font-black uppercase tracking-widest border ${statusColors[payment.status]}`}>
+          <div className={`px-4 py-1.5 rounded-full text-xs font-black uppercase tracking-widest border ${statusColors[payment.status] || 'bg-gray-100'}`}>
             {payment.status}
           </div>
         </div>
@@ -104,18 +106,41 @@ export function PaymentDetailCard({ payment, onRefresh, isRefreshing }: PaymentD
                   <User className="h-4 w-4 text-primary mt-0.5" />
                   <div>
                     <p className="text-xs text-muted-foreground font-medium">Tutor</p>
-                    <p className="text-sm font-bold">{payment.tutorName || 'Unknown Tutor'}</p>
+                    <p className="text-sm font-bold">{tutorSummary?.tutorName || payment.tutorName || 'Unknown Tutor'}</p>
                   </div>
                 </div>
                 <div className="flex items-start gap-3">
                   <BookOpen className="h-4 w-4 text-primary mt-0.5" />
                   <div>
                     <p className="text-xs text-muted-foreground font-medium">Subject</p>
-                    <p className="text-sm font-bold">{payment.subject || 'Standard Session'}</p>
+                    <p className="text-sm font-bold">{bookingSummary?.subjectName || payment.subject || 'Standard Session'}</p>
                   </div>
                 </div>
               </div>
             </div>
+
+            {session && (
+              <div className="space-y-4">
+                <h4 className="text-xs font-black uppercase tracking-widest text-muted-foreground flex items-center gap-2">
+                  <Clock className="h-3 w-3" />
+                  Session Summary
+                </h4>
+                <div className="space-y-3">
+                  <div className="flex justify-between items-baseline p-4 rounded-xl bg-muted/20 border border-border/50">
+                    <div>
+                      <p className="text-xs text-muted-foreground font-medium mb-1">Status</p>
+                      <p className="text-sm font-bold capitalize">{session.status}</p>
+                    </div>
+                    <div className="text-right">
+                      <p className="text-xs text-muted-foreground font-medium mb-1">Scheduled Time</p>
+                      <p className="text-xs font-bold">
+                        {session.scheduledStartTime ? new Date(session.scheduledStartTime).toLocaleString([], { dateStyle: 'short', timeStyle: 'short' }) : 'Unknown'}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
 
             <div className="space-y-4">
               <h4 className="text-xs font-black uppercase tracking-widest text-muted-foreground flex items-center gap-2">
@@ -152,13 +177,13 @@ export function PaymentDetailCard({ payment, onRefresh, isRefreshing }: PaymentD
               Action Required
             </h4>
             
-            {payment.method === 'manual_bank_transfer' && payment.transferInstructions && (
+            {payment.method === 'manual_bank_transfer' && (paymentInstruction?.supportMessage || payment.transferInstructions) && (
               <div className="p-6 rounded-2xl bg-amber-50 border border-amber-200 space-y-4">
-                <p className="text-sm text-amber-900 font-medium whitespace-pre-wrap">{payment.transferInstructions}</p>
-                {payment.transferReference && (
+                <p className="text-sm text-amber-900 font-medium whitespace-pre-wrap">{paymentInstruction?.supportMessage || payment.transferInstructions}</p>
+                {(paymentInstruction?.transferNote || payment.transferReference) && (
                   <div className="p-4 bg-white rounded-xl border border-amber-100">
                     <p className="text-[10px] uppercase font-black tracking-widest text-muted-foreground mb-1">Transfer Reference / Code</p>
-                    <p className="text-lg font-mono font-black text-amber-900">{payment.transferReference}</p>
+                    <p className="text-lg font-mono font-black text-amber-900">{paymentInstruction?.transferNote || payment.transferReference}</p>
                   </div>
                 )}
                 <div className="flex items-start gap-3 text-xs text-amber-700 bg-amber-100/50 p-3 rounded-xl border border-amber-200/50">
@@ -194,10 +219,10 @@ export function PaymentDetailCard({ payment, onRefresh, isRefreshing }: PaymentD
             <h4 className="text-xs font-black uppercase tracking-widest text-muted-foreground">Payment Method</h4>
             <p className="text-sm font-bold capitalize">{payment.method}</p>
           </div>
-          {payment.transferReference && payment.status !== 'pending' && (
+          {(paymentInstruction?.transferNote || payment.transferReference) && payment.status !== 'pending' && (
             <div className="space-y-1 md:text-right">
               <h4 className="text-xs font-black uppercase tracking-widest text-muted-foreground">Transfer Reference</h4>
-              <p className="text-sm font-mono font-bold">{payment.transferReference}</p>
+              <p className="text-sm font-mono font-bold">{paymentInstruction?.transferNote || payment.transferReference}</p>
             </div>
           )}
           {payment.proofFileUrl && (
@@ -251,16 +276,21 @@ export function PaymentDetailCard({ payment, onRefresh, isRefreshing }: PaymentD
           </Button>
         )}
 
-        {payment.status === 'confirmed' && (
-          <Button className="font-bold rounded-xl" asChild>
-            <Link href={ROUTES.STUDENT.SESSIONS}>
-              Go to Sessions
+        {payment.status === 'confirmed' && session?.id && (
+          <Button className="font-bold gap-2" asChild>
+            <Link href={ROUTES.STUDENT.SESSION_DETAIL(session.id)}>
+              View Session
+              <BookOpen className="h-4 w-4" />
             </Link>
           </Button>
         )}
         
         {payment.status === 'confirmed' && (
-          <Button variant="outline" className="font-bold gap-2" disabled>
+          <Button 
+            variant="outline" 
+            className="font-bold gap-2 hover:bg-rose-50 hover:text-rose-600 hover:border-rose-200"
+            onClick={() => alert('Refund request flow coming soon')}
+          >
             <RotateCcw className="h-4 w-4" />
             Request Refund
           </Button>

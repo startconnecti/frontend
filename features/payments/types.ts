@@ -54,4 +54,30 @@ export interface PaymentFilters {
   page?: number;
 }
 
+export interface SessionSummary {
+  id: string;
+  status: string;
+  meetingStatus?: string | null;
+  meetingUrl?: string | null;
+  scheduledStartTime: string;
+  scheduledEndTime: string;
+}
+
+export interface PaymentDetail {
+  payment: Payment;
+  bookingSummary?: {
+    bookingId: string;
+    bookingCode: string;
+    subjectName: string;
+    startTime: string;
+    endTime: string;
+  } | null;
+  tutorSummary?: {
+    tutorProfileId: string;
+    tutorName: string;
+  } | null;
+  session?: SessionSummary | null;
+  paymentInstruction?: any | null;
+}
+
 export * from './types/index';

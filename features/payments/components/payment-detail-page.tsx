@@ -56,7 +56,7 @@ export function PaymentDetailPage() {
       </div>
 
       <PaymentDetailCard 
-        payment={payment} 
+        paymentDetail={payment} 
         onRefresh={() => refetch()} 
         isRefreshing={isLoading} 
       />
