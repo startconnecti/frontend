@@ -13,6 +13,7 @@ function normalizeTutorProfile(profile: any): TutorProfile {
     certificates: Array.isArray(p.certificates) ? p.certificates : [],
     hourlyRate: Number(p.hourlyRate) || 0,
     yearsOfExperience: Number(p.yearsOfExperience) || 0,
+    approvalStatus: p.status, // Add explicit mapping
   };
 }
 

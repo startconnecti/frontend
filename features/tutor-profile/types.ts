@@ -1,10 +1,25 @@
 export type ApprovalStatus = 'pending' | 'approved' | 'rejected' | 'suspended';
 export type ChangeRequestStatus = 'pending' | 'approved' | 'rejected' | 'cancelled';
 
+export interface TutorProfileSnapshotProfile {
+  bio: string;
+  experience_text: string;
+  years_of_experience: number;
+  hourly_rate: number;
+}
+
+export interface TutorProfileSnapshotCertification {
+  id?: string;
+  name: string;
+  issuer: string;
+  issuedAt: string;
+  certificateUrl: string;
+}
+
 export interface TutorProfileChangePayload {
-  type: string;
-  certificate_id?: string;
-  data?: any;
+  profile: TutorProfileSnapshotProfile;
+  subject_ids: string[];
+  certifications: TutorProfileSnapshotCertification[];
 }
 
 export interface TutorProfileChangeRequest {
@@ -23,6 +38,7 @@ export interface TutorCertificate {
   title: string;
   organization: string;
   year: number;
+  certificateUrl?: string;
 }
 
 export interface TutorProfile {

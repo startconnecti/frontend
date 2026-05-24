@@ -56,7 +56,7 @@ export function ChangeRequestsPage() {
   return (
     <PageContainer className="py-8 space-y-10 max-w-4xl">
       <div className="space-y-4">
-        <Link href="/tutor/settings/tutor-profile" className="inline-flex items-center gap-2 text-sm font-bold text-muted-foreground hover:text-primary transition-colors">
+        <Link href="/settings/tutor-profile" className="inline-flex items-center gap-2 text-sm font-bold text-muted-foreground hover:text-primary transition-colors">
           <ArrowLeft className="h-4 w-4" /> Back to Profile
         </Link>
         <SectionHeader 
@@ -103,7 +103,7 @@ export function ChangeRequestsPage() {
               <CardHeader className="bg-muted/5 border-b border-border/40 p-6 flex flex-row items-start justify-between gap-4">
                 <div className="space-y-1">
                   <CardTitle className="text-base font-black flex items-center gap-2">
-                    {request.changePayload.type === 'profile_update' ? 'Profile Update' : 'Certificate Update'}
+                    Profile Snapshot Update
                     {renderStatusBadge(request.status)}
                   </CardTitle>
                   <CardDescription className="text-xs font-medium">
@@ -130,8 +130,8 @@ export function ChangeRequestsPage() {
                 <div className="space-y-4">
                   <div>
                     <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-2">Payload Preview</p>
-                    <div className="bg-muted/10 rounded-xl p-4 text-sm font-mono text-muted-foreground break-words overflow-hidden">
-                      {JSON.stringify(request.changePayload.data, null, 2)}
+                    <div className="bg-muted/10 rounded-xl p-4 text-sm font-mono text-muted-foreground break-words overflow-hidden whitespace-pre-wrap">
+                      {JSON.stringify(request.changePayload, null, 2)}
                     </div>
                   </div>
                   

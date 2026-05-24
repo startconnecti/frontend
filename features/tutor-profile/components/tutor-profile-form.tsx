@@ -25,7 +25,6 @@ import { useAuthStore } from '@/stores/auth-store';
 import { toast } from 'sonner';
 import { useState } from 'react';
 import { useCreateTutorProfileMutation } from '../hooks/use-create-tutor-profile-mutation';
-import { useCreateTutorProfileChangeRequestMutation } from '../hooks/use-tutor-profile-change-requests';
 
 const tutorProfileSchema = z.object({
   bio: z.string().min(50, 'Bio must be at least 50 characters'),
@@ -38,16 +37,12 @@ const tutorProfileSchema = z.object({
 interface TutorProfileFormProps {
   initialData: TutorProfile | null;
   isCreating?: boolean;
-  hasPendingRequest?: boolean;
 }
 
-export function TutorProfileForm({ initialData, isCreating = false, hasPendingRequest = false }: TutorProfileFormProps) {
+export function TutorProfileForm({ initialData, isCreating = false }: TutorProfileFormProps) {
   const updateMutation = useUpdateTutorProfileMutation();
   const createMutation = useCreateTutorProfileMutation();
-  const changeRequestMutation = useCreateTutorProfileChangeRequestMutation();
   const currentUserId = useAuthStore((state) => state.user?.id);
-  
-  const isApprovedOrSuspended = initialData && ['approved', 'suspended'].includes(initialData.approvalStatus);
   
   const form = useForm<UpdateTutorProfileRequest>({
     resolver: zodResolver(tutorProfileSchema),
@@ -67,18 +62,6 @@ export function TutorProfileForm({ initialData, isCreating = false, hasPendingRe
         return;
       }
 
-      if (isApprovedOrSuspended && !isCreating) {
-        await changeRequestMutation.mutateAsync({
-          change_payload: {
-            type: 'profile_update',
-            data: values,
-          },
-          request_note: 'Updating profile details',
-        });
-        toast.success("Change request submitted successfully");
-        return;
-      }
-
       const payload = {
         ...values,
         tutorId: currentUserId,
@@ -95,20 +78,10 @@ export function TutorProfileForm({ initialData, isCreating = false, hasPendingRe
     }
   };
 
-  const isPending = updateMutation.isPending || createMutation.isPending || changeRequestMutation.isPending;
+  const isPending = updateMutation.isPending || createMutation.isPending;
 
   return (
     <div className="space-y-8">
-      {hasPendingRequest && (
-        <div className="bg-amber-50 border border-amber-200 text-amber-800 p-4 rounded-2xl flex items-start gap-3">
-          <Lock className="h-5 w-5 shrink-0 mt-0.5" />
-          <div>
-            <h4 className="font-bold">Pending Request Active</h4>
-            <p className="text-sm">You already have a pending change request awaiting admin review. Submissions are temporarily disabled until it is resolved.</p>
-          </div>
-        </div>
-      )}
-
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
           <Card className="border-border/60 shadow-sm rounded-3xl overflow-hidden">
@@ -246,26 +219,14 @@ export function TutorProfileForm({ initialData, isCreating = false, hasPendingRe
           )}
 
           <div className="flex justify-end pt-4 sticky bottom-8 z-20">
-            {hasPendingRequest ? (
-              <Button 
-                type="button" 
-                size="lg"
-                variant="secondary"
-                className="font-black px-12 h-14 text-lg rounded-2xl cursor-not-allowed opacity-80" 
-                disabled
-              >
-                Pending Request Active
-              </Button>
-            ) : (
-              <Button 
-                type="submit" 
-                size="lg"
-                className="font-black px-12 shadow-2xl shadow-primary/40 h-14 text-lg rounded-2xl transition-all active:scale-95" 
-                disabled={isPending || (!form.formState.isDirty && !isCreating)}
-              >
-                {isPending ? 'Submitting...' : isCreating ? 'Create Profile' : isApprovedOrSuspended ? 'Submit Change Request' : 'Update Profile'}
-              </Button>
-            )}
+            <Button 
+              type="submit" 
+              size="lg"
+              className="font-black px-12 shadow-2xl shadow-primary/40 h-14 text-lg rounded-2xl transition-all active:scale-95" 
+              disabled={isPending || (!form.formState.isDirty && !isCreating)}
+            >
+              {isPending ? 'Submitting...' : isCreating ? 'Create Profile' : 'Update Profile'}
+            </Button>
           </div>
         </form>
       </Form>
