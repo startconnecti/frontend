@@ -24,11 +24,9 @@ export const tutorProfileService = {
 
   async createTutorProfile(request: any): Promise<TutorProfile> {
     const payload = {
-      fullName: request.fullName,
-      phoneNumber: request.phoneNumber,
       bio: request.bio,
-      experienceText: request.experienceText,
-      hourlyRate: Number(request.hourlyRate),
+      experience_text: request.experienceText,
+      hourly_rate: Number(request.hourlyRate),
       subject_ids: Array.isArray(request.subjects)
         ? request.subjects.map((s: any) => typeof s === 'string' ? s : s.id || s)
         : [],

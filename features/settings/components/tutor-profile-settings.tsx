@@ -41,12 +41,10 @@ export function TutorProfileSettings() {
         </p>
       </div>
 
-      <TutorProfileApprovalBanner 
-        status={profile.approvalStatus} 
-        reviewNote={profile.reviewNote} 
+      <TutorProfileApprovalBanner
+        status={profile.approvalStatus}
+        reviewNote={profile.reviewNote}
       />
-
-      <TutorProfileSummaryCard profile={profile} />
 
       <TutorProfileForm initialData={profile} />
     </div>

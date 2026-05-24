@@ -5,7 +5,6 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { useTutorProfileQuery } from '../hooks/use-tutor-profile-query';
 import { useTutorProfileChangeRequestsQuery } from '../hooks/use-tutor-profile-change-requests';
 import { TutorProfileApprovalBanner } from './tutor-profile-approval-banner';
-import { TutorProfileSummaryCard } from './tutor-profile-summary-card';
 import { TutorProfileForm } from './tutor-profile-form';
 import { TutorProfileEmptyState } from './tutor-profile-empty-state';
 import { Button } from '@/components/ui/button';
@@ -58,11 +57,15 @@ export function TutorProfileManagementPage() {
           title="Tutor Profile Management"
           description="Curate your professional presence and maintain your teaching credentials."
         />
-        <Button variant="outline" className="gap-2 font-bold whitespace-nowrap shrink-0" asChild>
-          {/* Note: Ideally use ROUTES constant if it exists, otherwise fallback to path */}
+        <Button variant="outline" className="gap-2 font-bold whitespace-nowrap shrink-0 relative" asChild>
           <Link href="/tutor/settings/tutor-profile/change-requests">
             <History className="h-4 w-4" />
             View Change Requests
+            {hasPendingRequest && (
+              <span className="absolute -top-2 -right-2 flex h-5 w-5 items-center justify-center rounded-full bg-amber-500 text-[10px] text-white font-black shadow-sm">
+                {changeRequestsData.items.length}
+              </span>
+            )}
           </Link>
         </Button>
       </div>
@@ -73,8 +76,6 @@ export function TutorProfileManagementPage() {
             status={profile.approvalStatus} 
             reviewNote={profile.reviewNote} 
           />
-
-          <TutorProfileSummaryCard profile={profile} />
 
           <TutorProfileForm 
             initialData={profile} 

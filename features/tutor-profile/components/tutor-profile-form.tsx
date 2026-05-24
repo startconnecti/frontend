@@ -28,8 +28,6 @@ import { useCreateTutorProfileMutation } from '../hooks/use-create-tutor-profile
 import { useCreateTutorProfileChangeRequestMutation } from '../hooks/use-tutor-profile-change-requests';
 
 const tutorProfileSchema = z.object({
-  fullName: z.string().min(2, 'Name must be at least 2 characters'),
-  phoneNumber: z.string().min(10, 'Invalid phone number'),
   bio: z.string().min(50, 'Bio must be at least 50 characters'),
   experienceText: z.string().min(100, 'Experience text must be at least 100 characters'),
   yearsOfExperience: z.coerce.number().min(0),
@@ -50,15 +48,10 @@ export function TutorProfileForm({ initialData, isCreating = false, hasPendingRe
   const currentUserId = useAuthStore((state) => state.user?.id);
   
   const isApprovedOrSuspended = initialData && ['approved', 'suspended'].includes(initialData.approvalStatus);
-  const [isDraftMode, setIsDraftMode] = useState(false);
-  
-  const isReadonly = !isCreating && isApprovedOrSuspended && !isDraftMode;
   
   const form = useForm<UpdateTutorProfileRequest>({
     resolver: zodResolver(tutorProfileSchema),
     defaultValues: {
-      fullName: initialData?.fullName || '',
-      phoneNumber: initialData?.phoneNumber || '',
       bio: initialData?.bio || '',
       experienceText: initialData?.experienceText || '',
       yearsOfExperience: initialData?.yearsOfExperience || 0,
@@ -74,7 +67,7 @@ export function TutorProfileForm({ initialData, isCreating = false, hasPendingRe
         return;
       }
 
-      if (isDraftMode) {
+      if (isApprovedOrSuspended && !isCreating) {
         await changeRequestMutation.mutateAsync({
           change_payload: {
             type: 'profile_update',
@@ -82,7 +75,6 @@ export function TutorProfileForm({ initialData, isCreating = false, hasPendingRe
           },
           request_note: 'Updating profile details',
         });
-        setIsDraftMode(false);
         toast.success("Change request submitted successfully");
         return;
       }
@@ -111,37 +103,9 @@ export function TutorProfileForm({ initialData, isCreating = false, hasPendingRe
         <div className="bg-amber-50 border border-amber-200 text-amber-800 p-4 rounded-2xl flex items-start gap-3">
           <Lock className="h-5 w-5 shrink-0 mt-0.5" />
           <div>
-            <h4 className="font-bold">Pending Request</h4>
-            <p className="text-sm">You already have a pending change request awaiting admin review. You cannot make further edits until it is resolved.</p>
+            <h4 className="font-bold">Pending Request Active</h4>
+            <p className="text-sm">You already have a pending change request awaiting admin review. Submissions are temporarily disabled until it is resolved.</p>
           </div>
-        </div>
-      )}
-      
-      {!isCreating && isApprovedOrSuspended && !isDraftMode && !hasPendingRequest && (
-        <div className="bg-blue-50 border border-blue-100 text-blue-800 p-4 rounded-2xl flex items-start justify-between gap-3">
-          <div className="flex gap-3">
-            <Info className="h-5 w-5 shrink-0 mt-0.5" />
-            <div>
-              <h4 className="font-bold">Profile is Readonly</h4>
-              <p className="text-sm">Your profile is approved. Direct edits are disabled. If you need to update your details, you must submit a change request.</p>
-            </div>
-          </div>
-          <Button variant="outline" size="sm" className="bg-white" onClick={() => setIsDraftMode(true)}>
-            <Edit3 className="h-4 w-4 mr-2" /> Request Changes
-          </Button>
-        </div>
-      )}
-
-      {isDraftMode && (
-        <div className="bg-indigo-50 border border-indigo-100 text-indigo-800 p-4 rounded-2xl flex items-center justify-between gap-3">
-          <div className="flex gap-3">
-            <Edit3 className="h-5 w-5 shrink-0 mt-0.5" />
-            <div>
-              <h4 className="font-bold">Draft Mode Active</h4>
-              <p className="text-sm">You are preparing a change request. Submit when ready.</p>
-            </div>
-          </div>
-          <Button variant="ghost" size="sm" onClick={() => setIsDraftMode(false)}>Cancel Draft</Button>
         </div>
       )}
 
@@ -156,42 +120,15 @@ export function TutorProfileForm({ initialData, isCreating = false, hasPendingRe
             </CardHeader>
             <CardContent className="p-10 space-y-8">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <FormField
-                  control={form.control}
-                  name="fullName"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Full Name</FormLabel>
-                      <FormControl>
-                        <Input placeholder="Enter your full name" disabled={isReadonly || hasPendingRequest} {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
 
-                <FormField
-                  control={form.control}
-                  name="phoneNumber"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Phone Number</FormLabel>
-                      <FormControl>
-                        <Input placeholder="e.g. +84 901 234 567" disabled={isReadonly || hasPendingRequest} {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
+                  <FormField
                   control={form.control}
                   name="hourlyRate"
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Hourly Rate ($)</FormLabel>
                       <FormControl>
-                        <Input type="number" disabled={isReadonly || hasPendingRequest} {...field} />
+                        <Input type="number" {...field} />
                       </FormControl>
                       <FormDescription>This is your public rate per hour.</FormDescription>
                       <FormMessage />
@@ -206,7 +143,7 @@ export function TutorProfileForm({ initialData, isCreating = false, hasPendingRe
                     <FormItem>
                       <FormLabel>Years of Experience</FormLabel>
                       <FormControl>
-                        <Input type="number" disabled={isReadonly || hasPendingRequest} {...field} />
+                        <Input type="number" {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -224,7 +161,6 @@ export function TutorProfileForm({ initialData, isCreating = false, hasPendingRe
                       <Textarea 
                         placeholder="Tell students about yourself and your teaching style..." 
                         className="min-h-[120px] resize-none"
-                        disabled={isReadonly || hasPendingRequest}
                         {...field} 
                       />
                     </FormControl>
@@ -244,7 +180,6 @@ export function TutorProfileForm({ initialData, isCreating = false, hasPendingRe
                       <Textarea 
                         placeholder="Describe your background, methodologies, and successes..." 
                         className="min-h-[180px] resize-none"
-                        disabled={isReadonly || hasPendingRequest}
                         {...field} 
                       />
                     </FormControl>
@@ -310,18 +245,28 @@ export function TutorProfileForm({ initialData, isCreating = false, hasPendingRe
             </Card>
           )}
 
-          {!isReadonly && !hasPendingRequest && (
-            <div className="flex justify-end pt-4 sticky bottom-8 z-20">
+          <div className="flex justify-end pt-4 sticky bottom-8 z-20">
+            {hasPendingRequest ? (
+              <Button 
+                type="button" 
+                size="lg"
+                variant="secondary"
+                className="font-black px-12 h-14 text-lg rounded-2xl cursor-not-allowed opacity-80" 
+                disabled
+              >
+                Pending Request Active
+              </Button>
+            ) : (
               <Button 
                 type="submit" 
                 size="lg"
                 className="font-black px-12 shadow-2xl shadow-primary/40 h-14 text-lg rounded-2xl transition-all active:scale-95" 
                 disabled={isPending || (!form.formState.isDirty && !isCreating)}
               >
-                {isPending ? 'Submitting...' : isCreating ? 'Create Profile' : isDraftMode ? 'Submit Change Request' : 'Save & Submit Profile'}
+                {isPending ? 'Submitting...' : isCreating ? 'Create Profile' : isApprovedOrSuspended ? 'Submit Change Request' : 'Update Profile'}
               </Button>
-            </div>
-          )}
+            )}
+          </div>
         </form>
       </Form>
     </div>

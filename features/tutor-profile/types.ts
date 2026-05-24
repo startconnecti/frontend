@@ -44,8 +44,6 @@ export interface TutorProfile {
 }
 
 export interface UpdateTutorProfileRequest {
-  fullName: string;
-  phoneNumber: string;
   bio: string;
   experienceText: string;
   yearsOfExperience: number;
@@ -54,8 +52,6 @@ export interface UpdateTutorProfileRequest {
 }
 
 export interface CreateTutorProfileRequest {
-  fullName: string;
-  phoneNumber: string;
   bio: string;
   experienceText: string;
   yearsOfExperience: number;
