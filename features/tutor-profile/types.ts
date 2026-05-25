@@ -13,7 +13,9 @@ export interface TutorProfileSnapshotCertification {
   name: string;
   issuer: string;
   issuedAt: string;
-  certificateUrl: string;
+  certificateUrl?: string;
+  tempFileKey?: string;
+  file?: File;
 }
 
 export interface TutorProfileChangePayload {

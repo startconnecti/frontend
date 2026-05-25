@@ -25,6 +25,9 @@ import { useAuthStore } from '@/stores/auth-store';
 import { toast } from 'sonner';
 import { useState } from 'react';
 import { useCreateTutorProfileMutation } from '../hooks/use-create-tutor-profile-mutation';
+import { useSubjectsQuery } from '@/features/tutors/hooks/use-subjects-query';
+import { cn } from '@/lib/utils';
+import { Check } from 'lucide-react';
 
 const tutorProfileSchema = z.object({
   bio: z.string().min(50, 'Bio must be at least 50 characters'),
@@ -43,6 +46,7 @@ export function TutorProfileForm({ initialData, isCreating = false }: TutorProfi
   const updateMutation = useUpdateTutorProfileMutation();
   const createMutation = useCreateTutorProfileMutation();
   const currentUserId = useAuthStore((state) => state.user?.id);
+  const { data: availableSubjects = [] } = useSubjectsQuery();
   
   const form = useForm<UpdateTutorProfileRequest>({
     resolver: zodResolver(tutorProfileSchema),
@@ -164,27 +168,61 @@ export function TutorProfileForm({ initialData, isCreating = false }: TutorProfi
             </CardContent>
           </Card>
 
-          {/* Subjects (Simplified Preview/Edit) */}
+          {/* Subjects (Multi-select) */}
           <Card className="border-border/60 shadow-sm rounded-3xl overflow-hidden">
-            <CardHeader className="bg-muted/10 border-b border-border/40 p-6">
+            <CardHeader className="bg-muted/10 border-b border-border/40 p-6 flex flex-row items-center justify-between">
               <CardTitle className="text-lg font-black uppercase tracking-widest flex items-center gap-2" style={{ color: '#2C1208' }}>
                 <Badge className="bg-primary/10 text-primary hover:bg-primary/10 border-none">Subjects</Badge>
                 Expertise
               </CardTitle>
+              <span className="text-[10px] font-black text-primary bg-primary/10 px-2 py-0.5 rounded-full uppercase tracking-wider">
+                {(form.watch('subjects') || []).length} Selected
+              </span>
             </CardHeader>
             <CardContent className="p-10 space-y-4">
-              <div className="flex flex-wrap gap-2">
-                {(form.watch('subjects') || []).map((subject: any) => {
-                  const name = typeof subject === 'string' ? subject : subject?.name || '';
-                  const id = typeof subject === 'string' ? subject : subject?.id || '';
-                  return (
-                    <Badge key={id || name} variant="secondary" className="px-4 py-2 text-xs font-bold rounded-xl">
-                      {name}
-                    </Badge>
-                  );
-                })}
-              </div>
-              <p className="text-xs text-muted-foreground italic">Subject management is coming soon in the next update.</p>
+              <FormField
+                control={form.control}
+                name="subjects"
+                render={({ field }) => (
+                  <FormItem>
+                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                      {availableSubjects.map((subject) => {
+                        const currentSubjects = field.value || [];
+                        const isSelected = currentSubjects.some(
+                          (s: string | { id: string }) => (typeof s === 'string' ? s : s.id) === subject.id
+                        );
+
+                        return (
+                          <button
+                            key={subject.id}
+                            type="button"
+                            onClick={() => {
+                              const newValue = isSelected
+                                ? currentSubjects.filter((s: string | { id: string }) => (typeof s === 'string' ? s : s.id) !== subject.id)
+                                : [...currentSubjects, subject.id];
+                              field.onChange(newValue);
+                            }}
+                            className={cn(
+                              "flex items-center justify-between p-3.5 rounded-xl border text-sm font-bold text-left transition-all select-none hover:shadow-sm",
+                              isSelected
+                                ? "bg-primary/5 border-primary text-primary"
+                                : "bg-background border-border hover:bg-muted/30 text-muted-foreground hover:text-foreground"
+                            )}
+                          >
+                            <span className="truncate pr-2">{subject.name}</span>
+                            {isSelected && (
+                              <div className="h-4 w-4 rounded-full bg-primary flex items-center justify-center shrink-0">
+                                <Check className="h-2.5 w-2.5 text-primary-foreground stroke-[3]" />
+                              </div>
+                            )}
+                          </button>
+                        );
+                      })}
+                    </div>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
             </CardContent>
           </Card>
 
@@ -212,7 +250,7 @@ export function TutorProfileForm({ initialData, isCreating = false }: TutorProfi
                 </div>
                 <div className="flex items-center gap-2 p-4 rounded-xl bg-blue-50 border border-blue-100 text-blue-800">
                   <Info className="h-4 w-4 shrink-0" />
-                  <p className="text-xs font-medium">This change requires admin approval. Adding or modifying certificates will submit a change request instead of a direct mutation.</p>
+                  <p className="text-xs font-medium">Certificate management is only available via Change Requests once your profile is approved. For now, existing certificates are locked.</p>
                 </div>
               </CardContent>
             </Card>

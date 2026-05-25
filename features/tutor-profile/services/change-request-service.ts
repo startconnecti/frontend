@@ -5,7 +5,7 @@ import {
   ChangeRequestsListResponse 
 } from '../types';
 
-function normalizeChangeRequest(data: any): TutorProfileChangeRequest {
+function normalizeChangeRequest(data: Record<string, any>): TutorProfileChangeRequest {
   const req = data.changeRequest || data;
   return {
     id: req.id,
@@ -33,15 +33,12 @@ export const changeRequestService = {
     return normalizeChangeRequest(response);
   },
 
-  async createChangeRequest(payload: { change_payload: any; request_note?: string }): Promise<TutorProfileChangeRequest> {
+  async createChangeRequest(payload: FormData): Promise<TutorProfileChangeRequest> {
     const response = await api.post<any>('/api/v1/tutor/profile-change-requests', payload);
     return normalizeChangeRequest(response);
   },
 
-  async updateChangeRequest(id: string, payload: { change_payload: any; request_note?: string }): Promise<TutorProfileChangeRequest> {
-    const response = await api.put<any>(`/api/v1/tutor/profile-change-requests/${id}`, payload);
-    return normalizeChangeRequest(response);
-  },
+
 
   async deleteChangeRequest(id: string): Promise<void> {
     await api.delete(`/api/v1/tutor/profile-change-requests/${id}`);

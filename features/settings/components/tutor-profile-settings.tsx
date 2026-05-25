@@ -15,7 +15,15 @@ import Link from 'next/link';
 
 export function TutorProfileSettings() {
   const { data: profile, isLoading, isError, error } = useTutorProfileQuery();
-  const { data: changeRequestsData } = useTutorProfileChangeRequestsQuery({ status: 'pending', limit: 1 });
+  const isNotFound = isError && (error as any)?.response?.status === 404;
+  const isNoProfile = isNotFound || (!isLoading && !profile);
+  const isApprovedLike = profile?.approvalStatus === 'approved' || profile?.approvalStatus === 'suspended';
+  const canCreateDraft = isApprovedLike;
+
+  const { data: changeRequestsData } = useTutorProfileChangeRequestsQuery(
+    { status: 'pending', limit: 1 },
+    { enabled: !!profile && canCreateDraft }
+  );
   const [isDraftMode, setIsDraftMode] = useState(false);
 
   const hasPendingRequest = changeRequestsData?.items && changeRequestsData.items.length > 0;
@@ -30,9 +38,7 @@ export function TutorProfileSettings() {
     );
   }
 
-  const isNotFound = isError && (error as any)?.response?.status === 404;
-
-  if (isNotFound || (!isLoading && !profile)) {
+  if (isNoProfile) {
     return <TutorProfileEmptyState />;
   }
 
@@ -44,8 +50,6 @@ export function TutorProfileSettings() {
       </div>
     );
   }
-
-  const isApprovedOrSuspended = profile && ['approved', 'suspended'].includes(profile.approvalStatus);
 
   if (!profile) return null; // Satisfy TS
 
@@ -79,7 +83,7 @@ export function TutorProfileSettings() {
         reviewNote={profile.reviewNote}
       />
 
-      {isApprovedOrSuspended ? (
+      {canCreateDraft ? (
         isDraftMode ? (
           <TutorProfileDraftForm 
             initialData={profile} 

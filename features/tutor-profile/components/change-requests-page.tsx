@@ -129,13 +129,61 @@ export function ChangeRequestsPage() {
               <CardContent className="p-6 space-y-6">
                 <div className="space-y-4">
                   <div>
-                    <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-2">Payload Preview</p>
-                    <div className="bg-muted/10 rounded-xl p-4 text-sm font-mono text-muted-foreground break-words overflow-hidden whitespace-pre-wrap">
-                      {JSON.stringify(request.changePayload, null, 2)}
+                    <div className="bg-white border border-border/40 rounded-xl p-5 mb-4 shadow-sm">
+                      <h4 className="font-bold text-sm uppercase tracking-wider text-muted-foreground mb-3 flex items-center gap-2">
+                        <FileText className="h-4 w-4" /> Snapshot Payload
+                      </h4>
+                    
+                    {(() => {
+                      // Defensive mapping for backward compatibility and null safety
+                      const profile = request.changePayload?.profile || (request.changePayload as any); // Fallback to root payload for legacy
+                      const subjectIds = Array.isArray(request.changePayload?.subject_ids) ? request.changePayload.subject_ids : [];
+                      const certifications = Array.isArray(request.changePayload?.certifications) ? request.changePayload.certifications : [];
+                      
+                      return (
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                          <div>
+                            <p className="font-bold text-brand-dark mb-1">Profile Info</p>
+                            <ul className="list-disc list-inside space-y-1 ml-1 text-xs">
+                              {profile?.hourly_rate !== undefined && profile?.hourly_rate !== null && <li>Hourly Rate: ${profile.hourly_rate}</li>}
+                              {profile?.years_of_experience !== undefined && profile?.years_of_experience !== null && <li>Experience: {profile.years_of_experience} years</li>}
+                              {profile?.bio && <li>Bio updated</li>}
+                            </ul>
+                          </div>
+                          
+                          <div>
+                            <p className="font-bold text-brand-dark mb-1">Subjects</p>
+                            <p className="text-xs ml-1">{subjectIds.length} subjects assigned</p>
+                          </div>
+
+                          {certifications.length > 0 && (
+                            <div>
+                              <p className="font-bold text-brand-dark mb-1">Certifications</p>
+                              <p className="text-xs ml-1">{certifications.length} certificates included</p>
+                              <ul className="list-disc list-inside space-y-1 ml-1 mt-1 text-xs">
+                                {certifications.map((cert: import('../types').TutorProfileSnapshotCertification, i: number) => (
+                                  <li key={i}>{cert.name} ({cert.issuer}) {cert.tempFileKey && <span className="text-emerald-600 font-medium ml-1">New Upload</span>} {!cert.id && !cert.tempFileKey && <span className="text-blue-600 font-medium ml-1">New Draft</span>}</li>
+                                ))}
+                              </ul>
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })()}
                     </div>
                   </div>
+
+                  {request.requestNote && (
+                    <div className="bg-blue-50 border border-blue-100 rounded-xl p-4 flex gap-3">
+                      <FileText className="h-5 w-5 text-blue-500 shrink-0 mt-0.5" />
+                      <div>
+                        <p className="text-xs font-bold uppercase tracking-wider text-blue-800 mb-1">My Note</p>
+                        <p className="text-sm text-blue-700">{request.requestNote}</p>
+                      </div>
+                    </div>
+                  )}
                   
-                  {request.adminNote && (
+                  {request.adminNote && request.status === 'rejected' && (
                     <div className="bg-rose-50 border border-rose-100 rounded-xl p-4 flex gap-3">
                       <AlertCircle className="h-5 w-5 text-rose-500 shrink-0 mt-0.5" />
                       <div>

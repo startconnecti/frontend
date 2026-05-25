@@ -2,7 +2,7 @@
 
 import { usePathname } from 'next/navigation';
 import Link from 'next/link';
-import { User, Lock, BookOpen } from 'lucide-react';
+import { User, Lock, BookOpen, History } from 'lucide-react';
 import { PageContainer, SectionHeader } from '@/components/shared';
 import { cn } from '@/lib/utils';
 import { useAuthStore } from '@/stores/auth-store';
@@ -33,6 +33,11 @@ export function SettingsLayout({ children }: SettingsLayoutProps) {
       label: 'Tutor Profile',
       href: '/settings/tutor-profile',
       icon: BookOpen,
+    });
+    navItems.push({
+      label: 'Change Requests',
+      href: '/settings/tutor-profile/change-requests',
+      icon: History,
     });
   }
 
