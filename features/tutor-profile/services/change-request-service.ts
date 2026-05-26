@@ -6,9 +6,9 @@ import {
 } from '../types';
 
 function normalizeChangeRequest(data: Record<string, any>): TutorProfileChangeRequest {
-  const req = data.changeRequest || data;
+  const req = data.request || data.changeRequest || data;
   return {
-    id: req.id,
+    id: req.requestId || req.id,
     tutorProfileId: req.tutorProfileId || req.tutorId,
     status: req.status,
     changePayload: req.changePayload || req.change_payload,

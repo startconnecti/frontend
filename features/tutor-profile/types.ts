@@ -3,9 +3,12 @@ export type ChangeRequestStatus = 'pending' | 'approved' | 'rejected' | 'cancell
 
 export interface TutorProfileSnapshotProfile {
   bio: string;
-  experience_text: string;
-  years_of_experience: number;
-  hourly_rate: number;
+  experience_text?: string;
+  experienceText?: string;
+  years_of_experience?: number;
+  yearsOfExperience?: number;
+  hourly_rate?: number;
+  hourlyRate?: number;
 }
 
 export interface TutorProfileSnapshotCertification {
@@ -21,6 +24,7 @@ export interface TutorProfileSnapshotCertification {
 export interface TutorProfileChangePayload {
   profile: TutorProfileSnapshotProfile;
   subject_ids: string[];
+  subjects?: Array<{id: string; name: string}>;
   certifications: TutorProfileSnapshotCertification[];
 }
 
@@ -33,6 +37,7 @@ export interface TutorProfileChangeRequest {
   adminNote?: string;
   createdAt: string;
   updatedAt: string;
+  reviewedAt?: string;
 }
 
 export interface TutorCertificate {

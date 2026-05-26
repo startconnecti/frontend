@@ -13,6 +13,14 @@ export function useTutorProfileChangeRequestsQuery(params?: GetChangeRequestsPar
   });
 }
 
+export function useTutorProfileChangeRequestDetailQuery(id: string) {
+  return useQuery({
+    queryKey: [...TUTOR_PROFILE_CHANGE_REQUESTS_KEY, 'detail', id],
+    queryFn: () => changeRequestService.getChangeRequest(id),
+    enabled: !!id && id !== 'undefined',
+  });
+}
+
 export function useCreateTutorProfileChangeRequestMutation() {
   const queryClient = useQueryClient();
   

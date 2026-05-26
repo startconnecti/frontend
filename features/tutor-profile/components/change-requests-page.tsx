@@ -114,17 +114,24 @@ export function ChangeRequestsPage() {
                     })}
                   </CardDescription>
                 </div>
-                {request.status === 'pending' && (
-                  <Button 
-                    variant="outline" 
-                    size="sm" 
-                    className="text-rose-600 border-rose-200 hover:bg-rose-50"
-                    onClick={() => handleCancel(request.id)}
-                    disabled={cancelMutation.isPending}
-                  >
-                    Cancel Request
+                <div className="flex items-center gap-2">
+                  <Button variant="secondary" size="sm" asChild>
+                    <Link href={`/settings/tutor-profile/change-requests/${request.id}`}>
+                      View Details
+                    </Link>
                   </Button>
-                )}
+                  {request.status === 'pending' && (
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      className="text-rose-600 border-rose-200 hover:bg-rose-50"
+                      onClick={() => handleCancel(request.id)}
+                      disabled={cancelMutation.isPending}
+                    >
+                      Cancel Request
+                    </Button>
+                  )}
+                </div>
               </CardHeader>
               <CardContent className="p-6 space-y-6">
                 <div className="space-y-4">

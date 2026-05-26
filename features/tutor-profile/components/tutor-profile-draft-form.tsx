@@ -3,7 +3,7 @@
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage, FormDescription } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -60,6 +60,42 @@ export function TutorProfileDraftForm({ initialData, onCancel }: TutorProfileDra
       subjects: initialData.subjects?.map((s: string | { id: string }) => typeof s === 'string' ? s : s.id) || [],
     },
   });
+
+  // Preload snapshot values if editing an existing request
+  useEffect(() => {
+    const editPayloadRaw = sessionStorage.getItem('editSnapshotPayload');
+    if (editPayloadRaw) {
+      try {
+        const editPayload = JSON.parse(editPayloadRaw);
+        sessionStorage.removeItem('editSnapshotPayload'); // clear immediately
+
+        if (editPayload.profile) {
+          form.setValue('bio', editPayload.profile.bio || '');
+          form.setValue('experienceText', editPayload.profile.experience_text ?? editPayload.profile.experienceText ?? '');
+          form.setValue('yearsOfExperience', editPayload.profile.years_of_experience ?? editPayload.profile.yearsOfExperience ?? 0);
+          form.setValue('hourlyRate', editPayload.profile.hourly_rate ?? editPayload.profile.hourlyRate ?? 0);
+        }
+
+        const subjects = editPayload.subjects || editPayload.subject_ids;
+        if (subjects && Array.isArray(subjects)) {
+          form.setValue('subjects', subjects.map((s: any) => typeof s === 'string' ? s : s.id));
+        }
+
+        if (editPayload.certifications && Array.isArray(editPayload.certifications)) {
+          // Map certifications
+          setLocalCertifications(editPayload.certifications.map((cert: any) => ({
+            id: cert.id,
+            name: cert.name,
+            issuer: cert.issuer,
+            issuedAt: cert.issuedAt,
+            certificateUrl: cert.certificateUrl || cert.url || cert.fileUrl || '',
+          })));
+        }
+      } catch (e) {
+        console.error('Failed to parse edit payload', e);
+      }
+    }
+  }, [form]);
 
   const onSubmit = async (values: DraftFormValues) => {
     try {
