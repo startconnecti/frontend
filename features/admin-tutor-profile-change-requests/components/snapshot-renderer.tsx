@@ -2,27 +2,12 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { ExternalLink, FileText, ImageIcon } from 'lucide-react';
 import Link from 'next/link';
-import { useAdminSubjectsQuery } from '@/features/admin-subjects';
-import { useMemo } from 'react';
 
 interface SnapshotRendererProps {
   payload: any;
 }
 
 export function SnapshotRenderer({ payload }: SnapshotRendererProps) {
-  // Fetch subjects to map UUIDs to Names
-  const { data: subjectsData } = useAdminSubjectsQuery({ limit: 1000 });
-
-  const subjectMap = useMemo(() => {
-    const map = new Map<string, string>();
-    if (subjectsData?.items) {
-      subjectsData.items.forEach((subject) => {
-        map.set(subject.id, subject.name);
-      });
-    }
-    return map;
-  }, [subjectsData]);
-
   if (!payload || typeof payload !== 'object') {
     return (
       <div className="text-muted-foreground italic">
@@ -32,7 +17,8 @@ export function SnapshotRenderer({ payload }: SnapshotRendererProps) {
   }
 
   const profile = payload.profile || {};
-  const subjects = Array.isArray(payload.subject_ids) ? payload.subject_ids : [];
+  const subjectsSnapshot = Array.isArray(payload.subjects) ? payload.subjects : [];
+  const subjectIds = Array.isArray(payload.subject_ids) ? payload.subject_ids : [];
   const certifications = Array.isArray(payload.certifications) ? payload.certifications : [];
 
   return (
@@ -78,16 +64,21 @@ export function SnapshotRenderer({ payload }: SnapshotRendererProps) {
           <CardTitle>Requested Subjects</CardTitle>
         </CardHeader>
         <CardContent>
-          {subjects.length > 0 ? (
+          {subjectsSnapshot.length > 0 ? (
             <div className="flex flex-wrap gap-2">
-              {subjects.map((subjectId: string, idx: number) => {
-                const subjectName = subjectMap.get(subjectId);
-                return (
-                  <Badge key={idx} variant="secondary">
-                    {subjectName ?? subjectId}
-                  </Badge>
-                );
-              })}
+              {subjectsSnapshot.map((subject: any, idx: number) => (
+                <Badge key={idx} variant="secondary">
+                  {subject.name ?? subject.id}
+                </Badge>
+              ))}
+            </div>
+          ) : subjectIds.length > 0 ? (
+            <div className="flex flex-wrap gap-2">
+              {subjectIds.map((subjectId: string, idx: number) => (
+                <Badge key={idx} variant="secondary">
+                  {subjectId}
+                </Badge>
+              ))}
             </div>
           ) : (
             <div className="text-muted-foreground italic">No subjects requested.</div>
