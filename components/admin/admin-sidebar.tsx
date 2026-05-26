@@ -4,23 +4,24 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useState, useEffect } from 'react';
-import { 
-  LayoutDashboard, 
-  Users, 
-  UserCheck, 
-  MessageSquare, 
-  BookOpen, 
-  Calendar, 
-  Video, 
-  CreditCard, 
-  Undo, 
-  Banknote, 
-  AlertTriangle, 
-  Bell, 
-  Shield, 
-  Key, 
-  FileText, 
+import {
+  LayoutDashboard,
+  Users,
+  UserCheck,
+  MessageSquare,
+  BookOpen,
+  Calendar,
+  Video,
+  CreditCard,
+  Undo,
+  Banknote,
+  AlertTriangle,
+  Bell,
+  Shield,
+  Key,
+  FileText,
   Settings,
+  ClipboardCheck,
   ChevronDown,
   ChevronRight
 } from 'lucide-react';
@@ -39,6 +40,7 @@ const navigationGroups = [
     items: [
       { label: 'Users', href: ADMIN_ROUTES.USERS, icon: Users },
       { label: 'Tutor Approval', href: ADMIN_ROUTES.TUTORS, icon: UserCheck },
+      { label: 'Profile Change Requests', href: ADMIN_ROUTES.TUTOR_PROFILE_CHANGE_REQUESTS, icon: ClipboardCheck },
       { label: 'Conversations', href: ADMIN_ROUTES.CONVERSATIONS, icon: MessageSquare },
     ]
   },
@@ -83,7 +85,7 @@ export function SidebarContent() {
   useEffect(() => {
     const newOpenGroups: Record<string, boolean> = { ...openGroups };
     navigationGroups.forEach(group => {
-      const isGroupActive = group.items.some(item => 
+      const isGroupActive = group.items.some(item =>
         pathname === item.href || (item.href !== ADMIN_ROUTES.DASHBOARD && pathname.startsWith(item.href))
       );
       if (isGroupActive) {
@@ -138,11 +140,10 @@ export function SidebarContent() {
                   <Link
                     key={item.href}
                     href={item.href}
-                    className={`flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors ${
-                      isActive
-                        ? 'bg-primary/10 text-primary'
-                        : 'text-foreground hover:bg-muted'
-                    }`}
+                    className={`flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors ${isActive
+                      ? 'bg-primary/10 text-primary'
+                      : 'text-foreground hover:bg-muted'
+                      }`}
                   >
                     <Icon className="h-4 w-4" />
                     <span>{item.label}</span>

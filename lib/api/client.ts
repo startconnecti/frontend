@@ -112,12 +112,16 @@ function createFallbackApiError(data: unknown, status: number): ApiError {
   );
 }
 
+function isFormData(val: unknown): val is FormData {
+  return typeof val === 'object' && val !== null && typeof (val as any).append === 'function';
+}
+
 function serializeBody(body: RequestBody | undefined): BodyInit | undefined {
   if (body === undefined) {
     return undefined;
   }
 
-  if (typeof body === 'string' || body instanceof FormData) {
+  if (typeof body === 'string' || isFormData(body)) {
     return body;
   }
 
@@ -137,7 +141,7 @@ export async function request<T>(
 
   if (
     restOptions.body !== undefined &&
-    !(restOptions.body instanceof FormData) &&
+    !isFormData(restOptions.body) &&
     !headers.has('Content-Type')
   ) {
     headers.set('Content-Type', 'application/json');

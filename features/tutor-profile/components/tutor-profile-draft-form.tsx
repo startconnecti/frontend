@@ -64,7 +64,7 @@ export function TutorProfileDraftForm({ initialData, onCancel }: TutorProfileDra
   const onSubmit = async (values: DraftFormValues) => {
     try {
       await changeRequestMutation.mutateAsync({
-        change_payload: {
+        snapshot: {
           profile: {
             bio: values.bio,
             experience_text: values.experienceText,

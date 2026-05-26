@@ -12,6 +12,10 @@ export const ADMIN_ROUTES = {
   TUTOR_EDIT: (id: string) => `/admin/tutors/${id}/edit`,
   TUTOR_CREATE: '/admin/tutors/create',
 
+  TUTOR_PROFILE_CHANGE_REQUESTS: '/admin/tutor-profile-change-requests',
+
+  TUTOR_PROFILE_CHANGE_REQUEST_DETAIL: (id: string) => `/admin/tutor-profile-change-requests/${id}`,
+
   BOOKINGS: '/admin/bookings',
   BOOKING_DETAIL: (id: string) => `/admin/bookings/${id}`,
 

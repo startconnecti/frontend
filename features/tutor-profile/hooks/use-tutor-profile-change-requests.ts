@@ -17,9 +17,9 @@ export function useCreateTutorProfileChangeRequestMutation() {
   const queryClient = useQueryClient();
   
   return useMutation({
-    mutationFn: (payload: { change_payload: DraftSnapshotPayload; request_note?: string }) => {
+    mutationFn: (payload: { snapshot: DraftSnapshotPayload; request_note?: string }) => {
       // The mapper layer structurally validates and builds the EXACT multipart FormData payload
-      const formData = buildTutorProfileSnapshotPayload(payload.change_payload, payload.request_note);
+      const formData = buildTutorProfileSnapshotPayload(payload.snapshot, payload.request_note);
       return changeRequestService.createChangeRequest(formData);
     },
     onSuccess: () => {
