@@ -37,6 +37,22 @@ export function useCreateTutorProfileChangeRequestMutation() {
   });
 }
 
+export function useUpdateTutorProfileChangeRequestMutation() {
+  const queryClient = useQueryClient();
+  
+  return useMutation({
+    mutationFn: ({ id, payload }: { id: string, payload: { snapshot: DraftSnapshotPayload; request_note?: string } }) => {
+      const formData = buildTutorProfileSnapshotPayload(payload.snapshot, payload.request_note);
+      return changeRequestService.updateChangeRequest(id, formData);
+    },
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: TUTOR_PROFILE_CHANGE_REQUESTS_KEY });
+      queryClient.invalidateQueries({ queryKey: [...TUTOR_PROFILE_CHANGE_REQUESTS_KEY, 'detail', variables.id] });
+      queryClient.invalidateQueries({ queryKey: ['tutor-profile'] });
+    },
+  });
+}
+
 export function useCancelTutorProfileChangeRequestMutation() {
   const queryClient = useQueryClient();
   

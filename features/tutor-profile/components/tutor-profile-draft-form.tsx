@@ -3,16 +3,16 @@
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
-import { useState, useEffect } from 'react';
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage, FormDescription } from '@/components/ui/form';
+import { useState } from 'react';
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { TutorProfile, TutorProfileSnapshotCertification } from '../types';
-import { useCreateTutorProfileChangeRequestMutation } from '../hooks/use-tutor-profile-change-requests';
+import { useCreateTutorProfileChangeRequestMutation, useUpdateTutorProfileChangeRequestMutation } from '../hooks/use-tutor-profile-change-requests';
 import { Badge } from '@/components/ui/badge';
-import { Info, GraduationCap, X, Plus, Upload, Check } from 'lucide-react';
+import { Info, GraduationCap, X, Upload, Check, Pencil } from 'lucide-react';
 import { toast } from 'sonner';
 import { useSubjectsQuery } from '@/features/tutors/hooks/use-subjects-query';
 import { cn } from '@/lib/utils';
@@ -24,17 +24,21 @@ const tutorProfileDraftSchema = z.object({
   yearsOfExperience: z.coerce.number().min(0),
   hourlyRate: z.coerce.number().min(1),
   subjects: z.array(z.string()).min(1, 'At least one subject is required'),
+  requestNote: z.string().optional(),
 });
 
 type DraftFormValues = z.infer<typeof tutorProfileDraftSchema>;
 
 interface TutorProfileDraftFormProps {
   initialData: TutorProfile;
+  editRequestId?: string;
+  initialRequestNote?: string;
   onCancel: () => void;
 }
 
-export function TutorProfileDraftForm({ initialData, onCancel }: TutorProfileDraftFormProps) {
-  const changeRequestMutation = useCreateTutorProfileChangeRequestMutation();
+export function TutorProfileDraftForm({ initialData, editRequestId, initialRequestNote, onCancel }: TutorProfileDraftFormProps) {
+  const createMutation = useCreateTutorProfileChangeRequestMutation();
+  const updateMutation = useUpdateTutorProfileChangeRequestMutation();
   const { data: availableSubjects = [] } = useSubjectsQuery();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [replacingCertIndex, setReplacingCertIndex] = useState<number | null>(null);
@@ -50,6 +54,8 @@ export function TutorProfileDraftForm({ initialData, onCancel }: TutorProfileDra
     }))
   );
 
+  const isEditMode = !!editRequestId;
+
   const form = useForm<DraftFormValues>({
     resolver: zodResolver(tutorProfileDraftSchema),
     defaultValues: {
@@ -58,48 +64,15 @@ export function TutorProfileDraftForm({ initialData, onCancel }: TutorProfileDra
       yearsOfExperience: initialData.yearsOfExperience || 0,
       hourlyRate: initialData.hourlyRate || 0,
       subjects: initialData.subjects?.map((s: string | { id: string }) => typeof s === 'string' ? s : s.id) || [],
+      requestNote: initialRequestNote || '',
     },
   });
 
-  // Preload snapshot values if editing an existing request
-  useEffect(() => {
-    const editPayloadRaw = sessionStorage.getItem('editSnapshotPayload');
-    if (editPayloadRaw) {
-      try {
-        const editPayload = JSON.parse(editPayloadRaw);
-        sessionStorage.removeItem('editSnapshotPayload'); // clear immediately
-
-        if (editPayload.profile) {
-          form.setValue('bio', editPayload.profile.bio || '');
-          form.setValue('experienceText', editPayload.profile.experience_text ?? editPayload.profile.experienceText ?? '');
-          form.setValue('yearsOfExperience', editPayload.profile.years_of_experience ?? editPayload.profile.yearsOfExperience ?? 0);
-          form.setValue('hourlyRate', editPayload.profile.hourly_rate ?? editPayload.profile.hourlyRate ?? 0);
-        }
-
-        const subjects = editPayload.subjects || editPayload.subject_ids;
-        if (subjects && Array.isArray(subjects)) {
-          form.setValue('subjects', subjects.map((s: any) => typeof s === 'string' ? s : s.id));
-        }
-
-        if (editPayload.certifications && Array.isArray(editPayload.certifications)) {
-          // Map certifications
-          setLocalCertifications(editPayload.certifications.map((cert: any) => ({
-            id: cert.id,
-            name: cert.name,
-            issuer: cert.issuer,
-            issuedAt: cert.issuedAt,
-            certificateUrl: cert.certificateUrl || cert.url || cert.fileUrl || '',
-          })));
-        }
-      } catch (e) {
-        console.error('Failed to parse edit payload', e);
-      }
-    }
-  }, [form]);
+  const isPending = createMutation.isPending || updateMutation.isPending;
 
   const onSubmit = async (values: DraftFormValues) => {
     try {
-      await changeRequestMutation.mutateAsync({
+      const payload = {
         snapshot: {
           profile: {
             bio: values.bio,
@@ -115,18 +88,26 @@ export function TutorProfileDraftForm({ initialData, onCancel }: TutorProfileDra
             issuedAt: cert.issuedAt,
             certificateUrl: cert.certificateUrl,
             tempFileKey: cert.file ? cert.tempFileKey : undefined,
-            file: cert.file, // Passed down to mutation layer which strips it
+            file: cert.file,
           })),
         },
-        request_note: 'Unified snapshot change request',
-      });
-      toast.success("Change request submitted successfully");
+        request_note: values.requestNote || undefined,
+      };
+
+      if (editRequestId) {
+        await updateMutation.mutateAsync({ id: editRequestId, payload });
+        toast.success('Change request updated successfully');
+      } else {
+        await createMutation.mutateAsync(payload);
+        toast.success('Change request submitted successfully');
+      }
+      
       onCancel();
-    } catch (error: any) {
+    } catch (error: unknown) {
       if (error instanceof Error) {
         toast.error(error.message);
       } else {
-        toast.error("Failed to submit change request");
+        toast.error('Failed to submit change request');
       }
     }
   };
@@ -192,14 +173,18 @@ export function TutorProfileDraftForm({ initialData, onCancel }: TutorProfileDra
     <div className="space-y-8">
       <div className="bg-amber-50 border border-amber-200 text-amber-800 p-4 rounded-2xl flex items-center justify-between gap-3 shadow-sm">
         <div className="flex gap-3">
-          <Info className="h-5 w-5 shrink-0 mt-0.5" />
+          {isEditMode ? <Pencil className="h-5 w-5 shrink-0 mt-0.5" /> : <Info className="h-5 w-5 shrink-0 mt-0.5" />}
           <div>
-            <h4 className="font-bold">Draft Mode Active</h4>
-            <p className="text-sm">Changes made here will be packaged into a single change request for admin review.</p>
+            <h4 className="font-bold">{isEditMode ? 'Editing Pending Request' : 'Draft Mode Active'}</h4>
+            <p className="text-sm">
+              {isEditMode
+                ? 'Your changes will update the existing pending request. The same request ID is preserved.'
+                : 'Changes made here will be packaged into a single change request for admin review.'}
+            </p>
           </div>
         </div>
         <Button variant="outline" size="sm" onClick={onCancel} className="bg-white border-amber-200 text-amber-700 hover:bg-amber-100">
-          Cancel Draft
+          {isEditMode ? 'Discard Changes' : 'Cancel Draft'}
         </Button>
       </div>
 
@@ -432,14 +417,45 @@ export function TutorProfileDraftForm({ initialData, onCancel }: TutorProfileDra
             </CardContent>
           </Card>
 
+          {/* Request Note */}
+          <Card className="border-border/60 shadow-sm rounded-3xl overflow-hidden bg-white">
+            <CardHeader className="bg-muted/10 border-b border-border/40 p-6">
+              <CardTitle className="text-lg font-black uppercase tracking-widest flex items-center gap-2" style={{ color: '#2C1208' }}>
+                <Info className="h-5 w-5 text-primary" />
+                Note to Admin
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="p-10">
+              <FormField
+                control={form.control}
+                name="requestNote"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Optional note for the reviewer</FormLabel>
+                    <FormControl>
+                      <Textarea
+                        placeholder="Explain what you changed and why..."
+                        className="min-h-[80px] resize-none"
+                        {...field}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </CardContent>
+          </Card>
+
           <div className="flex justify-end pt-4 sticky bottom-8 z-20">
             <Button 
               type="submit" 
               size="lg"
               className="font-black px-12 shadow-2xl shadow-primary/40 h-14 text-lg rounded-2xl transition-all active:scale-95" 
-              disabled={changeRequestMutation.isPending}
+              disabled={isPending}
             >
-              {changeRequestMutation.isPending ? 'Submitting...' : 'Submit Change Request Snapshot'}
+              {isPending
+                ? (isEditMode ? 'Updating...' : 'Submitting...')
+                : (isEditMode ? 'Save Changes' : 'Submit Change Request')}
             </Button>
           </div>
         </form>

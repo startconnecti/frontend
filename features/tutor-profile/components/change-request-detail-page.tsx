@@ -27,23 +27,8 @@ export function ChangeRequestDetailPage({ id }: { id: string }) {
     }
   };
 
-  const handleEdit = async () => {
-    if (!window.confirm("To edit this request, your current pending request will be cancelled and reopened as a draft. You may need to re-upload your new certificate files. Do you wish to continue?")) return;
-    
-    try {
-      // 1. Store snapshot payload in session storage to preload form
-      const payloadToStore = request?.changePayload || (request as any)?.change_payload || {};
-      sessionStorage.setItem('editSnapshotPayload', JSON.stringify(payloadToStore));
-      
-      // 2. Cancel the existing pending request (backend fallback)
-      await cancelMutation.mutateAsync(id);
-      
-      // 3. Navigate back to the settings form to recreate the request
-      router.push('/settings/tutor-profile?editMode=true');
-    } catch (err) {
-      toast.error('Failed to prepare edit session. Please try again.');
-      sessionStorage.removeItem('editSnapshotPayload');
-    }
+  const handleEdit = () => {
+    router.push(`/settings/tutor-profile/change-requests/${id}/edit`);
   };
 
   const renderStatusBadge = (status: string) => {
@@ -148,7 +133,6 @@ export function ChangeRequestDetailPage({ id }: { id: string }) {
                 <Button 
                   variant="outline"
                   onClick={handleEdit}
-                  disabled={cancelMutation.isPending}
                   className="bg-white"
                 >
                   Edit Request
@@ -211,7 +195,7 @@ export function ChangeRequestDetailPage({ id }: { id: string }) {
                   <p className="text-xs font-bold text-muted-foreground mb-1 uppercase tracking-wider">Hourly Rate</p>
                   <p className="font-medium text-base">
                     {(typeof profile.hourly_rate === 'number' && !isNaN(profile.hourly_rate)) || (typeof profile.hourlyRate === 'number' && !isNaN(profile.hourlyRate))
-                      ? `${(profile.hourly_rate ?? profile.hourlyRate).toLocaleString()} VND / hr` 
+                      ? `${(profile.hourly_rate ?? profile.hourlyRate ?? 0).toLocaleString()} VND / hr`
                       : 'Not specified'}
                   </p>
                 </div>

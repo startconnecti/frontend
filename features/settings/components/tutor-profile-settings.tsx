@@ -10,7 +10,7 @@ import { TutorProfileDraftForm } from '@/features/tutor-profile/components/tutor
 import { Skeleton } from '@/components/ui/skeleton';
 import { BookOpen, History, Lock, Edit3 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import Link from 'next/link';
 
 export function TutorProfileSettings() {
@@ -27,17 +27,6 @@ export function TutorProfileSettings() {
   const [isDraftMode, setIsDraftMode] = useState(false);
 
   const hasPendingRequest = changeRequestsData?.items && changeRequestsData.items.length > 0;
-
-  useEffect(() => {
-    if (typeof window !== 'undefined') {
-      const params = new URLSearchParams(window.location.search);
-      if (params.get('editMode') === 'true') {
-        setIsDraftMode(true);
-        // Clean up URL without triggering reload
-        window.history.replaceState({}, '', window.location.pathname);
-      }
-    }
-  }, []);
 
   if (isLoading) {
     return (

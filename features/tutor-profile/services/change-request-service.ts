@@ -38,6 +38,11 @@ export const changeRequestService = {
     return normalizeChangeRequest(response);
   },
 
+  async updateChangeRequest(id: string, payload: FormData): Promise<TutorProfileChangeRequest> {
+    const response = await api.put<any>(`/api/v1/tutor/profile-change-requests/${id}`, payload);
+    return normalizeChangeRequest(response);
+  },
+
 
 
   async deleteChangeRequest(id: string): Promise<void> {

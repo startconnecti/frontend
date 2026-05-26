@@ -6,7 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Skeleton } from '@/components/ui/skeleton';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Clock, CheckCircle2, XCircle, FileText, Ban, AlertCircle, ArrowLeft } from 'lucide-react';
+import { Clock, CheckCircle2, XCircle, FileText, Ban, AlertCircle, ArrowLeft, Pencil } from 'lucide-react';
 import Link from 'next/link';
 import { toast } from 'sonner';
 
@@ -15,10 +15,11 @@ export function ChangeRequestsPage() {
   const cancelMutation = useCancelTutorProfileChangeRequestMutation();
 
   const handleCancel = async (id: string) => {
+    if (!window.confirm('Are you sure you want to cancel this pending request?')) return;
     try {
       await cancelMutation.mutateAsync(id);
       toast.success('Change request cancelled successfully');
-    } catch (err) {
+    } catch {
       toast.error('Failed to cancel change request');
     }
   };
@@ -121,15 +122,23 @@ export function ChangeRequestsPage() {
                     </Link>
                   </Button>
                   {request.status === 'pending' && (
-                    <Button 
-                      variant="outline" 
-                      size="sm" 
-                      className="text-rose-600 border-rose-200 hover:bg-rose-50"
-                      onClick={() => handleCancel(request.id)}
-                      disabled={cancelMutation.isPending}
-                    >
-                      Cancel Request
-                    </Button>
+                    <>
+                      <Button variant="outline" size="sm" asChild>
+                        <Link href={`/settings/tutor-profile/change-requests/${request.id}/edit`}>
+                          <Pencil className="h-3.5 w-3.5 mr-1" />
+                          Edit
+                        </Link>
+                      </Button>
+                      <Button 
+                        variant="outline" 
+                        size="sm" 
+                        className="text-rose-600 border-rose-200 hover:bg-rose-50"
+                        onClick={() => handleCancel(request.id)}
+                        disabled={cancelMutation.isPending}
+                      >
+                        Cancel
+                      </Button>
+                    </>
                   )}
                 </div>
               </CardHeader>
