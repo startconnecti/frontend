@@ -10,15 +10,36 @@ export function useCancelBookingMutation() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: ({ bookingId, payload }: { bookingId: string; payload: CancelBookingPayload }) =>
+    mutationFn: ({ bookingId, payload, tutorId }: { bookingId: string; payload: CancelBookingPayload; tutorId?: string }) =>
       bookingService.cancelBooking(bookingId, payload),
-    onSuccess: () => {
-      // Invalidate all student bookings queries to refresh the list
+    onSuccess: (data, variables) => {
+      // Invalidate relevant queries safely
       queryClient.invalidateQueries({ queryKey: ['student-bookings'] });
-      toast.success('Booking cancelled successfully');
+      queryClient.invalidateQueries({ queryKey: ['student-dashboard'] });
+      
+      if (variables.tutorId) {
+        queryClient.invalidateQueries({ queryKey: ['tutors', 'detail', variables.tutorId] });
+      }
+      
+      if (data?.booking?.refundCreated) {
+        toast.success('Booking cancelled successfully. Your refund request is pending admin review.');
+      } else {
+        toast.success('Booking cancelled successfully');
+      }
     },
-    onError: (error) => {
-      toast.error('Failed to cancel booking', {
+    onError: (error: any) => {
+      const code = error?.code || '';
+      let message = 'Failed to cancel booking';
+
+      if (code === 'Booking.PaymentProcessing') {
+        message = 'Payment is currently processing. Please wait a moment and try again.';
+      } else if (code === 'Booking.CannotCancelApprovedBooking') {
+        message = 'This booking has already been approved. Please cancel the session instead.';
+      } else if (code === 'Booking.AlreadyCancelled') {
+        message = 'This booking has already been cancelled.';
+      }
+
+      toast.error(message, {
         description: getErrorMessage(error),
       });
     },

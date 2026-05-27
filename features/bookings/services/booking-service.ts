@@ -16,7 +16,7 @@ export const bookingService = {
     return api.get<BookingListResponse>('/api/v1/bookings', { params: queryParams });
   },
 
-  async cancelBooking(bookingId: string, payload: CancelBookingPayload): Promise<void> {
-    return api.post<void>(`/api/v1/bookings/${bookingId}/cancel`, payload);
+  async cancelBooking(bookingId: string, payload: CancelBookingPayload): Promise<any> {
+    return api.post<any>(`/api/v1/bookings/${bookingId}/cancel`, payload);
   }
 };

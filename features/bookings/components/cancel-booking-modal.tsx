@@ -12,6 +12,7 @@ interface CancelBookingModalProps {
   isOpen: boolean;
   onClose: () => void;
   bookingId: string;
+  tutorId?: string;
   status: BookingStatus;
   startTime: string; // ISO string
 }
@@ -20,33 +21,16 @@ export function CancelBookingModal({
   isOpen,
   onClose,
   bookingId,
+  tutorId,
   status,
   startTime,
 }: CancelBookingModalProps) {
   const [reason, setReason] = useState('');
   const { mutate: cancelBooking, isPending } = useCancelBookingMutation();
 
-  const calculateRefundPolicy = () => {
-    if (status !== 'confirmed') return null;
-
-    const now = new Date();
-    const start = new Date(startTime);
-    const hoursDiff = (start.getTime() - now.getTime()) / (1000 * 60 * 60);
-
-    if (hoursDiff > 24) {
-      return 'You are eligible for a 100% refund as the session starts in more than 24 hours.';
-    } else if (hoursDiff >= 12) {
-      return 'You are eligible for a 50% refund as the session starts in 12-24 hours.';
-    } else {
-      return 'You are not eligible for a refund as the session starts in less than 12 hours.';
-    }
-  };
-
-  const refundWarning = calculateRefundPolicy();
-
   const handleConfirm = () => {
     cancelBooking(
-      { bookingId, payload: { cancellation_reason: reason } },
+      { bookingId, payload: { cancellation_reason: reason }, tutorId },
       {
         onSuccess: () => {
           onClose();
@@ -65,12 +49,6 @@ export function CancelBookingModal({
             Are you sure you want to cancel this booking? This action cannot be undone.
           </DialogDescription>
         </DialogHeader>
-
-        {refundWarning && (
-          <div className="bg-destructive/10 p-4 rounded-lg text-sm font-medium text-destructive">
-            <strong>Refund Policy Warning:</strong> {refundWarning}
-          </div>
-        )}
 
         <div className="space-y-2 mt-4">
           <label htmlFor="reason" className="text-sm font-medium">

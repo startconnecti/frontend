@@ -94,9 +94,34 @@ export function BookingCard({
               </Button>
             )}
             
-            {isCancellable && (
+            {/* Cancellation states */}
+            {['pending_payment', 'expired'].includes(status) && (
               <Button variant="outline" size="sm" onClick={onCancel} className="text-destructive hover:text-destructive hover:bg-destructive/10">
-                Cancel
+                Cancel Booking
+              </Button>
+            )}
+
+            {status === 'payment_processing' && (
+              <div className="flex flex-col items-end gap-0.5 mt-1">
+                <Button variant="outline" size="sm" disabled className="text-muted-foreground">
+                  Cancel Booking
+                </Button>
+                <span className="text-[10px] text-muted-foreground">Payment is currently processing</span>
+              </div>
+            )}
+
+            {status === 'confirmed' && (
+              <div className="flex flex-col items-end gap-0.5 mt-1">
+                <Button variant="outline" size="sm" disabled className="text-muted-foreground">
+                  Cancel Booking
+                </Button>
+                <span className="text-[10px] text-muted-foreground">Please cancel the session instead</span>
+              </div>
+            )}
+
+            {status === 'cancelled' && (
+              <Button variant="outline" size="sm" disabled className="text-muted-foreground opacity-50">
+                Cancelled
               </Button>
             )}
           </div>

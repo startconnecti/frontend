@@ -157,6 +157,7 @@ export function BookingListPage() {
           isOpen={!!bookingToCancel}
           onClose={() => setBookingToCancel(null)}
           bookingId={bookingToCancel.bookingId}
+          tutorId={bookingToCancel.tutorProfileId}
           status={bookingToCancel.status}
           startTime={bookingToCancel.startTime}
         />
