@@ -20,7 +20,7 @@ export default function TutorLayout({ children }: { children: ReactNode }) {
         {/* Mobile Sidebar (Sheet) */}
         <Sheet open={isMobileSidebarOpen} onOpenChange={(open) => !open && closeMobileSidebar()}>
           <SheetContent side="left" className="p-0 w-64 border-none">
-            <TutorSidebar />
+          <TutorSidebar isMobile />
           </SheetContent>
         </Sheet>
 

@@ -454,11 +454,28 @@ export function TutorProfileDraftForm({ initialData, editRequestId, initialReque
             </CardContent>
           </Card>
 
-          <div className="flex justify-end pt-4 sticky bottom-8 z-20">
-            <Button 
-              type="submit" 
+          <div className="flex items-center justify-end gap-3 pt-4 sticky bottom-8 z-20">
+            {isEditMode && (
+              <Button
+                type="button"
+                variant="outline"
+                size="lg"
+                className="font-bold px-8 h-14 text-base rounded-2xl transition-all"
+                disabled={isPending}
+                onClick={() => {
+                  if (form.formState.isDirty) {
+                    if (!window.confirm('Discard unsaved changes?')) return;
+                  }
+                  onCancel();
+                }}
+              >
+                Cancel
+              </Button>
+            )}
+            <Button
+              type="submit"
               size="lg"
-              className="font-black px-12 shadow-2xl shadow-primary/40 h-14 text-lg rounded-2xl transition-all active:scale-95" 
+              className="font-black px-12 shadow-2xl shadow-primary/40 h-14 text-lg rounded-2xl transition-all active:scale-95"
               disabled={isPending}
             >
               {isPending

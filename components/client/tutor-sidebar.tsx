@@ -35,7 +35,7 @@ const tutorNavItems = [
   { label: 'Settings', href: ROUTES.SETTINGS_PROFILE, icon: Settings },
 ];
 
-export function TutorSidebar() {
+export function TutorSidebar({ isMobile = false }: { isMobile?: boolean }) {
   const pathname = usePathname();
   const router = useRouter();
   const logout = useAuthStore((state) => state.logout);
@@ -65,7 +65,7 @@ export function TutorSidebar() {
   };
 
   return (
-    <aside className="hidden lg:flex w-64 flex-col fixed inset-y-0 border-r bg-card z-50">
+    <aside className={isMobile ? 'flex w-64 flex-col h-full border-r bg-card' : 'hidden lg:flex w-64 flex-col fixed inset-y-0 border-r bg-card z-50'}>
       <div className="p-6">
         <Link href={ROUTES.HOME} className="flex items-center gap-3">
           <span className="text-xl font-bold tracking-tight text-brand-dark">Connecti</span>

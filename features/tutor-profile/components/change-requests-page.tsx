@@ -2,13 +2,14 @@
 
 import { PageContainer, SectionHeader } from '@/components/shared';
 import { useTutorProfileChangeRequestsQuery, useCancelTutorProfileChangeRequestMutation } from '../hooks/use-tutor-profile-change-requests';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { Card, CardContent, CardFooter, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Clock, CheckCircle2, XCircle, FileText, Ban, AlertCircle, ArrowLeft, Pencil } from 'lucide-react';
+import { Clock, CheckCircle2, XCircle, FileText, Ban, AlertCircle, ArrowLeft, Pencil, GraduationCap, BookOpen } from 'lucide-react';
 import Link from 'next/link';
 import { toast } from 'sonner';
+import { TutorProfileChangeRequest, TutorProfileSnapshotCertification } from '../types';
 
 export function ChangeRequestsPage() {
   const { data, isLoading, isError, refetch } = useTutorProfileChangeRequestsQuery({ limit: 50 });
@@ -28,30 +29,125 @@ export function ChangeRequestsPage() {
     switch (status) {
       case 'approved':
         return (
-          <Badge className="bg-emerald-500/10 text-emerald-600 border-emerald-500/20 px-3 py-1 uppercase text-[10px] font-black tracking-wider flex items-center gap-1.5" variant="outline">
+          <Badge className="bg-emerald-500/10 text-emerald-600 border-emerald-500/20 px-3 py-1 uppercase text-[10px] font-black tracking-wider flex items-center gap-1.5 shrink-0" variant="outline">
             <CheckCircle2 className="h-3 w-3 stroke-[2.5]" /> Approved
           </Badge>
         );
       case 'rejected':
         return (
-          <Badge className="bg-rose-500/10 text-rose-600 border-rose-500/20 px-3 py-1 uppercase text-[10px] font-black tracking-wider flex items-center gap-1.5" variant="outline">
+          <Badge className="bg-rose-500/10 text-rose-600 border-rose-500/20 px-3 py-1 uppercase text-[10px] font-black tracking-wider flex items-center gap-1.5 shrink-0" variant="outline">
             <XCircle className="h-3 w-3 stroke-[2.5]" /> Rejected
           </Badge>
         );
       case 'cancelled':
         return (
-          <Badge className="bg-slate-500/10 text-slate-600 border-slate-500/20 px-3 py-1 uppercase text-[10px] font-black tracking-wider flex items-center gap-1.5" variant="outline">
+          <Badge className="bg-slate-500/10 text-slate-600 border-slate-500/20 px-3 py-1 uppercase text-[10px] font-black tracking-wider flex items-center gap-1.5 shrink-0" variant="outline">
             <Ban className="h-3 w-3 stroke-[2.5]" /> Cancelled
           </Badge>
         );
       case 'pending':
       default:
         return (
-          <Badge className="bg-amber-500/10 text-amber-600 border-amber-500/20 px-3 py-1 uppercase text-[10px] font-black tracking-wider flex items-center gap-1.5" variant="outline">
+          <Badge className="bg-amber-500/10 text-amber-600 border-amber-500/20 px-3 py-1 uppercase text-[10px] font-black tracking-wider flex items-center gap-1.5 shrink-0" variant="outline">
             <Clock className="h-3 w-3 stroke-[2.5]" /> Pending
           </Badge>
         );
     }
+  };
+
+  const renderCardBody = (request: TutorProfileChangeRequest) => {
+    const payload = request.changePayload;
+    const profile = payload?.profile;
+    const subjects = Array.isArray(payload?.subjects) ? payload.subjects : [];
+    const subjectIds = Array.isArray(payload?.subject_ids) ? payload.subject_ids : [];
+    const certifications: TutorProfileSnapshotCertification[] = Array.isArray(payload?.certifications) ? payload.certifications : [];
+
+    // Resolve display subject names — prefer {id, name} objects, fall back to IDs
+    const subjectNames = subjects.length > 0
+      ? subjects.map((s) => (typeof s === 'string' ? s : s.name ?? s.id)).filter(Boolean)
+      : subjectIds;
+
+    return (
+      <div className="space-y-4">
+        {/* Professional Overview summary */}
+        {profile && (
+          <div className="space-y-2">
+            <p className="text-[10px] font-black uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
+              <BookOpen className="h-3 w-3" /> Professional Overview
+            </p>
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+              {profile.hourly_rate !== undefined && profile.hourly_rate !== null && (
+                <div className="bg-muted/5 border border-border/40 rounded-xl p-3">
+                  <p className="text-[10px] text-muted-foreground font-medium mb-0.5">Hourly Rate</p>
+                  <p className="text-sm font-black text-brand-dark">{profile.hourly_rate.toLocaleString()} VND</p>
+                </div>
+              )}
+              {profile.years_of_experience !== undefined && profile.years_of_experience !== null && (
+                <div className="bg-muted/5 border border-border/40 rounded-xl p-3">
+                  <p className="text-[10px] text-muted-foreground font-medium mb-0.5">Experience</p>
+                  <p className="text-sm font-black text-brand-dark">{profile.years_of_experience} yrs</p>
+                </div>
+              )}
+              {certifications.length > 0 && (
+                <div className="bg-muted/5 border border-border/40 rounded-xl p-3 flex items-center gap-2">
+                  <GraduationCap className="h-4 w-4 text-muted-foreground shrink-0" />
+                  <div>
+                    <p className="text-[10px] text-muted-foreground font-medium mb-0.5">Certifications</p>
+                    <p className="text-sm font-black text-brand-dark">{certifications.length}</p>
+                  </div>
+                </div>
+              )}
+            </div>
+            {profile.bio && (
+              <p className="text-xs text-muted-foreground line-clamp-2 leading-relaxed">
+                {profile.bio}
+              </p>
+            )}
+          </div>
+        )}
+
+        {/* Subjects */}
+        {subjectNames.length > 0 && (
+          <div className="space-y-2">
+            <p className="text-[10px] font-black uppercase tracking-wider text-muted-foreground">Subjects</p>
+            <div className="flex flex-wrap gap-1.5">
+              {subjectNames.slice(0, 8).map((name, idx) => (
+                <Badge key={idx} variant="secondary" className="text-[10px] px-2.5 py-0.5 font-semibold">
+                  {name}
+                </Badge>
+              ))}
+              {subjectNames.length > 8 && (
+                <Badge variant="outline" className="text-[10px] px-2.5 py-0.5 text-muted-foreground">
+                  +{subjectNames.length - 8} more
+                </Badge>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* Request note from tutor */}
+        {request.requestNote && (
+          <div className="bg-blue-50 border border-blue-100 rounded-xl p-3 flex gap-2.5">
+            <FileText className="h-4 w-4 text-blue-500 shrink-0 mt-0.5" />
+            <div>
+              <p className="text-[10px] font-bold uppercase tracking-wider text-blue-800 mb-0.5">Note</p>
+              <p className="text-xs text-blue-700 leading-relaxed">{request.requestNote}</p>
+            </div>
+          </div>
+        )}
+
+        {/* Admin feedback on rejection */}
+        {request.adminNote && request.status === 'rejected' && (
+          <div className="bg-rose-50 border border-rose-100 rounded-xl p-3 flex gap-2.5">
+            <AlertCircle className="h-4 w-4 text-rose-500 shrink-0 mt-0.5" />
+            <div>
+              <p className="text-[10px] font-bold uppercase tracking-wider text-rose-800 mb-0.5">Admin Feedback</p>
+              <p className="text-xs text-rose-700 leading-relaxed">{request.adminNote}</p>
+            </div>
+          </div>
+        )}
+      </div>
+    );
   };
 
   return (
@@ -60,7 +156,7 @@ export function ChangeRequestsPage() {
         <Link href="/settings/tutor-profile" className="inline-flex items-center gap-2 text-sm font-bold text-muted-foreground hover:text-primary transition-colors">
           <ArrowLeft className="h-4 w-4" /> Back to Profile
         </Link>
-        <SectionHeader 
+        <SectionHeader
           title="Change Requests"
           description="View and manage the history of your profile updates."
         />
@@ -101,115 +197,63 @@ export function ChangeRequestsPage() {
         <div className="space-y-6">
           {data.items.map((request) => (
             <Card key={request.id} className="border-border/60 shadow-sm rounded-3xl overflow-hidden">
-              <CardHeader className="bg-muted/5 border-b border-border/40 p-6 flex flex-row items-start justify-between gap-4">
-                <div className="space-y-1">
-                  <CardTitle className="text-base font-black flex items-center gap-2">
-                    Profile Snapshot Update
-                    {renderStatusBadge(request.status)}
-                  </CardTitle>
-                  <CardDescription className="text-xs font-medium">
-                    Requested on {new Date(request.createdAt).toLocaleDateString(undefined, {
-                      year: 'numeric',
-                      month: 'long',
-                      day: 'numeric',
-                    })}
-                  </CardDescription>
-                </div>
-                <div className="flex items-center gap-2">
-                  <Button variant="secondary" size="sm" asChild>
-                    <Link href={`/settings/tutor-profile/change-requests/${request.id}`}>
-                      View Details
-                    </Link>
-                  </Button>
-                  {request.status === 'pending' && (
-                    <>
-                      <Button variant="outline" size="sm" asChild>
-                        <Link href={`/settings/tutor-profile/change-requests/${request.id}/edit`}>
-                          <Pencil className="h-3.5 w-3.5 mr-1" />
-                          Edit
-                        </Link>
-                      </Button>
-                      <Button 
-                        variant="outline" 
-                        size="sm" 
-                        className="text-rose-600 border-rose-200 hover:bg-rose-50"
-                        onClick={() => handleCancel(request.id)}
-                        disabled={cancelMutation.isPending}
-                      >
-                        Cancel
-                      </Button>
-                    </>
-                  )}
+              {/* Header: title + date + status badge */}
+              <CardHeader className="bg-muted/5 border-b border-border/40 p-5 sm:p-6">
+                <div className="flex items-start justify-between gap-3">
+                  <div className="space-y-0.5 min-w-0">
+                    <CardTitle className="text-base font-black text-brand-dark">
+                      Profile Change Request
+                    </CardTitle>
+                    <CardDescription className="text-xs font-medium">
+                      Submitted {new Date(request.createdAt).toLocaleDateString(undefined, {
+                        year: 'numeric',
+                        month: 'long',
+                        day: 'numeric',
+                      })}
+                      {request.updatedAt && request.updatedAt !== request.createdAt && (
+                        <span className="ml-2 text-muted-foreground/60">
+                          · Updated {new Date(request.updatedAt).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}
+                        </span>
+                      )}
+                    </CardDescription>
+                  </div>
+                  {renderStatusBadge(request.status)}
                 </div>
               </CardHeader>
-              <CardContent className="p-6 space-y-6">
-                <div className="space-y-4">
-                  <div>
-                    <div className="bg-white border border-border/40 rounded-xl p-5 mb-4 shadow-sm">
-                      <h4 className="font-bold text-sm uppercase tracking-wider text-muted-foreground mb-3 flex items-center gap-2">
-                        <FileText className="h-4 w-4" /> Snapshot Payload
-                      </h4>
-                    
-                    {(() => {
-                      // Defensive mapping for backward compatibility and null safety
-                      const profile = request.changePayload?.profile || (request.changePayload as any); // Fallback to root payload for legacy
-                      const subjectIds = Array.isArray(request.changePayload?.subject_ids) ? request.changePayload.subject_ids : [];
-                      const certifications = Array.isArray(request.changePayload?.certifications) ? request.changePayload.certifications : [];
-                      
-                      return (
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                          <div>
-                            <p className="font-bold text-brand-dark mb-1">Profile Info</p>
-                            <ul className="list-disc list-inside space-y-1 ml-1 text-xs">
-                              {profile?.hourly_rate !== undefined && profile?.hourly_rate !== null && <li>Hourly Rate: ${profile.hourly_rate}</li>}
-                              {profile?.years_of_experience !== undefined && profile?.years_of_experience !== null && <li>Experience: {profile.years_of_experience} years</li>}
-                              {profile?.bio && <li>Bio updated</li>}
-                            </ul>
-                          </div>
-                          
-                          <div>
-                            <p className="font-bold text-brand-dark mb-1">Subjects</p>
-                            <p className="text-xs ml-1">{subjectIds.length} subjects assigned</p>
-                          </div>
 
-                          {certifications.length > 0 && (
-                            <div>
-                              <p className="font-bold text-brand-dark mb-1">Certifications</p>
-                              <p className="text-xs ml-1">{certifications.length} certificates included</p>
-                              <ul className="list-disc list-inside space-y-1 ml-1 mt-1 text-xs">
-                                {certifications.map((cert: import('../types').TutorProfileSnapshotCertification, i: number) => (
-                                  <li key={i}>{cert.name} ({cert.issuer}) {cert.tempFileKey && <span className="text-emerald-600 font-medium ml-1">New Upload</span>} {!cert.id && !cert.tempFileKey && <span className="text-blue-600 font-medium ml-1">New Draft</span>}</li>
-                                ))}
-                              </ul>
-                            </div>
-                          )}
-                        </div>
-                      );
-                    })()}
-                    </div>
-                  </div>
-
-                  {request.requestNote && (
-                    <div className="bg-blue-50 border border-blue-100 rounded-xl p-4 flex gap-3">
-                      <FileText className="h-5 w-5 text-blue-500 shrink-0 mt-0.5" />
-                      <div>
-                        <p className="text-xs font-bold uppercase tracking-wider text-blue-800 mb-1">My Note</p>
-                        <p className="text-sm text-blue-700">{request.requestNote}</p>
-                      </div>
-                    </div>
-                  )}
-                  
-                  {request.adminNote && request.status === 'rejected' && (
-                    <div className="bg-rose-50 border border-rose-100 rounded-xl p-4 flex gap-3">
-                      <AlertCircle className="h-5 w-5 text-rose-500 shrink-0 mt-0.5" />
-                      <div>
-                        <p className="text-xs font-bold uppercase tracking-wider text-rose-800 mb-1">Admin Feedback</p>
-                        <p className="text-sm text-rose-700">{request.adminNote}</p>
-                      </div>
-                    </div>
-                  )}
-                </div>
+              {/* Body: concise summary */}
+              <CardContent className="p-5 sm:p-6">
+                {renderCardBody(request)}
               </CardContent>
+
+              {/* Footer: action buttons */}
+              <CardFooter className="bg-muted/5 border-t border-border/40 p-4 sm:p-5 flex flex-wrap gap-2 justify-end">
+                <Button variant="secondary" size="sm" className="font-semibold" asChild>
+                  <Link href={`/settings/tutor-profile/change-requests/${request.id}`}>
+                    View Details
+                  </Link>
+                </Button>
+
+                {request.status === 'pending' && (
+                  <>
+                    <Button variant="outline" size="sm" className="font-semibold" asChild>
+                      <Link href={`/settings/tutor-profile/change-requests/${request.id}/edit`}>
+                        <Pencil className="h-3.5 w-3.5 mr-1.5" />
+                        Edit
+                      </Link>
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="font-semibold text-rose-600 border-rose-200 hover:bg-rose-50"
+                      onClick={() => handleCancel(request.id)}
+                      disabled={cancelMutation.isPending}
+                    >
+                      Cancel
+                    </Button>
+                  </>
+                )}
+              </CardFooter>
             </Card>
           ))}
         </div>
