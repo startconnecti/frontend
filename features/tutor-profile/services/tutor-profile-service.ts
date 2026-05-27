@@ -1,19 +1,77 @@
 import { api } from '@/lib/api/client';
-import { TutorProfile, UpdateTutorProfileRequest } from '../types';
+import { TutorCertificate, TutorProfile, UpdateTutorProfileRequest } from '../types';
 
-function normalizeTutorProfile(profile: Record<string, any>): TutorProfile {
-  if (!profile) return profile as any;
-  const p = profile.tutorProfile || profile;
+/**
+ * Normalizes a raw certification object from the API into a stable TutorCertificate shape.
+ *
+ * Supports both schemas:
+ *   OLD: { name, issuer, issuedAt, certificateUrl }
+ *   NEW: { certificateName, issuingOrganization, issueDate, expiryDate, fileUrl }
+ */
+function normalizeCertification(raw: Record<string, unknown>): TutorCertificate {
+  const name =
+    (raw.certificateName as string | undefined) ??
+    (raw.name as string | undefined) ??
+    (raw.title as string | undefined) ??
+    '';
+
+  const organization =
+    (raw.issuingOrganization as string | undefined) ??
+    (raw.issuer as string | undefined) ??
+    (raw.organization as string | undefined) ??
+    '';
+
+  const rawDate =
+    (raw.issueDate as string | undefined) ??
+    (raw.issuedAt as string | undefined) ??
+    '';
+
+  // Try to extract a 4-digit year from the date string; fall back to current year
+  const yearMatch = rawDate.match(/\d{4}/);
+  const year = yearMatch ? parseInt(yearMatch[0], 10) : new Date().getFullYear();
+
+  const fileUrl =
+    (raw.fileUrl as string | undefined) ??
+    (raw.certificateUrl as string | undefined) ??
+    (raw.url as string | undefined);
+
+  const expiryDate =
+    (raw.expiryDate as string | null | undefined) ?? null;
+
   return {
-    ...p,
-    fullName: p.fullName ?? p.name ?? '-',
-    avatarUrl: p.avatarUrl ?? p.avatar ?? undefined,
-    phoneNumber: p.phoneNumber ?? p.phone ?? '-',
-    subjects: Array.isArray(p.subjects) ? p.subjects : [],
-    certificates: Array.isArray(p.certificates) ? p.certificates : [],
+    id: (raw.id as string | undefined) ?? '',
+    title: name,
+    organization,
+    year,
+    fileUrl,
+    certificateUrl: fileUrl, // keep legacy alias populated so old consumers don't break
+    expiryDate,
+  };
+}
+
+function normalizeTutorProfile(profile: Record<string, unknown>): TutorProfile {
+  if (!profile) return profile as unknown as TutorProfile;
+  const p = (profile.tutorProfile ?? profile) as Record<string, unknown>;
+
+  const rawCertificates = Array.isArray(p.certifications)
+    ? (p.certifications as Record<string, unknown>[])
+    : Array.isArray(p.certificates)
+      ? (p.certificates as Record<string, unknown>[])
+      : [];
+
+  // subjects: accept [{id, name}] object array or flat string array
+  const rawSubjects = Array.isArray(p.subjects) ? (p.subjects as unknown[]) : [];
+
+  return {
+    ...(p as Partial<TutorProfile>),
+    fullName: (p.fullName as string | undefined) ?? (p.name as string | undefined) ?? '-',
+    avatarUrl: (p.avatarUrl as string | undefined) ?? (p.avatar as string | undefined) ?? undefined,
+    phoneNumber: (p.phoneNumber as string | undefined) ?? (p.phone as string | undefined) ?? '-',
+    subjects: rawSubjects,
+    certificates: rawCertificates.map(normalizeCertification),
     hourlyRate: Number(p.hourlyRate) || 0,
     yearsOfExperience: Number(p.yearsOfExperience) || 0,
-    approvalStatus: p.status, // Add explicit mapping
+    approvalStatus: (p.approvalStatus as TutorProfile['approvalStatus']) ?? (p.status as TutorProfile['approvalStatus']),
   };
 }
 

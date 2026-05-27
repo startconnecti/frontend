@@ -13,6 +13,10 @@ export interface Certificate {
   title: string;
   issuer: string;
   year: number;
+  /** Canonical document URL from new API schema */
+  fileUrl?: string;
+  /** Optional expiry date */
+  expiryDate?: string | null;
 }
 
 export interface AvailabilitySlot {

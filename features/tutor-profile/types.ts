@@ -45,7 +45,12 @@ export interface TutorCertificate {
   title: string;
   organization: string;
   year: number;
+  /** Legacy field — still mapped for backward compat */
   certificateUrl?: string;
+  /** Canonical document URL from new API schema */
+  fileUrl?: string;
+  /** Optional expiry date (ISO string or year) */
+  expiryDate?: string | null;
 }
 
 export interface TutorProfile {

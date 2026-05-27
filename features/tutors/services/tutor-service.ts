@@ -1,6 +1,6 @@
 import { api } from '@/lib/api/client';
 import { ListResponse } from '@/lib/api/types';
-import { Tutor, TutorFilters, Subject } from '../types';
+import { Certificate, Tutor, TutorFilters, Subject } from '../types';
 
 type TutorListResponse =
   | Tutor[]
@@ -64,54 +64,107 @@ function buildTutorQueryParams(filters: TutorFilters): TutorQueryParams {
   return params;
 }
 
-function normalizeTutor(tutor: any): Tutor {
-  tutor = tutor?.tutor ?? tutor;
-  if (!tutor) return tutor;
-  const certificates = Array.isArray(tutor.certificates)
-    ? tutor.certificates
+/**
+ * Normalizes a raw certification object into a stable Certificate shape.
+ * Supports:
+ *   OLD: { name, issuer, issuedAt, certificateUrl }
+ *   NEW: { certificateName, issuingOrganization, issueDate, expiryDate, fileUrl }
+ */
+function normalizeCertification(raw: Record<string, unknown>): Certificate {
+  const title =
+    (raw.certificateName as string | undefined) ??
+    (raw.name as string | undefined) ??
+    (raw.title as string | undefined) ??
+    '';
+
+  const issuer =
+    (raw.issuingOrganization as string | undefined) ??
+    (raw.issuer as string | undefined) ??
+    (raw.organization as string | undefined) ??
+    '';
+
+  const rawDate =
+    (raw.issueDate as string | undefined) ??
+    (raw.issuedAt as string | undefined) ??
+    '';
+
+  const yearMatch = rawDate.match(/\d{4}/);
+  const year = yearMatch ? parseInt(yearMatch[0], 10) : new Date().getFullYear();
+
+  const fileUrl =
+    (raw.fileUrl as string | undefined) ??
+    (raw.certificateUrl as string | undefined) ??
+    (raw.url as string | undefined);
+
+  const expiryDate =
+    (raw.expiryDate as string | null | undefined) ?? null;
+
+  return {
+    id: (raw.id as string | undefined) ?? '',
+    title,
+    issuer,
+    year,
+    fileUrl,
+    expiryDate,
+  };
+}
+
+function normalizeTutor(tutor: Record<string, unknown>): Tutor {
+  tutor = (tutor as Record<string, unknown>)?.tutor as Record<string, unknown> ?? tutor;
+  if (!tutor) return tutor as unknown as Tutor;
+
+  const rawCerts = Array.isArray(tutor.certificates)
+    ? (tutor.certificates as Record<string, unknown>[])
     : Array.isArray(tutor.certifications)
-      ? tutor.certifications
+      ? (tutor.certifications as Record<string, unknown>[])
       : [];
+
+  const certificates = rawCerts.map(normalizeCertification);
+
   const availabilitySlots = Array.isArray(tutor.availabilitySlots)
     ? tutor.availabilitySlots
     : Array.isArray(tutor.weeklyAvailability)
       ? tutor.weeklyAvailability
       : [];
 
-  const rawSubjectItems: any[] = Array.isArray(tutor.subjects) ? tutor.subjects : [];
+  const rawSubjectItems: unknown[] = Array.isArray(tutor.subjects) ? (tutor.subjects as unknown[]) : [];
   // subjectObjects: preserve full {id, name} when the API returns objects
   const subjectObjects = rawSubjectItems
-    .filter((s: any) => s && typeof s === 'object' && s.id)
-    .map((s: any) => ({ id: s.id as string, name: (s.name ?? s.slug ?? '') as string }));
+    .filter((s) => s && typeof s === 'object' && (s as Record<string, unknown>).id)
+    .map((s) => ({
+      id: (s as Record<string, unknown>).id as string,
+      name: ((s as Record<string, unknown>).name ?? (s as Record<string, unknown>).slug ?? '') as string,
+    }));
   // subjects: flat name strings for display
   const subjects = rawSubjectItems
-    .map((s: any) => (typeof s === 'string' ? s : s.name ?? s.slug ?? ''))
-    .filter(Boolean);
+    .map((s) => (typeof s === 'string' ? s : (s as Record<string, unknown>).name ?? (s as Record<string, unknown>).slug ?? ''))
+    .filter((s): s is string => Boolean(s));
 
   return {
-    ...tutor,
-    id: tutor.id ?? tutor.tutorId ?? '',
-    fullName: tutor.fullName ?? tutor.name ?? '-',
-    avatarUrl: tutor.avatarUrl ?? tutor.avatar ?? undefined,
-    bio: tutor.bio ?? '',
-    experienceText: tutor.experienceText ?? '',
+    ...(tutor as Partial<Tutor>),
+    id: (tutor.id as string | undefined) ?? (tutor.tutorId as string | undefined) ?? '',
+    fullName: (tutor.fullName as string | undefined) ?? (tutor.name as string | undefined) ?? '-',
+    avatarUrl: (tutor.avatarUrl as string | undefined) ?? (tutor.avatar as string | undefined) ?? undefined,
+    bio: (tutor.bio as string | undefined) ?? '',
+    experienceText: (tutor.experienceText as string | undefined) ?? '',
     subjects,
     subjectObjects: subjectObjects.length > 0 ? subjectObjects : undefined,
-    approvalStatus: tutor.approvalStatus ?? 'approved',
-    isPublic: tutor.isPublic ?? true,
+    approvalStatus: (tutor.approvalStatus as Tutor['approvalStatus']) ?? 'approved',
+    isPublic: (tutor.isPublic as boolean | undefined) ?? true,
     certificates,
     certifications: certificates,
-    availabilitySlots,
-    weeklyAvailability: availabilitySlots,
-    feedbacks: Array.isArray(tutor.feedbacks) ? tutor.feedbacks : [],
+    availabilitySlots: availabilitySlots as Tutor['availabilitySlots'],
+    weeklyAvailability: availabilitySlots as Tutor['weeklyAvailability'],
+    feedbacks: Array.isArray(tutor.feedbacks) ? (tutor.feedbacks as Tutor['feedbacks']) : [],
     hourlyRate: Number(tutor.hourlyRate) || 0,
-    averageRating: Number(tutor.averageRating ?? tutor.ratingAvg) || 0,
-    reviewCount: Number(tutor.totalReviews ?? tutor.reviewCount) || 0,
-    totalReviews: Number(tutor.totalReviews ?? tutor.reviewCount) || 0,
+    averageRating: Number((tutor.averageRating as unknown) ?? (tutor.ratingAvg as unknown)) || 0,
+    reviewCount: Number((tutor.totalReviews as unknown) ?? (tutor.reviewCount as unknown)) || 0,
+    totalReviews: Number((tutor.totalReviews as unknown) ?? (tutor.reviewCount as unknown)) || 0,
     yearsOfExperience: Number(tutor.yearsOfExperience) || 0,
     isFavorite: Boolean(tutor.isFavorite),
   };
 }
+
 
 function normalizeTutorListResponse(response: TutorListResponse): Tutor[] {
   let rawItems: Tutor[] = [];
