@@ -43,7 +43,14 @@ export function buildTutorProfileSnapshotPayload(
       throw new Error(`Certification "${cert.name}" has a file but is missing the file key.`);
     }
 
-    const { file, ...cleanCert } = cert;
+    // Strip the File object from the JSON payload (it's sent separately as FormData).
+    // When a new file is being uploaded (tempFileKey set), omit the old URL fields
+    // so the backend doesn't accidentally read a stale URL.
+    // When no new file, preserve both URL fields for backward compat.
+    const { file, ...certBase } = cert;
+    const cleanCert = certBase.tempFileKey
+      ? { ...certBase, fileUrl: undefined, certificateUrl: undefined }
+      : certBase;
 
     // Append file to FormData if valid
     if (file && cleanCert.tempFileKey) {

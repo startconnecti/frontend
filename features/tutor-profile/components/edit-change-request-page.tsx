@@ -69,7 +69,9 @@ export function EditChangeRequestPage({ id }: EditChangeRequestPageProps) {
   const certifications = Array.isArray(payload.certifications) ? payload.certifications : [];
   const subjects = (payload as Record<string, unknown>).subjects ?? payload.subject_ids;
   
-  // Map snapshot to TutorProfile expected format for initialData
+  // Map snapshot to TutorProfile expected format for initialData.
+  // Preserve BOTH fileUrl and certificateUrl so the draft form can resolve
+  // the preview regardless of which schema the stored payload uses.
   const initialData = {
     id: '',
     userId: '',
@@ -82,13 +84,46 @@ export function EditChangeRequestPage({ id }: EditChangeRequestPageProps) {
     yearsOfExperience: profilePayload.years_of_experience ?? profilePayload.yearsOfExperience ?? 0,
     hourlyRate: profilePayload.hourly_rate ?? profilePayload.hourlyRate ?? 0,
     subjects: Array.isArray(subjects) ? subjects.map((s: string | { id: string }) => typeof s === 'string' ? s : s.id) : [],
-    certificates: certifications.map((cert: { id?: string; name?: string; issuer?: string; issuedAt?: string; certificateUrl?: string; url?: string; fileUrl?: string }) => ({
-      id: cert.id ?? '',
-      title: cert.name ?? '',
-      organization: cert.issuer ?? '',
-      year: parseInt(cert.issuedAt ?? '', 10) || new Date().getFullYear(),
-      certificateUrl: cert.certificateUrl || cert.url || cert.fileUrl || '',
-    })),
+    certificates: certifications.map((cert: Record<string, unknown>) => {
+      // Resolve the canonical document URL — support both old and new schemas
+      const resolvedUrl =
+        (cert.fileUrl as string | undefined) ??
+        (cert.certificateUrl as string | undefined) ??
+        (cert.url as string | undefined) ??
+        '';
+
+      // Resolve cert name — support new API schema (certificateName) and old (name/title)
+      const name =
+        (cert.certificateName as string | undefined) ??
+        (cert.name as string | undefined) ??
+        '';
+
+      // Resolve issuer — support new API schema (issuingOrganization) and old (issuer/organization)
+      const organization =
+        (cert.issuingOrganization as string | undefined) ??
+        (cert.issuer as string | undefined) ??
+        (cert.organization as string | undefined) ??
+        '';
+
+      // Resolve issued date — support both issueDate (new) and issuedAt (old)
+      const rawDate =
+        (cert.issueDate as string | undefined) ??
+        (cert.issuedAt as string | undefined) ??
+        '';
+      const yearMatch = rawDate.match(/\d{4}/);
+      const year = yearMatch ? parseInt(yearMatch[0], 10) : new Date().getFullYear();
+
+      return {
+        id: (cert.id as string | undefined) ?? '',
+        title: name,
+        organization,
+        year,
+        // Provide both fields so draft form can pick up preview with either approach
+        fileUrl: resolvedUrl || undefined,
+        certificateUrl: resolvedUrl || undefined,
+        expiryDate: (cert.expiryDate as string | null | undefined) ?? null,
+      };
+    }),
   };
 
   return (

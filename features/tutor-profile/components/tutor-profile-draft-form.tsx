@@ -43,14 +43,19 @@ export function TutorProfileDraftForm({ initialData, editRequestId, initialReque
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [replacingCertIndex, setReplacingCertIndex] = useState<number | null>(null);
   
-  // Local state for snapshot tracking of certifications
+  // Local state for snapshot tracking of certifications.
+  // fileUrl is the canonical URL from the backend (new schema).
+  // certificateUrl is kept for backward compat with older snapshots.
+  // The resolved preview URL is: fileUrl ?? certificateUrl.
   const [localCertifications, setLocalCertifications] = useState<TutorProfileSnapshotCertification[]>(
     initialData.certificates.map(cert => ({
       id: cert.id,
       name: cert.title,
       issuer: cert.organization,
       issuedAt: cert.year.toString(),
-      certificateUrl: cert.certificateUrl || '',
+      // Preserve both URL fields so preview works regardless of schema age
+      fileUrl: cert.fileUrl || cert.certificateUrl || undefined,
+      certificateUrl: cert.certificateUrl || cert.fileUrl || undefined,
     }))
   );
 
@@ -86,7 +91,10 @@ export function TutorProfileDraftForm({ initialData, editRequestId, initialReque
             name: cert.name,
             issuer: cert.issuer,
             issuedAt: cert.issuedAt,
-            certificateUrl: cert.certificateUrl,
+            // Forward both URL fields — backend dedupes; this ensures backward compat
+            // with both old snapshots (certificateUrl) and new ones (fileUrl)
+            fileUrl: cert.fileUrl || cert.certificateUrl || undefined,
+            certificateUrl: cert.certificateUrl || cert.fileUrl || undefined,
             tempFileKey: cert.file ? cert.tempFileKey : undefined,
             file: cert.file,
           })),
@@ -393,9 +401,9 @@ export function TutorProfileDraftForm({ initialData, editRequestId, initialReque
                               Replace
                             </Button>
                           </div>
-                        ) : cert.certificateUrl ? (
+                        ) : (cert.fileUrl || cert.certificateUrl) ? (
                           <div className="h-9 flex items-center justify-between px-3 rounded-md bg-blue-50 text-blue-700 text-sm font-medium border border-blue-100 transition-colors">
-                            <a href={cert.certificateUrl} target="_blank" rel="noreferrer" className="hover:underline truncate mr-2">
+                            <a href={cert.fileUrl ?? cert.certificateUrl} target="_blank" rel="noopener noreferrer" className="hover:underline truncate mr-2">
                               View Existing Document
                             </a>
                             <Button type="button" variant="ghost" size="sm" className="h-6 text-xs px-2 shrink-0 hover:bg-blue-100" onClick={() => handleReplaceCertClick(index)}>

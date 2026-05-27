@@ -16,7 +16,10 @@ export interface TutorProfileSnapshotCertification {
   name: string;
   issuer: string;
   issuedAt: string;
+  /** Legacy URL field — kept for backward compat */
   certificateUrl?: string;
+  /** Canonical URL from new backend schema */
+  fileUrl?: string;
   tempFileKey?: string;
   file?: File;
 }
