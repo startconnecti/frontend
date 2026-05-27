@@ -5,13 +5,31 @@ import {
   ChangeRequestsListResponse 
 } from '../types';
 
+import { TutorProfileChangePayload } from '../types';
+
+function normalizeChangePayload(raw: any): TutorProfileChangePayload {
+  if (!raw || typeof raw !== 'object') {
+    return { profile: {}, subject_ids: [], certifications: [] };
+  }
+
+  // Safely unwrap potentially nested payload
+  const step1 = raw.changePayload || raw.payload || raw;
+  const payload = step1.changePayload || step1.payload || step1;
+
+  return {
+    profile: payload.profile ?? {},
+    subject_ids: payload.subject_ids ?? payload.subjects ?? [],
+    certifications: payload.certifications ?? [],
+  };
+}
+
 function normalizeChangeRequest(data: Record<string, any>): TutorProfileChangeRequest {
   const req = data.request || data.changeRequest || data;
   return {
     id: req.requestId || req.id,
     tutorProfileId: req.tutorProfileId || req.tutorId,
     status: req.status,
-    changePayload: req.changePayload || req.change_payload,
+    changePayload: normalizeChangePayload(req.changePayload || req.change_payload),
     requestNote: req.requestNote || req.request_note,
     adminNote: req.adminNote || req.admin_note,
     createdAt: req.createdAt,
