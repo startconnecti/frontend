@@ -1,6 +1,9 @@
-import { Star, MessageCircle } from 'lucide-react';
+import { Star, User } from 'lucide-react';
+import Link from 'next/link';
+import { ROUTES } from '@/constants/routes';
 
 interface MentorCardProps {
+  id?: string;
   name: string;
   title: string;
   expertise: string[];
@@ -10,7 +13,7 @@ interface MentorCardProps {
   image?: string;
 }
 
-export function MentorCard({ name, title, expertise, rating, reviews, bio }: MentorCardProps) {
+export function MentorCard({ id, name, title, expertise, rating, reviews, bio }: MentorCardProps) {
   return (
     <div className="border border-border/60 rounded-3xl p-6 hover:shadow-xl hover:shadow-primary/5 transition-all duration-300 hover:border-primary/20 bg-background group flex flex-col h-full">
       <div className="flex gap-4 mb-4">
@@ -43,10 +46,17 @@ export function MentorCard({ name, title, expertise, rating, reviews, bio }: Men
         )}
       </div>
 
-      <button className="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-primary text-primary-foreground hover:opacity-90 shadow-lg shadow-primary/20 transition-all font-bold text-sm">
-        <MessageCircle className="w-4 h-4" />
-        Connect
-      </button>
+      {id ? (
+        <Link href={ROUTES.TUTOR_DETAIL(id)} className="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-primary text-primary-foreground hover:opacity-90 shadow-lg shadow-primary/20 transition-all font-bold text-sm">
+          <User className="w-4 h-4" />
+          View Tutor Profile
+        </Link>
+      ) : (
+        <button disabled className="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-muted text-muted-foreground transition-all font-bold text-sm cursor-not-allowed">
+          <User className="w-4 h-4" />
+          View Tutor Profile
+        </button>
+      )}
     </div>
   );
 }

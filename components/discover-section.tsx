@@ -102,6 +102,7 @@ export function DiscoverSection() {
             {tutors.map(tutor => (
               <MentorCard
                 key={tutor.id}
+                id={tutor.id}
                 name={tutor.fullName}
                 title={`${tutor.yearsOfExperience}+ years of experience`}
                 expertise={tutor.subjects}
