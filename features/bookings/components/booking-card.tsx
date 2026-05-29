@@ -40,7 +40,6 @@ export function BookingCard({
   isPaying,
   paymentSummary,
 }: BookingCardProps) {
-  const isCancellable = ['pending_payment', 'payment_processing', 'confirmed'].includes(status);
 
   return (
     <Card className="hover:shadow-md transition-shadow">
@@ -48,8 +47,16 @@ export function BookingCard({
         <div className="space-y-2">
           <div className="flex items-center gap-2">
             <h3 className="text-lg font-bold">{tutorName}</h3>
-            <Badge variant={status === 'confirmed' ? 'default' : status === 'pending_payment' ? 'secondary' : 'outline'}>
-              {status.replace('_', ' ')}
+            <Badge
+              variant={
+                status === 'confirmed'
+                  ? 'default'
+                  : status === 'pending_payment'
+                    ? 'secondary'
+                    : 'outline'
+              }
+            >
+              {status.replaceAll('_', ' ')}
             </Badge>
           </div>
           <p className="text-sm text-muted-foreground">{subject}</p>
@@ -99,6 +106,15 @@ export function BookingCard({
               <Button variant="outline" size="sm" onClick={onCancel} className="text-destructive hover:text-destructive hover:bg-destructive/10">
                 Cancel Booking
               </Button>
+            )}
+
+            {status === 'wait_for_admin_review' && (
+              <div className="flex flex-col items-end gap-0.5">
+                <Button variant="outline" size="sm" onClick={onCancel} className="text-destructive hover:text-destructive hover:bg-destructive/10">
+                  Cancel &amp; Request Refund
+                </Button>
+                <span className="text-[10px] text-muted-foreground">Refund requests are reviewed manually by admins.</span>
+              </div>
             )}
 
             {status === 'payment_processing' && (

@@ -1,4 +1,11 @@
-export type BookingStatus = 'pending_payment' | 'payment_processing' | 'confirmed' | 'expired' | 'cancelled' | 'completed';
+export type BookingStatus =
+  | 'pending_payment'
+  | 'payment_processing'
+  | 'wait_for_admin_review'
+  | 'confirmed'
+  | 'expired'
+  | 'cancelled'
+  | 'completed';
 
 export interface Booking {
   bookingId: string;
@@ -42,7 +49,7 @@ export interface BookingListResponse {
 export interface GetBookingsParams {
   limit?: number;
   page?: number;
-  status?: BookingStatus | 'all';
+  status?: BookingStatus | 'all' | string;
   tutorId?: string;
 }
 
