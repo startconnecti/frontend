@@ -9,38 +9,23 @@ export interface AdminParticipant {
 export interface AdminMessage {
   id: string;
   conversationId: string;
-  senderId: string;
+  senderUserId: string;
   senderName: string;
-  senderRole: 'student' | 'tutor' | 'system';
   content: string;
-  attachments: AdminAttachment[];
+  status: string;
   createdAt: string;
-  deletedAt?: string | null;
-}
-
-export interface AdminAttachment {
-  id: string;
-  name: string;
-  url: string;
-  size?: number;
-  mimeType?: string;
 }
 
 export interface AdminConversation {
   id: string;
-  participants: AdminParticipant[];
-  lastMessage?: {
-    content: string;
-    senderId: string;
-    createdAt: string;
-  } | null;
-  unreadCount: number;
-  status: 'active' | 'archived' | 'flagged' | 'closed';
-  lastActivityAt: string;
-  relatedBookingId?: string | null;
-  relatedSessionId?: string | null;
+  studentId: string;
+  studentName: string;
+  tutorProfileId: string;
+  tutorName: string;
+  status: string;
+  latestMessageAt: string | null;
   createdAt: string;
-  updatedAt: string;
+  updatedAt?: string;
 }
 
 export interface AdminConversationListParams {

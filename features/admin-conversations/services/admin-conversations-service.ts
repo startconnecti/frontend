@@ -6,41 +6,20 @@ import {
   AdminMessage,
   AdminMessageListParams,
   AdminMessageListResponse,
-  AdminParticipant,
-  AdminAttachment
 } from '../types';
 
 /**
  * Normalizes an admin conversation object with fallback values.
  */
 function normalizeConversation(conv: Record<string, unknown>): AdminConversation {
-  const rawParticipants = Array.isArray(conv?.participants) ? conv.participants : [];
-  const lastMessage = conv?.lastMessage as Record<string, unknown> | null | undefined;
-  
   return {
     id: (conv?.id as string) || (conv?.conversationId as string) || '',
-    participants: rawParticipants.map((p: unknown): AdminParticipant => {
-      const participant = p as Record<string, unknown>;
-      return {
-        id: (participant?.id as string) || (participant?.userId as string) || '',
-        fullName: (participant?.fullName as string) || (participant?.name as string) || 'Unknown',
-        email: (participant?.email as string) || '',
-        role: (participant?.role as 'student' | 'tutor') || 'student',
-        avatarUrl: (participant?.avatarUrl as string | null) || null,
-      };
-    }),
-    lastMessage: lastMessage
-      ? {
-          content: (lastMessage?.content as string) || '',
-          senderId: (lastMessage?.senderId as string) || '',
-          createdAt: (lastMessage?.createdAt as string) || new Date(0).toISOString(),
-        }
-      : null,
-    unreadCount: typeof conv?.unreadCount === 'number' ? conv.unreadCount : 0,
-    status: (conv?.status as AdminConversation['status']) || 'active',
-    lastActivityAt: (conv?.lastActivityAt as string) || (conv?.updatedAt as string) || new Date(0).toISOString(),
-    relatedBookingId: (conv?.relatedBookingId as string) || null,
-    relatedSessionId: (conv?.relatedSessionId as string) || null,
+    studentId: (conv?.studentId as string) || '',
+    studentName: (conv?.studentName as string) || 'Unknown Student',
+    tutorProfileId: (conv?.tutorProfileId as string) || '',
+    tutorName: (conv?.tutorName as string) || 'Unknown Tutor',
+    status: (conv?.status as string) || 'active',
+    latestMessageAt: (conv?.latestMessageAt as string | null) || null,
     createdAt: (conv?.createdAt as string) || new Date(0).toISOString(),
     updatedAt: (conv?.updatedAt as string) || new Date(0).toISOString(),
   };
@@ -50,28 +29,14 @@ function normalizeConversation(conv: Record<string, unknown>): AdminConversation
  * Normalizes an admin message object with fallback values.
  */
 function normalizeMessage(msg: Record<string, unknown>): AdminMessage {
-  const sender = msg?.sender as Record<string, unknown> | null | undefined;
-  const rawAttachments = Array.isArray(msg?.attachments) ? msg.attachments : [];
-
   return {
     id: (msg?.id as string) || (msg?.messageId as string) || '',
     conversationId: (msg?.conversationId as string) || '',
-    senderId: (msg?.senderId as string) || '',
-    senderName: (msg?.senderName as string) || (sender?.fullName as string) || 'Unknown',
-    senderRole: (msg?.senderRole as AdminMessage['senderRole']) || (sender?.role as AdminMessage['senderRole']) || 'system',
+    senderUserId: (msg?.senderUserId as string) || '',
+    senderName: (msg?.senderName as string) || 'Unknown',
     content: (msg?.content as string) || '',
-    attachments: rawAttachments.map((a: unknown): AdminAttachment => {
-      const attachment = a as Record<string, unknown>;
-      return {
-        id: (attachment?.id as string) || '',
-        name: (attachment?.name as string) || 'File',
-        url: (attachment?.url as string) || '',
-        size: attachment?.size as number,
-        mimeType: attachment?.mimeType as string,
-      };
-    }),
+    status: (msg?.status as string) || 'active',
     createdAt: (msg?.createdAt as string) || new Date(0).toISOString(),
-    deletedAt: (msg?.deletedAt as string | null) || null,
   };
 }
 
@@ -149,8 +114,8 @@ export const adminConversationsService = {
   async getConversation(id: string): Promise<AdminConversation> {
     const response = await adminApi.get<Record<string, unknown>>(`/api/v1/admin/conversations/${id}`);
     
-    // Support { data: conversation } or direct conversation object
-    const rawConv = (response?.data as Record<string, unknown>) || response;
+    // Support { conversation: ... } or { data: ... } or direct conversation object
+    const rawConv = (response?.conversation as Record<string, unknown>) || (response?.data as Record<string, unknown>) || response;
     return normalizeConversation(rawConv);
   },
 
@@ -161,8 +126,11 @@ export const adminConversationsService = {
     const queryParams: Record<string, string | number | boolean> = {};
     if (params.page) queryParams.offset = (params.page - 1) * (params.limit || 20);
     if (params.limit) queryParams.limit = params.limit;
+    
+    // Pass conversationId correctly for backend endpoint GET /api/v1/admin/messages
+    queryParams.conversationId = id;
 
-    const response = await adminApi.get<unknown>(`/api/v1/admin/conversations/${id}/messages`, { params: queryParams });
+    const response = await adminApi.get<unknown>(`/api/v1/admin/messages`, { params: queryParams });
     return normalizeListResponse(response, normalizeMessage, params.limit || 20);
   },
 };
