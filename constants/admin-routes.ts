@@ -20,10 +20,15 @@ export const ADMIN_ROUTES = {
   BOOKING_DETAIL: (id: string) => `/admin/bookings/${id}`,
 
   SESSIONS: '/admin/sessions',
+  SESSION_DETAIL: (id: string) => `/admin/sessions/${id}`,
   PAYMENTS: '/admin/payments',
+  PAYMENT_DETAIL: (id: string) => `/admin/payments/${id}`,
   REFUNDS: '/admin/refunds',
+  REFUND_DETAIL: (id: string) => `/admin/refunds/${id}`,
   PAYOUTS: '/admin/payouts',
+  PAYOUT_DETAIL: (id: string) => `/admin/payouts/${id}`,
   DISPUTES: '/admin/disputes',
+  DISPUTE_DETAIL: (id: string) => `/admin/disputes/${id}`,
 
   CONVERSATIONS: '/admin/conversations',
   CONVERSATION_DETAIL: (id: string) => `/admin/conversations/${id}`,

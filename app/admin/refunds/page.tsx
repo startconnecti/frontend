@@ -15,6 +15,7 @@ import { useToast } from '@/components/ui/use-toast';
 import { PAGINATION } from '@/constants/pagination';
 import { useAdminRefundsQuery, useApproveAdminRefund, useRejectAdminRefund } from '@/features/admin-refunds';
 import { PLATFORM_CURRENCY } from '@/lib/constants/currency';
+import { ADMIN_ROUTES } from '@/constants/admin-routes';
 import { Eye, CheckCircle, XCircle } from 'lucide-react';
 
 function formatCurrency(amount: number | null, currency: string): string {
@@ -43,7 +44,7 @@ export default function RefundsPage() {
   const router = useRouter();
   const { toast } = useToast();
   const [searchQuery, setSearchQuery] = useState('');
-  const [statusFilter, setStatusFilter] = useState<'all' | 'pending' | 'approved' | 'rejected' | 'processing' | 'processed' | 'failed' | 'cancelled'>('all');
+  const [statusFilter, setStatusFilter] = useState<'all' | 'pending' | 'approved' | 'rejected'>('all');
   const [page, setPage] = useState(1);
 
   const [approveModalOpen, setApproveModalOpen] = useState(false);
@@ -61,7 +62,7 @@ export default function RefundsPage() {
   const { mutate: approveRefund, isPending: isApproving } = useApproveAdminRefund();
   const { mutate: rejectRefund, isPending: isRejecting } = useRejectAdminRefund();
 
-  const statuses = ['all', 'pending', 'approved', 'rejected', 'processing', 'processed', 'failed', 'cancelled'] as const;
+  const statuses = ['all', 'pending', 'approved', 'rejected'] as const;
 
   const handleApprove = () => {
     if (!selectedRefundId) return;
@@ -73,12 +74,9 @@ export default function RefundsPage() {
           setApproveModalOpen(false);
           setSelectedRefundId(null);
         },
-        onError: (error: any) => {
-          toast({
-            title: 'Failed to approve refund',
-            description: error.response?.data?.message || 'An error occurred',
-            variant: 'destructive',
-          });
+        onError: (error: unknown) => {
+          const msg = error instanceof Error ? error.message : 'An error occurred';
+          toast({ title: 'Failed to approve refund', description: msg, variant: 'destructive' });
         },
       }
     );
@@ -99,12 +97,9 @@ export default function RefundsPage() {
           setSelectedRefundId(null);
           setRejectReason('');
         },
-        onError: (error: any) => {
-          toast({
-            title: 'Failed to reject refund',
-            description: error.response?.data?.message || 'An error occurred',
-            variant: 'destructive',
-          });
+        onError: (error: unknown) => {
+          const msg = error instanceof Error ? error.message : 'An error occurred';
+          toast({ title: 'Failed to reject refund', description: msg, variant: 'destructive' });
         },
       }
     );
@@ -160,7 +155,7 @@ export default function RefundsPage() {
             <Button
               variant="outline"
               size="sm"
-              onClick={() => router.push(`/admin/refunds/${refund.id}`)}
+              onClick={() => router.push(ADMIN_ROUTES.REFUND_DETAIL(refund.id))}
               title="View Detail"
             >
               <Eye className="w-4 h-4" />
