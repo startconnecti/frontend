@@ -1,49 +1,11 @@
 import { adminApi } from '@/lib/admin-api/client';
-import { PLATFORM_CURRENCY } from '@/lib/constants/currency';
 import type {
   AdminRefundListItem,
+  AdminRefundDetail,
   AdminRefundListQueryParams,
   AdminRefundListResponse,
   AdminRefundStatus,
 } from '../types';
-
-interface RawRefundListItem {
-  id?: string;
-  refundId?: string;
-  paymentId?: string;
-  bookingId?: string;
-  studentId?: string;
-  student?: {
-    userId?: string;
-    name?: string;
-    email?: string;
-  };
-  studentName?: string;
-  studentEmail?: string;
-  amount?: number;
-  refundAmount?: number;
-  currency?: string;
-  status?: string;
-  reason?: string;
-  note?: string;
-  requestedAt?: string;
-  createdAt?: string;
-  processedAt?: string;
-  updatedAt?: string;
-}
-
-interface RawRefundListResponse {
-  items?: RawRefundListItem[];
-  data?: RawRefundListItem[];
-  pagination?: {
-    limit?: number;
-    offset?: number;
-    total?: number;
-  };
-  total?: number;
-  limit?: number;
-  offset?: number;
-}
 
 function normalizeRefundStatus(status?: string): AdminRefundStatus {
   if (!status) return 'pending';
@@ -53,48 +15,40 @@ function normalizeRefundStatus(status?: string): AdminRefundStatus {
   if (lowerStatus === 'approved') return 'approved';
   if (lowerStatus === 'rejected') return 'rejected';
   if (lowerStatus === 'processing' || lowerStatus === 'in_progress') return 'processing';
-  if (lowerStatus === 'processed' || lowerStatus === 'completed') return 'processed';
+  if (lowerStatus === 'processed' || lowerStatus === 'refunded' || lowerStatus === 'completed') return 'refunded' as AdminRefundStatus;
   if (lowerStatus === 'failed') return 'failed';
   if (lowerStatus === 'cancelled') return 'cancelled';
 
   return 'pending';
 }
 
-function normalizeRefund(item: RawRefundListItem | null | undefined): AdminRefundListItem {
+function normalizeRefund(item: any): AdminRefundListItem {
   if (!item) {
     return {
       id: '',
-      paymentId: '',
-      bookingId: '',
+      refundCode: '',
       studentId: '',
       studentName: '-',
-      studentEmail: '-',
+      bookingId: '',
+      bookingCode: '-',
+      paymentId: '',
       amount: 0,
-      currency: PLATFORM_CURRENCY,
       status: 'pending',
-      reason: '-',
-      note: null,
-      requestedAt: new Date(0).toISOString(),
-      processedAt: null,
-      updatedAt: null,
+      createdAt: new Date(0).toISOString(),
     };
   }
 
   return {
-    id: item.id ?? item.refundId ?? '',
-    paymentId: item.paymentId ?? '',
-    bookingId: item.bookingId ?? '',
-    studentId: item.studentId ?? item.student?.userId ?? '',
-    studentName: item.student?.name ?? item.studentName ?? '-',
-    studentEmail: item.student?.email ?? item.studentEmail ?? '-',
+    id: item.refundId ?? item.id ?? '',
+    refundCode: item.refundCode ?? '',
+    studentId: item.student?.id ?? item.studentId ?? '',
+    studentName: item.student?.fullName ?? item.studentName ?? '-',
+    bookingId: item.booking?.id ?? item.bookingId ?? '',
+    bookingCode: item.booking?.bookingCode ?? '-',
+    paymentId: item.payment?.id ?? item.paymentId ?? '',
     amount: item.amount ?? item.refundAmount ?? 0,
-    currency: item.currency ?? PLATFORM_CURRENCY,
     status: normalizeRefundStatus(item.status),
-    reason: item.reason ?? '-',
-    note: item.note ?? null,
-    requestedAt: item.requestedAt ?? item.createdAt ?? new Date(0).toISOString(),
-    processedAt: item.processedAt ?? null,
-    updatedAt: item.updatedAt ?? null,
+    createdAt: item.createdAt ?? item.requestedAt ?? new Date(0).toISOString(),
   };
 }
 
@@ -124,7 +78,7 @@ export async function getAdminRefunds(
     params: queryParams,
   });
 
-  let rawItems: RawRefundListItem[] = [];
+  let rawItems: any[] = [];
   let total = 0;
   let paginationData = null;
 
@@ -149,4 +103,49 @@ export async function getAdminRefunds(
     offset: responseOffset,
     totalPages,
   };
+}
+
+export async function getAdminRefundDetail(id: string): Promise<AdminRefundDetail> {
+  const response = await adminApi.get<any>(`/api/v1/admin/refunds/${id}`);
+  const refund = response?.refund || response;
+  
+  return {
+    id: refund.id ?? '',
+    refundCode: refund.refundCode ?? '',
+    student: {
+      id: refund.student?.id ?? '',
+      fullName: refund.student?.fullName ?? 'Unknown student',
+    },
+    booking: {
+      id: refund.booking?.id ?? '',
+      bookingCode: refund.booking?.bookingCode ?? 'Unknown booking',
+    },
+    payment: {
+      id: refund.payment?.id ?? '',
+      paymentCode: refund.payment?.paymentCode ?? 'N/A',
+    },
+    amount: refund.amount ?? null,
+    reason: refund.reason ?? null,
+    status: normalizeRefundStatus(refund.status),
+    approvedAt: refund.approvedAt ?? null,
+    rejectedAt: refund.rejectedAt ?? null,
+    processingAt: refund.processingAt ?? null,
+    refundedAt: refund.refundedAt ?? null,
+    failedAt: refund.failedAt ?? null,
+    approvalNote: refund.approvalNote ?? null,
+    rejectReason: refund.rejectReason ?? null,
+    processingNote: refund.processingNote ?? null,
+    refundNote: refund.refundNote ?? null,
+    failedReason: refund.failedReason ?? null,
+    createdAt: refund.createdAt ?? new Date(0).toISOString(),
+    updatedAt: refund.updatedAt ?? new Date(0).toISOString(),
+  };
+}
+
+export async function approveAdminRefund(id: string, note?: string): Promise<{ message: string }> {
+  return adminApi.post(`/api/v1/admin/refunds/${id}/approve`, { note });
+}
+
+export async function rejectAdminRefund(id: string, reason: string): Promise<{ message: string }> {
+  return adminApi.post(`/api/v1/admin/refunds/${id}/reject`, { reason });
 }

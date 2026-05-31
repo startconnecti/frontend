@@ -54,10 +54,28 @@ const statusStyles: Record<string, { variant: StatusVariant; label: string }> = 
 interface AdminStatusBadgeProps {
   status: string;
   customLabel?: string;
-  type?: 'payout' | 'payment' | 'user' | 'booking';
+  type?: 'payout' | 'payment' | 'user' | 'booking' | 'refund';
 }
 
 export function AdminStatusBadge({ status, customLabel, type }: AdminStatusBadgeProps) {
+  if (type === 'refund') {
+    const refundStatuses: Record<string, { className: string; label: string }> = {
+      pending: { className: 'bg-yellow-100 text-yellow-800 hover:bg-yellow-100/80 border-transparent', label: 'Pending' },
+      approved: { className: 'bg-blue-100 text-blue-800 hover:bg-blue-100/80 border-transparent', label: 'Approved' },
+      processing: { className: 'bg-purple-100 text-purple-800 hover:bg-purple-100/80 border-transparent', label: 'Processing' },
+      refunded: { className: 'bg-green-100 text-green-800 hover:bg-green-100/80 border-transparent', label: 'Refunded' },
+      rejected: { className: 'bg-red-100 text-red-800 hover:bg-red-100/80 border-transparent', label: 'Rejected' },
+      failed: { className: 'bg-gray-200 text-gray-800 hover:bg-gray-200/80 border-transparent', label: 'Failed' },
+      cancelled: { className: 'bg-gray-200 text-gray-800 hover:bg-gray-200/80 border-transparent', label: 'Cancelled' },
+    };
+    const config = refundStatuses[status] || { className: 'bg-gray-100 text-gray-800 border-transparent', label: status };
+    return (
+      <Badge className={config.className}>
+        {customLabel || config.label}
+      </Badge>
+    );
+  }
+
   // Map payout status specifically
   if (type === 'payout') {
     const payoutStatuses: Record<string, { variant: StatusVariant; label: string }> = {

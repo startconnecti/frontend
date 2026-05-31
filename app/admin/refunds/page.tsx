@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { AdminPageHeader } from '@/components/admin/admin-page-header';
 import { AdminStatusBadge } from '@/components/admin/admin-status-badge';
 import { Button } from '@/components/ui/button';
@@ -8,11 +9,16 @@ import { Card } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Input } from '@/components/ui/input';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from '@/components/ui/dialog';
+import { Textarea } from '@/components/ui/textarea';
+import { useToast } from '@/components/ui/use-toast';
 import { PAGINATION } from '@/constants/pagination';
-import { useAdminRefundsQuery } from '@/features/admin-refunds';
+import { useAdminRefundsQuery, useApproveAdminRefund, useRejectAdminRefund } from '@/features/admin-refunds';
 import { PLATFORM_CURRENCY } from '@/lib/constants/currency';
+import { Eye, CheckCircle, XCircle } from 'lucide-react';
 
-function formatCurrency(amount: number, currency: string): string {
+function formatCurrency(amount: number | null, currency: string): string {
+  if (amount === null) return 'N/A';
   try {
     const formattedAmount = new Intl.NumberFormat('en-US').format(amount);
     return `${formattedAmount} ${currency || PLATFORM_CURRENCY}`;
@@ -34,9 +40,16 @@ function formatDate(dateString: string): string {
 }
 
 export default function RefundsPage() {
+  const router = useRouter();
+  const { toast } = useToast();
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<'all' | 'pending' | 'approved' | 'rejected' | 'processing' | 'processed' | 'failed' | 'cancelled'>('all');
   const [page, setPage] = useState(1);
+
+  const [approveModalOpen, setApproveModalOpen] = useState(false);
+  const [rejectModalOpen, setRejectModalOpen] = useState(false);
+  const [selectedRefundId, setSelectedRefundId] = useState<string | null>(null);
+  const [rejectReason, setRejectReason] = useState('');
 
   const { data: refundsData, isLoading, isError } = useAdminRefundsQuery({
     keyword: searchQuery || undefined,
@@ -45,18 +58,69 @@ export default function RefundsPage() {
     limit: PAGINATION.DEFAULT_PAGE_SIZE,
   });
 
+  const { mutate: approveRefund, isPending: isApproving } = useApproveAdminRefund();
+  const { mutate: rejectRefund, isPending: isRejecting } = useRejectAdminRefund();
+
   const statuses = ['all', 'pending', 'approved', 'rejected', 'processing', 'processed', 'failed', 'cancelled'] as const;
+
+  const handleApprove = () => {
+    if (!selectedRefundId) return;
+    approveRefund(
+      { id: selectedRefundId },
+      {
+        onSuccess: () => {
+          toast({ title: 'Refund approved successfully' });
+          setApproveModalOpen(false);
+          setSelectedRefundId(null);
+        },
+        onError: (error: any) => {
+          toast({
+            title: 'Failed to approve refund',
+            description: error.response?.data?.message || 'An error occurred',
+            variant: 'destructive',
+          });
+        },
+      }
+    );
+  };
+
+  const handleReject = () => {
+    if (!selectedRefundId) return;
+    if (!rejectReason.trim()) {
+      toast({ title: 'Reason is required', variant: 'destructive' });
+      return;
+    }
+    rejectRefund(
+      { id: selectedRefundId, reason: rejectReason },
+      {
+        onSuccess: () => {
+          toast({ title: 'Refund rejected successfully' });
+          setRejectModalOpen(false);
+          setSelectedRefundId(null);
+          setRejectReason('');
+        },
+        onError: (error: any) => {
+          toast({
+            title: 'Failed to reject refund',
+            description: error.response?.data?.message || 'An error occurred',
+            variant: 'destructive',
+          });
+        },
+      }
+    );
+  };
 
   const renderTableRows = () => {
     if (isLoading) {
       return Array.from({ length: 5 }).map((_, i) => (
         <TableRow key={i}>
           <TableCell><Skeleton className="h-4 w-20" /></TableCell>
-          <TableCell><Skeleton className="h-4 w-20" /></TableCell>
+          <TableCell><Skeleton className="h-4 w-32" /></TableCell>
           <TableCell><Skeleton className="h-4 w-24" /></TableCell>
           <TableCell><Skeleton className="h-4 w-24" /></TableCell>
           <TableCell><Skeleton className="h-4 w-16" /></TableCell>
           <TableCell><Skeleton className="h-4 w-32" /></TableCell>
+          <TableCell><Skeleton className="h-4 w-24" /></TableCell>
         </TableRow>
       ));
     }
@@ -64,7 +128,7 @@ export default function RefundsPage() {
     if (isError || !refundsData) {
       return (
         <TableRow>
-          <TableCell colSpan={6} className="h-24 text-center text-destructive">
+          <TableCell colSpan={7} className="h-24 text-center text-destructive">
             Error loading refunds
           </TableCell>
         </TableRow>
@@ -74,36 +138,76 @@ export default function RefundsPage() {
     if (refundsData.items.length === 0) {
       return (
         <TableRow>
-          <TableCell colSpan={6} className="h-24 text-center text-muted-foreground">
+          <TableCell colSpan={7} className="h-24 text-center text-muted-foreground">
             No refunds found
           </TableCell>
         </TableRow>
       );
     }
 
-    return refundsData.items.map(refund => (
+    return refundsData.items.map((refund) => (
       <TableRow key={refund.id}>
-        <TableCell className="font-mono text-sm">{refund.id}</TableCell>
-        <TableCell className="font-mono text-sm">{refund.paymentId}</TableCell>
-        <TableCell className="font-medium">{formatCurrency(refund.amount, refund.currency)}</TableCell>
-        <TableCell className="text-sm capitalize">{refund.reason.replace(/_/g, ' ')}</TableCell>
+        <TableCell className="font-mono text-sm">{refund.refundCode}</TableCell>
+        <TableCell className="font-medium">{refund.studentName}</TableCell>
+        <TableCell className="font-mono text-sm">{refund.bookingCode}</TableCell>
+        <TableCell className="font-medium">{formatCurrency(refund.amount, PLATFORM_CURRENCY)}</TableCell>
         <TableCell>
-          <AdminStatusBadge status={refund.status} />
+          <AdminStatusBadge type="refund" status={refund.status} />
         </TableCell>
-        <TableCell className="text-sm text-muted-foreground">{formatDate(refund.requestedAt)}</TableCell>
+        <TableCell className="text-sm text-muted-foreground">{formatDate(refund.createdAt)}</TableCell>
+        <TableCell>
+          <div className="flex items-center gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => router.push(`/admin/refunds/${refund.id}`)}
+              title="View Detail"
+            >
+              <Eye className="w-4 h-4" />
+            </Button>
+            {refund.status === 'pending' && (
+              <>
+                <Button
+                  variant="default"
+                  size="sm"
+                  className="bg-green-600 hover:bg-green-700 text-white"
+                  onClick={() => {
+                    setSelectedRefundId(refund.id);
+                    setApproveModalOpen(true);
+                  }}
+                  title="Approve"
+                >
+                  <CheckCircle className="w-4 h-4" />
+                </Button>
+                <Button
+                  variant="destructive"
+                  size="sm"
+                  onClick={() => {
+                    setSelectedRefundId(refund.id);
+                    setRejectReason('');
+                    setRejectModalOpen(true);
+                  }}
+                  title="Reject"
+                >
+                  <XCircle className="w-4 h-4" />
+                </Button>
+              </>
+            )}
+          </div>
+        </TableCell>
       </TableRow>
     ));
   };
 
   return (
     <>
-      <AdminPageHeader title="Refunds Management" description="Review and process refund requests." />
+      <AdminPageHeader title="Refunds Management" description="Review and process refund requests operationally." />
 
       <Card>
         {/* Filters */}
         <div className="border-b border-border px-6 py-4 space-y-4">
           <Input
-            placeholder="Search refund ID..."
+            placeholder="Search refund code, payment code, booking code..."
             value={searchQuery}
             onChange={(e) => {
               setSearchQuery(e.target.value);
@@ -112,7 +216,7 @@ export default function RefundsPage() {
             className="max-w-sm"
           />
           <div className="flex gap-2 flex-wrap">
-            {statuses.map(status => (
+            {statuses.map((status) => (
               <Button
                 key={status}
                 variant={statusFilter === status ? 'default' : 'outline'}
@@ -134,12 +238,13 @@ export default function RefundsPage() {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Refund ID</TableHead>
-                <TableHead>Payment ID</TableHead>
+                <TableHead>Refund Code</TableHead>
+                <TableHead>Student</TableHead>
+                <TableHead>Booking Code</TableHead>
                 <TableHead>Amount</TableHead>
-                <TableHead>Reason</TableHead>
                 <TableHead>Status</TableHead>
-                <TableHead>Requested At</TableHead>
+                <TableHead>Created At</TableHead>
+                <TableHead>Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -175,6 +280,50 @@ export default function RefundsPage() {
           </div>
         )}
       </Card>
+
+      {/* Approve Modal */}
+      <Dialog open={approveModalOpen} onOpenChange={setApproveModalOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Approve Refund</DialogTitle>
+            <DialogDescription>
+              Are you sure you want to approve this refund?
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setApproveModalOpen(false)}>Cancel</Button>
+            <Button onClick={handleApprove} disabled={isApproving}>
+              {isApproving ? 'Approving...' : 'Confirm Approve'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Reject Modal */}
+      <Dialog open={rejectModalOpen} onOpenChange={setRejectModalOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Reject Refund</DialogTitle>
+            <DialogDescription>
+              Please provide a reason for rejecting this refund request.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="py-4">
+            <Textarea
+              placeholder="Rejection reason..."
+              value={rejectReason}
+              onChange={(e) => setRejectReason(e.target.value)}
+              rows={3}
+            />
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setRejectModalOpen(false)}>Cancel</Button>
+            <Button variant="destructive" onClick={handleReject} disabled={isRejecting}>
+              {isRejecting ? 'Rejecting...' : 'Confirm Reject'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </>
   );
 }

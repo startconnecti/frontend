@@ -2,19 +2,47 @@ export type AdminRefundStatus = 'pending' | 'approved' | 'rejected' | 'processin
 
 export interface AdminRefundListItem {
   id: string;
-  paymentId: string;
-  bookingId: string;
+  refundCode: string;
   studentId: string;
   studentName: string;
-  studentEmail: string;
-  amount: number;
-  currency: string;
+  bookingId: string;
+  bookingCode: string;
+  paymentId: string;
+  amount: number | null;
   status: AdminRefundStatus;
-  reason: string;
-  note: string | null;
-  requestedAt: string;
-  processedAt: string | null;
-  updatedAt: string | null;
+  createdAt: string;
+}
+
+export interface AdminRefundDetail {
+  id: string;
+  refundCode: string;
+  student: {
+    id: string;
+    fullName: string;
+  };
+  booking: {
+    id: string;
+    bookingCode: string;
+  };
+  payment: {
+    id: string;
+    paymentCode: string;
+  };
+  amount: number | null;
+  reason: string | null;
+  status: AdminRefundStatus;
+  approvedAt: string | null;
+  rejectedAt: string | null;
+  processingAt: string | null;
+  refundedAt: string | null;
+  failedAt: string | null;
+  approvalNote: string | null;
+  rejectReason: string | null;
+  processingNote: string | null;
+  refundNote: string | null;
+  failedReason: string | null;
+  createdAt: string;
+  updatedAt: string;
 }
 
 export interface AdminRefundListResponse {
