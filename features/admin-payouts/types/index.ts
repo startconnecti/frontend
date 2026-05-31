@@ -1,21 +1,54 @@
-export type AdminPayoutStatus = 'pending' | 'processing' | 'paid' | 'failed' | 'cancelled';
+export type AdminPayoutStatus =
+  | 'pending'
+  | 'approved'
+  | 'processing'
+  | 'paid'
+  | 'failed'
+  | 'cancelled';
 
 export interface AdminPayoutListItem {
   id: string;
-  tutorId: string;
+  payoutCode: string;
+  tutorProfileId: string;
   tutorName: string;
-  tutorEmail: string;
-  amount: number;
+  periodStart: string | null;
+  periodEnd: string | null;
   grossAmount: number;
+  commissionAmount: number;
   netAmount: number;
-  platformCommission: number;
-  paymentMethod: string;
-  currency: string;
   status: AdminPayoutStatus;
-  note: string | null;
-  requestedAt: string;
-  processedAt: string | null;
-  updatedAt: string | null;
+  createdAt: string;
+}
+
+export interface AdminPayoutDetail {
+  id: string;
+  payoutCode: string | null;
+  tutorProfileId: string;
+  tutorName: string | null;
+  periodStart: string | null;
+  periodEnd: string | null;
+  grossAmount: number;
+  commissionAmount: number;
+  netAmount: number;
+  status: AdminPayoutStatus;
+  approvedAt: string | null;
+  paidAt: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface AdminPayoutDetailItem {
+  payoutItemId: string;
+  sessionId: string;
+  paymentId: string | null;
+  grossAmount: number;
+  commissionAmount: number;
+  netAmount: number;
+}
+
+export interface AdminPayoutDetailResponse {
+  payout: AdminPayoutDetail;
+  items: AdminPayoutDetailItem[];
 }
 
 export interface AdminPayoutListResponse {

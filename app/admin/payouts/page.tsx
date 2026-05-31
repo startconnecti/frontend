@@ -1,6 +1,8 @@
 'use client';
 
 import { useState } from 'react';
+import Link from 'next/link';
+import { Eye, MoreHorizontal, CheckCircle, XCircle, Loader2 } from 'lucide-react';
 import { AdminPageHeader } from '@/components/admin/admin-page-header';
 import { AdminStatusBadge } from '@/components/admin/admin-status-badge';
 import { Button } from '@/components/ui/button';
@@ -8,35 +10,89 @@ import { Card } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Input } from '@/components/ui/input';
 import { Skeleton } from '@/components/ui/skeleton';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { PAGINATION } from '@/constants/pagination';
-import { useAdminPayoutsQuery } from '@/features/admin-payouts';
-import { PLATFORM_CURRENCY } from '@/lib/constants/currency';
+import { ADMIN_ROUTES } from '@/constants/admin-routes';
+import {
+  useAdminPayoutsQuery,
+  useAdminApprovePayoutMutation,
+  useAdminMarkPayoutProcessingMutation,
+  useAdminCancelPayoutMutation,
+  type AdminPayoutStatus,
+} from '@/features/admin-payouts';
 
-function formatCurrency(amount: number, currency: string): string {
-  try {
-    const formattedAmount = new Intl.NumberFormat('en-US').format(amount);
-    return `${formattedAmount} ${currency || PLATFORM_CURRENCY}`;
-  } catch {
-    return `${amount} ${currency || PLATFORM_CURRENCY}`;
-  }
+// ─── Formatters ───────────────────────────────────────────────────────────────
+
+function formatVND(amount: number): string {
+  if (Number.isNaN(amount)) return '₫0';
+  return `₫${new Intl.NumberFormat('vi-VN').format(Math.round(amount))}`;
 }
 
-function formatDate(dateString: string): string {
+function formatPeriodDate(iso: string | null | undefined): string {
+  if (!iso) return '-';
   try {
-    const date = new Date(dateString);
-    if (isNaN(date.getTime()) || date.getFullYear() === 1970) {
-      return '-';
-    }
-    return date.toLocaleString();
+    const d = new Date(iso);
+    if (Number.isNaN(d.getTime())) return '-';
+    return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
   } catch {
     return '-';
   }
 }
 
+function formatCreatedAt(iso: string | null | undefined): string {
+  if (!iso) return '-';
+  try {
+    const d = new Date(iso);
+    if (Number.isNaN(d.getTime())) return '-';
+    return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+  } catch {
+    return '-';
+  }
+}
+
+function truncateId(id: string): string {
+  if (!id || id.length <= 8) return id || '-';
+  return `${id.substring(0, 8)}…`;
+}
+
+// ─── Status filter tabs ───────────────────────────────────────────────────────
+
+type StatusFilter = 'all' | AdminPayoutStatus;
+
+const STATUS_TABS: { label: string; value: StatusFilter }[] = [
+  { label: 'All', value: 'all' },
+  { label: 'Pending', value: 'pending' },
+  { label: 'Approved', value: 'approved' },
+  { label: 'Processing', value: 'processing' },
+  { label: 'Paid', value: 'paid' },
+  { label: 'Failed', value: 'failed' },
+  { label: 'Cancelled', value: 'cancelled' },
+];
+
+// ─── Action visibility ────────────────────────────────────────────────────────
+
+function getPayoutActions(status: AdminPayoutStatus) {
+  return {
+    canApprove: status === 'pending',
+    canMarkProcessing: status === 'approved',
+    canCancel: status === 'pending' || status === 'approved',
+  };
+}
+
+// ─── Component ────────────────────────────────────────────────────────────────
+
 export default function PayoutsPage() {
   const [searchQuery, setSearchQuery] = useState('');
-  const [statusFilter, setStatusFilter] = useState<'all' | 'pending' | 'processing' | 'paid' | 'failed' | 'cancelled'>('all');
+  const [statusFilter, setStatusFilter] = useState<StatusFilter>('all');
   const [page, setPage] = useState(1);
+
+  const [actionPayoutId, setActionPayoutId] = useState<string | null>(null);
+  const [activeDialog, setActiveDialog] = useState<'approve' | 'processing' | 'cancel' | null>(null);
+
+  const approveMutation = useAdminApprovePayoutMutation();
+  const markProcessingMutation = useAdminMarkPayoutProcessingMutation();
+  const cancelMutation = useAdminCancelPayoutMutation();
 
   const { data: payoutsData, isLoading, isError } = useAdminPayoutsQuery({
     keyword: searchQuery || undefined,
@@ -45,18 +101,38 @@ export default function PayoutsPage() {
     limit: PAGINATION.DEFAULT_PAGE_SIZE,
   });
 
-  const statuses = ['all', 'pending', 'processing', 'paid', 'failed', 'cancelled'] as const;
+  function openDialog(payoutId: string, dialog: 'approve' | 'processing' | 'cancel') {
+    setActionPayoutId(payoutId);
+    setActiveDialog(dialog);
+  }
 
-  const renderTableRows = () => {
+  function closeDialog() {
+    setActionPayoutId(null);
+    setActiveDialog(null);
+  }
+
+  function handleApprove() {
+    if (!actionPayoutId) return;
+    approveMutation.mutate({ payoutId: actionPayoutId }, { onSuccess: closeDialog });
+  }
+
+  function handleMarkProcessing() {
+    if (!actionPayoutId) return;
+    markProcessingMutation.mutate({ payoutId: actionPayoutId }, { onSuccess: closeDialog });
+  }
+
+  function handleCancel() {
+    if (!actionPayoutId) return;
+    cancelMutation.mutate({ payoutId: actionPayoutId }, { onSuccess: closeDialog });
+  }
+
+  const renderRows = () => {
     if (isLoading) {
       return Array.from({ length: 5 }).map((_, i) => (
         <TableRow key={i}>
-          <TableCell><Skeleton className="h-4 w-20" /></TableCell>
-          <TableCell><Skeleton className="h-4 w-24" /></TableCell>
-          <TableCell><Skeleton className="h-4 w-24" /></TableCell>
-          <TableCell><Skeleton className="h-4 w-16" /></TableCell>
-          <TableCell><Skeleton className="h-4 w-20" /></TableCell>
-          <TableCell><Skeleton className="h-4 w-32" /></TableCell>
+          {Array.from({ length: 6 }).map((__, j) => (
+            <TableCell key={j}><Skeleton className="h-4 w-full" /></TableCell>
+          ))}
         </TableRow>
       ));
     }
@@ -81,54 +157,125 @@ export default function PayoutsPage() {
       );
     }
 
-    return payoutsData.items.map(payout => (
-      <TableRow key={payout.id}>
-        <TableCell className="font-mono text-sm">{payout.id}</TableCell>
-        <TableCell>{payout.tutorName}</TableCell>
-        <TableCell className="font-semibold">{formatCurrency(payout.netAmount, payout.currency)}</TableCell>
-        <TableCell>
-          <AdminStatusBadge status={payout.status} />
-        </TableCell>
-        <TableCell>{payout.paymentMethod}</TableCell>
-        <TableCell className="text-sm text-muted-foreground">
-          {formatDate(payout.requestedAt)}
-        </TableCell>
-      </TableRow>
-    ));
+    return payoutsData.items.map(payout => {
+      const { canApprove, canMarkProcessing, canCancel } = getPayoutActions(payout.status);
+
+      return (
+        <TableRow key={payout.id}>
+          {/* Payout column */}
+          <TableCell>
+            <p className="font-mono text-sm font-medium">{payout.payoutCode}</p>
+            <p className="text-xs text-muted-foreground mt-0.5">
+              Created {formatCreatedAt(payout.createdAt)}
+            </p>
+          </TableCell>
+
+          {/* Tutor column */}
+          <TableCell>
+            <p className="text-sm font-medium">{payout.tutorName}</p>
+            <p className="font-mono text-xs text-muted-foreground mt-0.5">
+              {truncateId(payout.tutorProfileId)}
+            </p>
+          </TableCell>
+
+          {/* Period column */}
+          <TableCell className="text-sm whitespace-nowrap">
+            {formatPeriodDate(payout.periodStart)} → {formatPeriodDate(payout.periodEnd)}
+          </TableCell>
+
+          {/* Net Amount column */}
+          <TableCell>
+            <p className="font-semibold">{formatVND(payout.netAmount)}</p>
+            <p className="text-xs text-muted-foreground mt-0.5">
+              Gross: {formatVND(payout.grossAmount)}
+            </p>
+            <p className="text-xs text-muted-foreground">
+              Commission: {formatVND(payout.commissionAmount)}
+            </p>
+          </TableCell>
+
+          {/* Status column */}
+          <TableCell>
+            <AdminStatusBadge status={payout.status} type="payout" />
+          </TableCell>
+
+          {/* Actions column */}
+          <TableCell>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                  <MoreHorizontal className="h-4 w-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <Link href={ADMIN_ROUTES.PAYOUT_DETAIL(payout.id)}>
+                  <DropdownMenuItem className="cursor-pointer">
+                    <Eye className="mr-2 h-4 w-4" /> View
+                  </DropdownMenuItem>
+                </Link>
+                {canApprove && (
+                  <DropdownMenuItem
+                    className="cursor-pointer text-green-700"
+                    onClick={() => openDialog(payout.id, 'approve')}
+                  >
+                    <CheckCircle className="mr-2 h-4 w-4" /> Approve
+                  </DropdownMenuItem>
+                )}
+                {canMarkProcessing && (
+                  <DropdownMenuItem
+                    className="cursor-pointer"
+                    onClick={() => openDialog(payout.id, 'processing')}
+                  >
+                    <Loader2 className="mr-2 h-4 w-4" /> Mark Processing
+                  </DropdownMenuItem>
+                )}
+                {canCancel && (
+                  <DropdownMenuItem
+                    className="cursor-pointer text-destructive"
+                    onClick={() => openDialog(payout.id, 'cancel')}
+                  >
+                    <XCircle className="mr-2 h-4 w-4" /> Cancel
+                  </DropdownMenuItem>
+                )}
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </TableCell>
+        </TableRow>
+      );
+    });
   };
 
   return (
     <>
       <AdminPageHeader
-        title="Manage Payouts"
-        description="View and manage tutor payouts."
+        title="Payouts"
+        description="Manage tutor payout requests and workflow."
       />
 
       <Card>
         {/* Filters */}
         <div className="border-b border-border px-6 py-4 space-y-4">
           <Input
-            placeholder="Search by tutor name or ID..."
+            placeholder="Search by payout code..."
             value={searchQuery}
-            onChange={(e) => {
+            onChange={e => {
               setSearchQuery(e.target.value);
               setPage(1);
             }}
             className="max-w-sm"
           />
           <div className="flex gap-2 flex-wrap">
-            {statuses.map(status => (
+            {STATUS_TABS.map(tab => (
               <Button
-                key={status}
-                variant={statusFilter === status ? 'default' : 'outline'}
+                key={tab.value}
+                variant={statusFilter === tab.value ? 'default' : 'outline'}
                 size="sm"
                 onClick={() => {
-                  setStatusFilter(status);
+                  setStatusFilter(tab.value);
                   setPage(1);
                 }}
-                className="capitalize"
               >
-                {status}
+                {tab.label}
               </Button>
             ))}
           </div>
@@ -139,16 +286,16 @@ export default function PayoutsPage() {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Payout ID</TableHead>
+                <TableHead>Payout</TableHead>
                 <TableHead>Tutor</TableHead>
-                <TableHead>Amount</TableHead>
+                <TableHead>Period</TableHead>
+                <TableHead>Net Amount</TableHead>
                 <TableHead>Status</TableHead>
-                <TableHead>Payment Method</TableHead>
-                <TableHead>Requested At</TableHead>
+                <TableHead>Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
-              {renderTableRows()}
+              {renderRows()}
             </TableBody>
           </Table>
         </div>
@@ -163,7 +310,7 @@ export default function PayoutsPage() {
               <Button
                 variant="outline"
                 size="sm"
-                onClick={() => setPage(Math.max(1, page - 1))}
+                onClick={() => setPage(p => Math.max(1, p - 1))}
                 disabled={page === 1}
               >
                 Previous
@@ -171,7 +318,7 @@ export default function PayoutsPage() {
               <Button
                 variant="outline"
                 size="sm"
-                onClick={() => setPage(Math.min(payoutsData.totalPages, page + 1))}
+                onClick={() => setPage(p => Math.min(payoutsData.totalPages, p + 1))}
                 disabled={page === payoutsData.totalPages}
               >
                 Next
@@ -180,6 +327,71 @@ export default function PayoutsPage() {
           </div>
         )}
       </Card>
+
+      {/* Approve Dialog */}
+      <AlertDialog open={activeDialog === 'approve'} onOpenChange={open => !open && closeDialog()}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Approve Payout</AlertDialogTitle>
+            <AlertDialogDescription>
+              Confirm you want to approve this payout. The tutor will be notified.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Go Back</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={e => { e.preventDefault(); handleApprove(); }}
+              className="bg-green-600 hover:bg-green-600/90"
+              disabled={approveMutation.isPending}
+            >
+              Approve
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Mark Processing Dialog */}
+      <AlertDialog open={activeDialog === 'processing'} onOpenChange={open => !open && closeDialog()}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Mark as Processing</AlertDialogTitle>
+            <AlertDialogDescription>
+              Confirm you want to mark this payout as processing. This indicates payment has been initiated.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Go Back</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={e => { e.preventDefault(); handleMarkProcessing(); }}
+              disabled={markProcessingMutation.isPending}
+            >
+              Mark Processing
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Cancel Dialog */}
+      <AlertDialog open={activeDialog === 'cancel'} onOpenChange={open => !open && closeDialog()}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Cancel Payout</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to cancel this payout? This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Go Back</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={e => { e.preventDefault(); handleCancel(); }}
+              className="bg-destructive hover:bg-destructive/90"
+              disabled={cancelMutation.isPending}
+            >
+              Cancel Payout
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </>
   );
 }

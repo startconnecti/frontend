@@ -1,151 +1,119 @@
 import { adminApi } from '@/lib/admin-api/client';
-import { PLATFORM_CURRENCY } from '@/lib/constants/currency';
 import type {
+  AdminPayoutDetailResponse,
   AdminPayoutListItem,
   AdminPayoutListQueryParams,
   AdminPayoutListResponse,
   AdminPayoutStatus,
 } from '../types';
 
+// ─── Raw response shapes from backend ────────────────────────────────────────
+
 interface RawPayoutListItem {
-  id?: string;
   payoutId?: string;
+  id?: string;
+  payoutCode?: string;
+  tutorProfileId?: string;
   tutorId?: string;
-  tutor?: {
-    tutorProfileId?: string;
-    name?: string;
-    email?: string;
-  };
   tutorName?: string;
-  tutorEmail?: string;
-  amount?: number;
-  grossAmount?: number;
-  netAmount?: number;
-  platformCommission?: number;
-  paymentMethod?: string;
-  currency?: string;
+  periodStart?: string | null;
+  periodEnd?: string | null;
+  grossAmount?: number | null;
+  commissionAmount?: number | null;
+  netAmount?: number | null;
   status?: string;
-  note?: string;
-  requestedAt?: string;
-  processedAt?: string;
-  updatedAt?: string;
+  createdAt?: string;
 }
 
-interface RawPayoutListResponse {
+interface RawPayoutsResponse {
   items?: RawPayoutListItem[];
-  data?: RawPayoutListItem[];
   pagination?: {
     limit?: number;
     offset?: number;
     total?: number;
   };
-  total?: number;
-  limit?: number;
-  offset?: number;
 }
+
+// ─── Normalizers ─────────────────────────────────────────────────────────────
 
 function normalizePayoutStatus(status?: string): AdminPayoutStatus {
-  if (!status) return 'pending';
-
-  const lowerStatus = status.toLowerCase();
-  if (lowerStatus === 'pending') return 'pending';
-  if (lowerStatus === 'processing' || lowerStatus === 'in_progress') return 'processing';
-  if (lowerStatus === 'paid' || lowerStatus === 'completed' || lowerStatus === 'succeeded') return 'paid';
-  if (lowerStatus === 'failed') return 'failed';
-  if (lowerStatus === 'cancelled') return 'cancelled';
-
-  return 'pending';
+  switch (status?.toLowerCase()) {
+    case 'approved': return 'approved';
+    case 'processing': return 'processing';
+    case 'paid': return 'paid';
+    case 'failed': return 'failed';
+    case 'cancelled': return 'cancelled';
+    default: return 'pending';
+  }
 }
 
-function normalizePayout(item: RawPayoutListItem | null | undefined): AdminPayoutListItem {
-  if (!item) {
-    return {
-      id: '',
-      tutorId: '',
-      tutorName: '-',
-      tutorEmail: '-',
-      amount: 0,
-      grossAmount: 0,
-      netAmount: 0,
-      platformCommission: 0,
-      paymentMethod: '-',
-      currency: PLATFORM_CURRENCY,
-      status: 'pending',
-      note: null,
-      requestedAt: new Date(0).toISOString(),
-      processedAt: null,
-      updatedAt: null,
-    };
-  }
+function safeNumber(value: number | null | undefined): number {
+  if (value === null || value === undefined || Number.isNaN(value)) return 0;
+  return value;
+}
 
-  const amount = item.amount ?? item.netAmount ?? 0;
-  const grossAmount = item.grossAmount ?? amount;
-  const platformCommission = item.platformCommission ?? (grossAmount - amount);
-
+function normalizePayout(item: RawPayoutListItem): AdminPayoutListItem {
+  const id = item.payoutId ?? item.id ?? '';
   return {
-    id: item.id ?? item.payoutId ?? '',
-    tutorId: item.tutorId ?? item.tutor?.tutorProfileId ?? '',
-    tutorName: item.tutor?.name ?? item.tutorName ?? '-',
-    tutorEmail: item.tutor?.email ?? item.tutorEmail ?? '-',
-    amount,
-    grossAmount,
-    netAmount: amount,
-    platformCommission,
-    paymentMethod: item.paymentMethod ?? '-',
-    currency: item.currency ?? PLATFORM_CURRENCY,
+    id,
+    payoutCode: item.payoutCode ?? id.substring(0, 8).toUpperCase(),
+    tutorProfileId: item.tutorProfileId ?? item.tutorId ?? '',
+    tutorName: item.tutorName ?? '-',
+    periodStart: item.periodStart ?? null,
+    periodEnd: item.periodEnd ?? null,
+    grossAmount: safeNumber(item.grossAmount),
+    commissionAmount: safeNumber(item.commissionAmount),
+    netAmount: safeNumber(item.netAmount),
     status: normalizePayoutStatus(item.status),
-    note: item.note ?? null,
-    requestedAt: item.requestedAt ?? new Date(0).toISOString(),
-    processedAt: item.processedAt ?? null,
-    updatedAt: item.updatedAt ?? null,
+    createdAt: item.createdAt ?? new Date(0).toISOString(),
   };
 }
 
-function normalizePayoutsResponse(response: any, page: number, limit: number): AdminPayoutListResponse {
-  let rawItems: RawPayoutListItem[] = [];
-  let total = 0;
-  let paginationData = null;
-
-  if (Array.isArray(response)) {
-    rawItems = response;
-    total = response.length;
-  } else if (response && typeof response === 'object') {
-    rawItems = response.items ?? response.data ?? [];
-    paginationData = response.pagination;
-    total = paginationData?.total ?? response.total ?? rawItems.length;
-  }
-
-  const offset = (page - 1) * limit;
-  const totalPages = Math.max(1, Math.ceil(total / limit));
-
-  return {
-    items: rawItems.map(normalizePayout),
-    total,
-    page,
-    limit,
-    offset,
-    totalPages,
-  };
-}
+// ─── Service ─────────────────────────────────────────────────────────────────
 
 export const adminPayoutsService = {
-  async listPayouts(
-    params: AdminPayoutListQueryParams
-  ): Promise<AdminPayoutListResponse> {
+  async listPayouts(params: AdminPayoutListQueryParams): Promise<AdminPayoutListResponse> {
     const { keyword, status, page = 1, limit = 10 } = params;
 
-    const response = await adminApi.get<any>(
-      '/api/v1/admin/payouts',
-      {
-        params: {
-          limit,
-          offset: (page - 1) * limit,
-          ...(keyword && { keyword }),
-          ...(status && { status }),
-        },
-      }
-    );
+    const response = await adminApi.get<RawPayoutsResponse>('/api/v1/admin/payouts', {
+      params: {
+        limit,
+        offset: (page - 1) * limit,
+        ...(keyword && { keyword }),
+        ...(status && { status }),
+      },
+    });
 
-    return normalizePayoutsResponse(response, page, limit);
+    const rawItems: RawPayoutListItem[] = response?.items ?? [];
+    const total = response?.pagination?.total ?? rawItems.length;
+
+    return {
+      items: rawItems.filter(Boolean).map(normalizePayout),
+      total,
+      page,
+      limit,
+      offset: (page - 1) * limit,
+      totalPages: Math.max(1, Math.ceil(total / limit)),
+    };
+  },
+
+  async getPayoutDetail(payoutId: string): Promise<AdminPayoutDetailResponse> {
+    return adminApi.get<AdminPayoutDetailResponse>(`/api/v1/admin/payouts/${payoutId}`);
+  },
+
+  async approvePayout(payoutId: string, note?: string): Promise<void> {
+    await adminApi.post(`/api/v1/admin/payouts/${payoutId}/approve`, { note: note ?? null });
+  },
+
+  async markPayoutProcessing(payoutId: string, note?: string): Promise<void> {
+    await adminApi.post(`/api/v1/admin/payouts/${payoutId}/mark-processing`, { note: note ?? null });
+  },
+
+  async markPayoutPaid(payoutId: string, note?: string): Promise<void> {
+    await adminApi.post(`/api/v1/admin/payouts/${payoutId}/mark-paid`, { note: note ?? null });
+  },
+
+  async cancelPayout(payoutId: string, reason?: string): Promise<void> {
+    await adminApi.post(`/api/v1/admin/payouts/${payoutId}/cancel`, { reason: reason ?? null });
   },
 };

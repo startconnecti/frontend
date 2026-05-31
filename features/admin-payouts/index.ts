@@ -1,3 +1,10 @@
 export * from './types';
 export * from './services/admin-payouts-service';
-export { useAdminPayoutsQuery } from './hooks/use-admin-payouts-query';
+export {
+  useAdminPayoutsQuery,
+  useAdminPayoutDetailQuery,
+  useAdminApprovePayoutMutation,
+  useAdminMarkPayoutProcessingMutation,
+  useAdminMarkPayoutPaidMutation,
+  useAdminCancelPayoutMutation,
+} from './hooks/use-admin-payouts-query';
