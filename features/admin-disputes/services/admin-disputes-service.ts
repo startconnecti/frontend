@@ -1,171 +1,131 @@
 import { adminApi } from '@/lib/admin-api/client';
 import type {
+  AdminDisputeDetail,
+  AdminDisputeDetailResponse,
   AdminDisputeListItem,
   AdminDisputeListQueryParams,
   AdminDisputeListResponse,
   AdminDisputeStatus,
-  AdminDisputePriority,
 } from '../types';
 
+// ─── Raw response shapes ──────────────────────────────────────────────────────
+
 interface RawDisputeListItem {
-  id?: string;
   disputeId?: string;
-  bookingId?: string;
-  sessionId?: string;
-  studentId?: string;
-  student?: {
-    userId?: string;
-    name?: string;
-    email?: string;
-  };
-  studentName?: string;
-  studentEmail?: string;
-  tutorId?: string;
-  tutor?: {
-    tutorProfileId?: string;
-    name?: string;
-    email?: string;
-  };
-  tutorName?: string;
-  tutorEmail?: string;
-  subject?: string;
-  description?: string;
+  id?: string;
+  disputeCode?: string;
+  studentId?: string | null;
+  studentName?: string | null;
+  tutorProfileId?: string | null;
+  tutorName?: string | null;
+  sessionId?: string | null;
   status?: string;
-  priority?: string;
-  resolution?: string;
   createdAt?: string;
-  resolvedAt?: string;
-  updatedAt?: string;
 }
 
-interface RawDisputeListResponse {
+interface RawDisputesResponse {
   items?: RawDisputeListItem[];
-  data?: RawDisputeListItem[];
   pagination?: {
     limit?: number;
     offset?: number;
     total?: number;
   };
-  total?: number;
-  limit?: number;
-  offset?: number;
 }
+
+// ─── Normalizers ─────────────────────────────────────────────────────────────
 
 function normalizeDisputeStatus(status?: string): AdminDisputeStatus {
-  if (!status) return 'open';
-
-  const lowerStatus = status.toLowerCase();
-  if (lowerStatus === 'open') return 'open';
-  if (lowerStatus === 'under_review' || lowerStatus === 'in_review') return 'under_review';
-  if (lowerStatus === 'resolved' || lowerStatus === 'closed') return 'resolved';
-  if (lowerStatus === 'rejected') return 'rejected';
-  if (lowerStatus === 'cancelled') return 'cancelled';
-
-  return 'open';
-}
-
-function normalizeDisputePriority(priority?: string): AdminDisputePriority {
-  if (!priority) return 'medium';
-
-  const lowerPriority = priority.toLowerCase();
-  if (lowerPriority === 'low') return 'low';
-  if (lowerPriority === 'medium') return 'medium';
-  if (lowerPriority === 'high') return 'high';
-  if (lowerPriority === 'urgent' || lowerPriority === 'critical') return 'urgent';
-
-  return 'medium';
-}
-
-function normalizeDispute(item: RawDisputeListItem | null | undefined): AdminDisputeListItem {
-  if (!item) {
-    return {
-      id: '',
-      bookingId: '',
-      sessionId: null,
-      studentId: '',
-      studentName: '-',
-      studentEmail: '-',
-      tutorId: '',
-      tutorName: '-',
-      tutorEmail: '-',
-      subject: '-',
-      description: '-',
-      status: 'open',
-      priority: 'medium',
-      resolution: null,
-      createdAt: new Date(0).toISOString(),
-      resolvedAt: null,
-      updatedAt: null,
-    };
+  switch (status?.toLowerCase()) {
+    case 'pending': return 'pending';
+    case 'reviewing': return 'reviewing';
+    case 'resolved': return 'resolved';
+    case 'rejected': return 'rejected';
+    case 'closed': return 'closed';
+    default: return 'open';
   }
+}
 
+function truncateId(id: string): string {
+  if (!id || id.length <= 8) return id || '-';
+  return `${id.substring(0, 8)}…`;
+}
+
+function normalizeDispute(item: RawDisputeListItem): AdminDisputeListItem {
+  const id = item.disputeId ?? item.id ?? '';
   return {
-    id: item.id ?? item.disputeId ?? '',
-    bookingId: item.bookingId ?? '',
+    id,
+    disputeCode: item.disputeCode ?? truncateId(id),
+    studentId: item.studentId ?? '',
+    studentName: item.studentName ?? '-',
+    tutorProfileId: item.tutorProfileId ?? '',
+    tutorName: item.tutorName ?? '-',
     sessionId: item.sessionId ?? null,
-    studentId: item.studentId ?? item.student?.userId ?? '',
-    studentName: item.student?.name ?? item.studentName ?? '-',
-    studentEmail: item.student?.email ?? item.studentEmail ?? '-',
-    tutorId: item.tutorId ?? item.tutor?.tutorProfileId ?? '',
-    tutorName: item.tutor?.name ?? item.tutorName ?? '-',
-    tutorEmail: item.tutor?.email ?? item.tutorEmail ?? '-',
-    subject: item.subject ?? '-',
-    description: item.description ?? '-',
     status: normalizeDisputeStatus(item.status),
-    priority: normalizeDisputePriority(item.priority),
-    resolution: item.resolution ?? null,
     createdAt: item.createdAt ?? new Date(0).toISOString(),
-    resolvedAt: item.resolvedAt ?? null,
-    updatedAt: item.updatedAt ?? null,
   };
 }
 
-function normalizeDisputesResponse(response: any, page: number, limit: number): AdminDisputeListResponse {
-  let rawItems: RawDisputeListItem[] = [];
-  let total = 0;
-  let paginationData = null;
-
-  if (Array.isArray(response)) {
-    rawItems = response;
-    total = response.length;
-  } else if (response && typeof response === 'object') {
-    rawItems = response.items ?? response.data ?? [];
-    paginationData = response.pagination;
-    total = paginationData?.total ?? rawItems.length;
-  }
-
-  const offset = (page - 1) * limit;
-  const totalPages = Math.max(1, Math.ceil(total / limit));
-
-  return {
-    items: rawItems.map(normalizeDispute),
-    total,
-    page,
-    limit,
-    offset,
-    totalPages,
-  };
-}
+// ─── Service ─────────────────────────────────────────────────────────────────
 
 export const adminDisputesService = {
-  async listDisputes(
-    params: AdminDisputeListQueryParams
-  ): Promise<AdminDisputeListResponse> {
-    const { keyword, status, priority, page = 1, limit = 10 } = params;
+  async listDisputes(params: AdminDisputeListQueryParams): Promise<AdminDisputeListResponse> {
+    const { keyword, status, page = 1, limit = 10 } = params;
 
-    const response = await adminApi.get<any>(
-      '/api/v1/admin/disputes',
-      {
-        params: {
-          limit,
-          offset: (page - 1) * limit,
-          ...(keyword && { keyword }),
-          ...(status && { status }),
-          ...(priority && { priority }),
-        },
-      }
+    const response = await adminApi.get<RawDisputesResponse>('/api/v1/admin/disputes', {
+      params: {
+        limit,
+        offset: (page - 1) * limit,
+        ...(keyword && { keyword }),
+        ...(status && { status }),
+      },
+    });
+
+    const rawItems: RawDisputeListItem[] = response?.items ?? [];
+    const total = response?.pagination?.total ?? rawItems.length;
+
+    return {
+      items: rawItems.filter(Boolean).map(normalizeDispute),
+      total,
+      page,
+      limit,
+      offset: (page - 1) * limit,
+      totalPages: Math.max(1, Math.ceil(total / limit)),
+    };
+  },
+
+  async getDisputeDetail(disputeId: string): Promise<AdminDisputeDetailResponse> {
+    const response = await adminApi.get<{ dispute: AdminDisputeDetail }>(
+      `/api/v1/admin/disputes/${disputeId}`,
     );
+    return response;
+  },
 
-    return normalizeDisputesResponse(response, page, limit);
+  async markReviewing(disputeId: string, note?: string): Promise<void> {
+    await adminApi.post(`/api/v1/admin/disputes/${disputeId}/mark-reviewing`, {
+      note: note ?? null,
+    });
+  },
+
+  async resolveDispute(
+    disputeId: string,
+    resolutionType: string,
+    resolutionNote?: string,
+  ): Promise<void> {
+    await adminApi.post(`/api/v1/admin/disputes/${disputeId}/resolve`, {
+      resolutionType,
+      resolutionNote: resolutionNote ?? null,
+    });
+  },
+
+  async rejectDispute(disputeId: string, reason?: string): Promise<void> {
+    await adminApi.post(`/api/v1/admin/disputes/${disputeId}/reject`, {
+      reason: reason ?? null,
+    });
+  },
+
+  async closeDispute(disputeId: string, note?: string): Promise<void> {
+    await adminApi.post(`/api/v1/admin/disputes/${disputeId}/close`, {
+      note: note ?? null,
+    });
   },
 };

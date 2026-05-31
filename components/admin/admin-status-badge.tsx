@@ -54,7 +54,7 @@ const statusStyles: Record<string, { variant: StatusVariant; label: string }> = 
 interface AdminStatusBadgeProps {
   status: string;
   customLabel?: string;
-  type?: 'payout' | 'payment' | 'user' | 'booking' | 'refund';
+  type?: 'payout' | 'payment' | 'user' | 'booking' | 'refund' | 'session' | 'dispute';
 }
 
 export function AdminStatusBadge({ status, customLabel, type }: AdminStatusBadgeProps) {
@@ -86,6 +86,23 @@ export function AdminStatusBadge({ status, customLabel, type }: AdminStatusBadge
       cancelled: { className: 'bg-gray-200 text-gray-800 hover:bg-gray-200/80 border-transparent', label: 'Cancelled' },
     };
     const config = refundStatuses[status] || { className: 'bg-gray-100 text-gray-800 border-transparent', label: status };
+    return (
+      <Badge className={config.className}>
+        {customLabel || config.label}
+      </Badge>
+    );
+  }
+
+  if (type === 'dispute') {
+    const disputeStatuses: Record<string, { className: string; label: string }> = {
+      open: { className: 'bg-red-100 text-red-800 hover:bg-red-100/80 border-transparent', label: 'Open' },
+      pending: { className: 'bg-yellow-100 text-yellow-800 hover:bg-yellow-100/80 border-transparent', label: 'Pending' },
+      reviewing: { className: 'bg-blue-100 text-blue-800 hover:bg-blue-100/80 border-transparent', label: 'Reviewing' },
+      resolved: { className: 'bg-green-100 text-green-800 hover:bg-green-100/80 border-transparent', label: 'Resolved' },
+      rejected: { className: 'bg-red-100 text-red-800 hover:bg-red-100/80 border-transparent', label: 'Rejected' },
+      closed: { className: 'bg-gray-200 text-gray-700 hover:bg-gray-200/80 border-transparent', label: 'Closed' },
+    };
+    const config = disputeStatuses[status] || { className: 'bg-gray-100 text-gray-800 border-transparent', label: status };
     return (
       <Badge className={config.className}>
         {customLabel || config.label}

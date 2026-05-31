@@ -1,3 +1,10 @@
 export * from './types';
 export * from './services/admin-disputes-service';
-export { useAdminDisputesQuery } from './hooks/use-admin-disputes-query';
+export {
+  useAdminDisputesQuery,
+  useAdminDisputeDetailQuery,
+  useAdminMarkReviewingMutation,
+  useAdminResolveDisputeMutation,
+  useAdminRejectDisputeMutation,
+  useAdminCloseDisputeMutation,
+} from './hooks/use-admin-disputes-query';

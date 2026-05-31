@@ -1,24 +1,44 @@
-export type AdminDisputeStatus = 'open' | 'under_review' | 'resolved' | 'rejected' | 'cancelled';
-export type AdminDisputePriority = 'low' | 'medium' | 'high' | 'urgent';
+export type AdminDisputeStatus =
+  | 'open'
+  | 'pending'
+  | 'reviewing'
+  | 'resolved'
+  | 'rejected'
+  | 'closed';
 
 export interface AdminDisputeListItem {
   id: string;
-  bookingId: string;
-  sessionId: string | null;
+  disputeCode: string;
   studentId: string;
   studentName: string;
-  studentEmail: string;
-  tutorId: string;
+  tutorProfileId: string;
   tutorName: string;
-  tutorEmail: string;
-  subject: string;
-  description: string;
+  sessionId: string | null;
   status: AdminDisputeStatus;
-  priority: AdminDisputePriority;
-  resolution: string | null;
   createdAt: string;
-  resolvedAt: string | null;
-  updatedAt: string | null;
+}
+
+export interface AdminDisputeDetail {
+  id: string;
+  disputeCode: string;
+  studentId: string | null;
+  studentName: string | null;
+  tutorProfileId: string | null;
+  tutorName: string | null;
+  sessionId: string | null;
+  reason: string | null;
+  status: AdminDisputeStatus;
+  resolutionType: string | null;
+  resolutionNote: string | null;
+  refundAmount: number | null;
+  rejectReason: string | null;
+  closeNote: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface AdminDisputeDetailResponse {
+  dispute: AdminDisputeDetail;
 }
 
 export interface AdminDisputeListResponse {
@@ -33,7 +53,6 @@ export interface AdminDisputeListResponse {
 export interface AdminDisputeListQueryParams {
   keyword?: string;
   status?: AdminDisputeStatus;
-  priority?: AdminDisputePriority;
   page?: number;
   limit?: number;
 }
