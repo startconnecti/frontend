@@ -1,8 +1,11 @@
-export type AdminSessionStatus = 'scheduled' | 'ongoing' | 'completed' | 'cancelled';
+export type AdminSessionStatus = 'scheduled' | 'ongoing' | 'completed' | 'cancelled' | 'pending_payment' | 'no_show' | 'expired' | 'pending';
 
 export interface AdminSessionListItem {
   id: string;
+  sessionId: string;
+  sessionCode: string;
   bookingId: string;
+  bookingCode: string;
   studentId: string;
   studentName: string;
   studentEmail: string;
@@ -10,6 +13,7 @@ export interface AdminSessionListItem {
   tutorName: string;
   tutorEmail: string;
   subjectName: string;
+  price?: number;
   startTime: string;
   endTime: string;
   status: AdminSessionStatus;

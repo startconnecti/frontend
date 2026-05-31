@@ -11,28 +11,40 @@ type AdminSessionsRequestParams = Record<string, string | number | boolean>;
 
 interface RawSessionStudent {
   userId?: string;
+  id?: string;
   name?: string;
+  fullName?: string;
   email?: string;
 }
 
 interface RawSessionTutor {
   tutorProfileId?: string;
+  userId?: string;
   name?: string;
+  fullName?: string;
   email?: string;
 }
 
 interface RawSessionListItem {
   sessionId?: string;
   id?: string;
+  sessionCode?: string;
   bookingId?: string;
+  booking?: {
+    id?: string;
+    bookingCode?: string;
+    code?: string;
+  };
   studentId?: string;
   student?: RawSessionStudent;
   tutorId?: string;
   tutor?: RawSessionTutor;
   subjectName?: string;
   subject?: {
+    id?: string;
     name?: string;
   };
+  price?: number;
   startTime?: string;
   endTime?: string;
   status?: string;
@@ -60,6 +72,10 @@ function normalizeSessionStatus(status?: string): AdminSessionStatus {
   if (lowerStatus === 'ongoing' || lowerStatus === 'in_progress' || lowerStatus === 'active') return 'ongoing';
   if (lowerStatus === 'completed' || lowerStatus === 'finished' || lowerStatus === 'done') return 'completed';
   if (lowerStatus === 'cancelled') return 'cancelled';
+  if (lowerStatus === 'no_show') return 'no_show';
+  if (lowerStatus === 'pending_payment') return 'pending_payment';
+  if (lowerStatus === 'expired') return 'expired';
+  if (lowerStatus === 'pending') return 'pending';
   
   return 'scheduled';
 }
@@ -68,7 +84,10 @@ function normalizeSession(item: RawSessionListItem | null | undefined): AdminSes
   if (!item) {
     return {
       id: '',
+      sessionId: '',
+      sessionCode: '-',
       bookingId: '',
+      bookingCode: '-',
       studentId: '',
       studentName: '-',
       studentEmail: '-',
@@ -76,6 +95,7 @@ function normalizeSession(item: RawSessionListItem | null | undefined): AdminSes
       tutorName: '-',
       tutorEmail: '-',
       subjectName: '-',
+      price: undefined,
       startTime: new Date(0).toISOString(),
       endTime: new Date(0).toISOString(),
       status: 'scheduled',
@@ -86,16 +106,22 @@ function normalizeSession(item: RawSessionListItem | null | undefined): AdminSes
     };
   }
 
+  const generatedId = item.id ?? item.sessionId ?? '';
+
   return {
-    id: item.id ?? item.sessionId ?? '',
-    bookingId: item.bookingId ?? '',
-    studentId: item.studentId ?? item.student?.userId ?? '',
-    studentName: item.student?.name ?? '-',
+    id: generatedId,
+    sessionId: item.sessionId ?? item.id ?? '',
+    sessionCode: item.sessionCode ?? generatedId.substring(0, 8).toUpperCase(),
+    bookingId: item.bookingId ?? item.booking?.id ?? '',
+    bookingCode: item.booking?.bookingCode ?? item.booking?.code ?? '-',
+    studentId: item.studentId ?? item.student?.id ?? item.student?.userId ?? '',
+    studentName: item.student?.fullName ?? item.student?.name ?? '-',
     studentEmail: item.student?.email ?? '-',
-    tutorId: item.tutorId ?? item.tutor?.tutorProfileId ?? '',
-    tutorName: item.tutor?.name ?? '-',
+    tutorId: item.tutorId ?? item.tutor?.tutorProfileId ?? item.tutor?.userId ?? '',
+    tutorName: item.tutor?.fullName ?? item.tutor?.name ?? '-',
     tutorEmail: item.tutor?.email ?? '-',
     subjectName: item.subjectName ?? item.subject?.name ?? '-',
+    price: item.price,
     startTime: item.startTime ?? new Date(0).toISOString(),
     endTime: item.endTime ?? new Date(0).toISOString(),
     status: normalizeSessionStatus(item.status),
@@ -167,10 +193,10 @@ export const adminSessionsService = {
   },
 
   async cancelSession(id: string, reason?: string): Promise<void> {
-    await adminApi.post(`/api/v1/admin/sessions/${id}/cancel`, { cancellation_reason: reason });
+    await adminApi.post(`/api/v1/admin/sessions/${id}/cancel`, { reason });
   },
 
   async forceCompleteSession(id: string, reason?: string): Promise<void> {
-    await adminApi.post(`/api/v1/admin/sessions/${id}/force-complete`, { reason });
+    await adminApi.post(`/api/v1/admin/sessions/${id}/force-complete`, { note: reason });
   },
 };

@@ -26,6 +26,27 @@ function formatDate(dateString: string | null | undefined): string {
   }
 }
 
+function getDuration(startTime: string | null | undefined, endTime: string | null | undefined): string {
+  if (!startTime || !endTime) return '-';
+  try {
+    const start = new Date(startTime).getTime();
+    const end = new Date(endTime).getTime();
+    const diff = end - start;
+    if (diff <= 0 || isNaN(diff)) return '-';
+    
+    const minutes = Math.floor(diff / 60000);
+    const hours = Math.floor(minutes / 60);
+    const remainingMinutes = minutes % 60;
+    
+    if (hours > 0) {
+      return `${hours}h ${remainingMinutes > 0 ? `${remainingMinutes}m` : ''}`;
+    }
+    return `${minutes}m`;
+  } catch {
+    return '-';
+  }
+}
+
 export default function SessionDetailPage() {
   const params = useParams();
   const sessionId = params.id as string;
@@ -108,8 +129,9 @@ export default function SessionDetailPage() {
     );
   }
 
-  const showCancelBtn = !['cancelled', 'completed'].includes(session.status);
-  const showForceCompleteBtn = session.status === 'scheduled' || session.status === 'ongoing';
+  const displaySessionCode = session.sessionCode || session.id.substring(0, 8).toUpperCase();
+  const showCancelBtn = ['scheduled', 'pending_payment'].includes(session.status);
+  const showForceCompleteBtn = ['scheduled', 'no_show'].includes(session.status);
 
   return (
     <>
@@ -120,8 +142,9 @@ export default function SessionDetailPage() {
               <ArrowLeft className="h-4 w-4" />
             </Button>
           </Link>
-          <div>
-            <h1 className="text-3xl font-bold text-foreground">Session Details</h1>
+          <div className="flex items-center gap-3">
+            <h1 className="text-3xl font-bold text-foreground">Session {displaySessionCode}</h1>
+            <AdminStatusBadge status={session.status} type="session" />
           </div>
         </div>
         <div className="flex items-center gap-2">
@@ -141,82 +164,104 @@ export default function SessionDetailPage() {
       <div className="grid gap-8 lg:grid-cols-3">
         {/* Main Content */}
         <div className="lg:col-span-2 space-y-6">
-          {/* Overview Info */}
-          <Card className="p-6">
-            <div className="mb-4 flex items-center justify-between">
-              <h2 className="text-2xl font-bold text-foreground">Overview</h2>
-              <AdminStatusBadge status={session.status} />
-            </div>
-            <div className="space-y-4 mt-6">
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <p className="text-xs text-muted-foreground">Session ID</p>
-                  <p className="font-mono text-sm mt-1">{session.id}</p>
-                </div>
-                <div>
-                  <p className="text-xs text-muted-foreground">Booking Code</p>
-                  <p className="font-mono text-sm mt-1 text-primary font-medium">
-                    {session.booking?.bookingCode || '-'}
-                  </p>
-                </div>
-              </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div className="flex items-start gap-3">
-                  <Calendar className="h-5 w-5 text-muted-foreground flex-shrink-0 mt-0.5" />
-                  <div>
-                    <p className="text-xs text-muted-foreground">Start Time</p>
-                    <p className="text-sm font-medium mt-1">{formatDate(session.startTime)}</p>
-                  </div>
-                </div>
-                <div className="flex items-start gap-3">
-                  <Calendar className="h-5 w-5 text-muted-foreground flex-shrink-0 mt-0.5" />
-                  <div>
-                    <p className="text-xs text-muted-foreground">End Time</p>
-                    <p className="text-sm font-medium mt-1">{formatDate(session.endTime)}</p>
-                  </div>
-                </div>
-              </div>
-              
-              {session.meetingUrl && (
-                <div className="pt-4 border-t border-border">
-                  <div className="flex items-start gap-3">
-                    <LinkIcon className="h-5 w-5 text-muted-foreground flex-shrink-0 mt-0.5" />
-                    <div>
-                      <p className="text-xs text-muted-foreground">Meeting Link</p>
-                      <p className="text-sm mt-1">
-                        <a href={session.meetingUrl} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline break-all">
-                          {session.meetingUrl}
-                        </a>
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              )}
-            </div>
-          </Card>
-
           {/* Participants */}
           <Card className="p-6">
             <h3 className="mb-4 text-lg font-bold">Participants</h3>
-            <div className="space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="flex items-start gap-4 rounded-lg border border-border p-4">
                 <User className="h-5 w-5 text-muted-foreground flex-shrink-0 mt-0.5" />
                 <div className="flex-1">
                   <p className="font-medium text-foreground">Student</p>
-                  <p className="text-sm font-medium">{session.student?.fullName}</p>
-                  <p className="text-xs text-muted-foreground mt-1">ID: <span className="font-mono">{session.student?.id}</span></p>
+                  <p className="text-sm font-medium">{session.student?.fullName || '-'}</p>
+                  <p className="text-xs text-muted-foreground mt-1">ID: <span className="font-mono">{session.student?.id || '-'}</span></p>
                 </div>
               </div>
               <div className="flex items-start gap-4 rounded-lg border border-border p-4">
                 <User className="h-5 w-5 text-muted-foreground flex-shrink-0 mt-0.5" />
                 <div className="flex-1">
                   <p className="font-medium text-foreground">Tutor</p>
-                  <p className="text-sm font-medium">{session.tutor?.fullName}</p>
-                  <p className="text-xs text-muted-foreground mt-1">Profile ID: <span className="font-mono">{session.tutor?.tutorProfileId}</span></p>
+                  <p className="text-sm font-medium">{session.tutor?.fullName || '-'}</p>
+                  <p className="text-xs text-muted-foreground mt-1">Profile ID: <span className="font-mono">{session.tutor?.tutorProfileId || '-'}</span></p>
                 </div>
               </div>
             </div>
           </Card>
+
+          {/* Booking Info */}
+          <Card className="p-6">
+            <h3 className="mb-4 text-lg font-bold">Booking Details</h3>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <div>
+                <p className="text-xs text-muted-foreground">Booking Code</p>
+                <p className="font-mono text-sm mt-1 font-medium">{session.booking?.bookingCode || '-'}</p>
+              </div>
+              <div>
+                <p className="text-xs text-muted-foreground">Subject</p>
+                <p className="text-sm mt-1 font-medium">{session.subject?.name || '-'}</p>
+              </div>
+              <div>
+                <p className="text-xs text-muted-foreground">Price</p>
+                <p className="text-sm mt-1 font-medium">
+                  {session.price !== undefined ? `$${session.price.toFixed(2)}` : '-'}
+                </p>
+              </div>
+            </div>
+          </Card>
+
+          {/* Schedule Info */}
+          <Card className="p-6">
+            <h3 className="mb-4 text-lg font-bold">Schedule</h3>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <div className="flex items-start gap-3">
+                <Calendar className="h-5 w-5 text-muted-foreground flex-shrink-0 mt-0.5" />
+                <div>
+                  <p className="text-xs text-muted-foreground">Start Time</p>
+                  <p className="text-sm font-medium mt-1">{formatDate(session.startTime)}</p>
+                </div>
+              </div>
+              <div className="flex items-start gap-3">
+                <Calendar className="h-5 w-5 text-muted-foreground flex-shrink-0 mt-0.5" />
+                <div>
+                  <p className="text-xs text-muted-foreground">End Time</p>
+                  <p className="text-sm font-medium mt-1">{formatDate(session.endTime)}</p>
+                </div>
+              </div>
+              <div className="flex items-start gap-3">
+                <Clock className="h-5 w-5 text-muted-foreground flex-shrink-0 mt-0.5" />
+                <div>
+                  <p className="text-xs text-muted-foreground">Duration</p>
+                  <p className="text-sm font-medium mt-1">{getDuration(session.startTime, session.endTime)}</p>
+                </div>
+              </div>
+            </div>
+          </Card>
+
+          {/* Meeting Info */}
+          <Card className="p-6">
+            <h3 className="mb-4 text-lg font-bold">Meeting</h3>
+            {session.meetingUrl ? (
+              <div className="flex flex-col gap-4 items-start">
+                <div className="flex items-start gap-3 w-full">
+                  <LinkIcon className="h-5 w-5 text-muted-foreground flex-shrink-0 mt-0.5" />
+                  <div className="flex-1 min-w-0">
+                    <p className="text-xs text-muted-foreground">Meeting URL</p>
+                    <p className="text-sm mt-1 break-all font-mono text-muted-foreground">
+                      {session.meetingUrl}
+                    </p>
+                  </div>
+                </div>
+                <Button asChild variant="outline">
+                  <a href={session.meetingUrl} target="_blank" rel="noopener noreferrer">
+                    Open Meeting
+                  </a>
+                </Button>
+              </div>
+            ) : (
+              <p className="text-sm text-muted-foreground">No meeting URL available.</p>
+            )}
+          </Card>
+
+
 
           {/* Cancellation Info (if applicable) */}
           {session.status === 'cancelled' && (
@@ -239,7 +284,7 @@ export default function SessionDetailPage() {
         {/* Sidebar Actions */}
         <div className="space-y-4">
           <Card className="p-6 bg-muted/50">
-            <h4 className="mb-4 text-sm font-bold text-foreground">Timestamps</h4>
+            <h4 className="mb-4 text-sm font-bold text-foreground">Audit & Timestamps</h4>
             <div className="space-y-3">
               <div className="flex items-center gap-2 text-xs">
                 <Clock className="h-4 w-4 text-muted-foreground" />

@@ -48,7 +48,6 @@ export default function SessionsPage() {
   const filterTabs = [
     { label: 'All', value: 'all' },
     { label: 'Scheduled', value: 'scheduled' },
-    { label: 'Ongoing', value: 'ongoing' },
     { label: 'Completed', value: 'completed' },
     { label: 'Cancelled', value: 'cancelled' },
   ];
@@ -104,25 +103,25 @@ export default function SessionsPage() {
     }
 
     return sessionsData.items.map(session => {
-      const showCancel = !['cancelled', 'completed'].includes(session.status);
-      const showForceComplete = session.status === 'scheduled' || session.status === 'ongoing';
+      const showCancel = ['scheduled', 'pending_payment'].includes(session.status);
+      const showForceComplete = ['scheduled', 'no_show'].includes(session.status);
 
       return (
         <TableRow key={session.id}>
-          <TableCell className="font-mono text-sm">{session.id}</TableCell>
-          <TableCell>{session.subjectName}</TableCell>
-          <TableCell className="text-sm">{formatDate(session.startTime)}</TableCell>
-          <TableCell>
-            <AdminStatusBadge status={session.status} />
+          <TableCell className="font-mono text-sm">{session.sessionCode}</TableCell>
+          <TableCell className="font-mono text-sm">{session.bookingCode}</TableCell>
+          <TableCell>{session.studentName}</TableCell>
+          <TableCell>{session.tutorName}</TableCell>
+          <TableCell className="text-sm">
+            {formatDate(session.startTime)} &rarr; {formatDate(session.endTime)}
           </TableCell>
           <TableCell>
-            {session.recordingUrl ? (
-              <a href={session.recordingUrl} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline text-sm">
-                View
-              </a>
-            ) : (
-              <span className="text-muted-foreground text-sm">-</span>
-            )}
+            <AdminStatusBadge status={session.status} type="session" />
+          </TableCell>
+          <TableCell>
+            <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${session.meetingUrl ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'}`}>
+              {session.meetingUrl ? 'Available' : 'Missing'}
+            </span>
           </TableCell>
           <TableCell>
             <DropdownMenu>
@@ -138,7 +137,7 @@ export default function SessionsPage() {
                   </DropdownMenuItem>
                 </Link>
                 {showForceComplete && (
-                  <DropdownMenuItem 
+                  <DropdownMenuItem
                     className="cursor-pointer"
                     onClick={() => setSessionToForceComplete(session.id)}
                   >
@@ -146,7 +145,7 @@ export default function SessionsPage() {
                   </DropdownMenuItem>
                 )}
                 {showCancel && (
-                  <DropdownMenuItem 
+                  <DropdownMenuItem
                     className="cursor-pointer text-destructive"
                     onClick={() => setSessionToCancel(session.id)}
                   >
@@ -199,11 +198,13 @@ export default function SessionsPage() {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Session ID</TableHead>
-                <TableHead>Subject</TableHead>
-                <TableHead>Date & Time</TableHead>
+                <TableHead>Session</TableHead>
+                <TableHead>Booking</TableHead>
+                <TableHead>Student</TableHead>
+                <TableHead>Tutor</TableHead>
+                <TableHead>Schedule</TableHead>
                 <TableHead>Status</TableHead>
-                <TableHead>Recording</TableHead>
+                <TableHead>Meeting</TableHead>
                 <TableHead>Actions</TableHead>
               </TableRow>
             </TableHeader>
@@ -251,7 +252,7 @@ export default function SessionsPage() {
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Go Back</AlertDialogCancel>
-            <AlertDialogAction 
+            <AlertDialogAction
               onClick={(e) => { e.preventDefault(); handleCancel(); }}
               className="bg-destructive hover:bg-destructive/90"
               disabled={cancelMutation.isPending}
@@ -272,7 +273,7 @@ export default function SessionsPage() {
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Go Back</AlertDialogCancel>
-            <AlertDialogAction 
+            <AlertDialogAction
               onClick={(e) => { e.preventDefault(); handleForceComplete(); }}
               className="bg-green-600 hover:bg-green-600/90"
               disabled={forceCompleteMutation.isPending}
