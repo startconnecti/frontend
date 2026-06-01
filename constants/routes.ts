@@ -31,10 +31,13 @@ export const ROUTES = {
     SESSIONS: '/student/sessions',
     SESSION_DETAIL: (id: string) => `/student/sessions/${id}`,
     SESSION_FEEDBACK: (id: string) => `/student/sessions/${id}/feedback`,
+    SESSION_DISPUTE_CREATE: (id: string) => `/student/sessions/${id}/dispute`,
     PAYMENTS: '/student/payments',
     PAYMENT_DETAIL: (id: string) => `/student/payments/${id}`,
     FAVORITES: '/student/favorites',
     FEEDBACKS: '/student/feedbacks',
+    DISPUTES: '/student/disputes',
+    DISPUTE_DETAIL: (id: string) => `/student/disputes/${id}`,
   },
 
   // Tutor Dashboard

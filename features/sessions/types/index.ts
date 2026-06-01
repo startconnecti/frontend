@@ -28,6 +28,10 @@ export interface Session {
     amount: number;
     status: string;
   } | null;
+  dispute?: {
+    id: string;
+    status: string;
+  } | null;
 }
 
 export interface SessionListResponse {
