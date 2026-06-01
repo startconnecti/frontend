@@ -49,19 +49,17 @@ type StatusFilter = 'all' | AdminDisputeStatus;
 const STATUS_TABS: { label: string; value: StatusFilter }[] = [
   { label: 'All', value: 'all' },
   { label: 'Open', value: 'open' },
-  { label: 'Pending', value: 'pending' },
   { label: 'Reviewing', value: 'reviewing' },
   { label: 'Resolved', value: 'resolved' },
   { label: 'Rejected', value: 'rejected' },
-  { label: 'Closed', value: 'closed' },
 ];
 
 // ─── Action visibility ────────────────────────────────────────────────────────
 
 function getDisputeActions(status: AdminDisputeStatus) {
   return {
-    canStartReview: status === 'open' || status === 'pending',
-    canReject: status === 'open' || status === 'pending' || status === 'reviewing',
+    canStartReview: status === 'open',
+    canReject: status === 'open' || status === 'reviewing',
   };
 }
 
