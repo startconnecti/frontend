@@ -29,8 +29,17 @@ export interface Session {
     status: string;
   } | null;
   dispute?: {
-    id: string;
+    disputeId: string;
+    disputeCode?: string | null;
     status: string;
+    disputeType?: string | null;
+    reason?: string | null;
+    requestedResolution?: string | null;
+    adminResolution?: string | null;
+    rejectReason?: string | null;
+    refundId?: string | null;
+    createdAt?: string;
+    updatedAt?: string;
   } | null;
 }
 

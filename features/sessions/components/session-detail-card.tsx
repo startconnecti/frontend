@@ -28,7 +28,7 @@ import { useCreateConversationMutation } from '@/features/messages/hooks/use-cre
 import { useCompleteSessionMutation } from '../hooks/use-complete-session-mutation';
 import { useState } from 'react';
 import { CancelSessionModal } from './cancel-session-modal';
-import { StudentDisputeCreateDialog } from '@/features/student-disputes';
+import { StudentDisputeCreateDialog, DisputeDetailModal } from '@/features/student-disputes';
 import { formatCurrency } from '@/lib/utils';
 
 interface SessionDetailCardProps {
@@ -44,6 +44,7 @@ export function SessionDetailCard({ session }: SessionDetailCardProps) {
   const { mutate: completeSession, isPending: isCompleting } = useCompleteSessionMutation();
   const [isCancelModalOpen, setIsCancelModalOpen] = useState(false);
   const [isDisputeModalOpen, setIsDisputeModalOpen] = useState(false);
+  const [isViewDisputeModalOpen, setIsViewDisputeModalOpen] = useState(false);
 
   // Date Parsing
   const startDate = new Date(session.startTime);
@@ -375,27 +376,30 @@ export function SessionDetailCard({ session }: SessionDetailCardProps) {
             </div>
           )}
 
-          {/* Create or View Dispute Button */}
-          {session.status === 'completed' && session.dispute ? (
-            <Button 
-              variant="outline" 
-              className="font-bold gap-2 hover:bg-muted hover:text-foreground" 
-              asChild
-            >
-              <Link href={ROUTES.STUDENT.DISPUTE_DETAIL(session.dispute.id)}>
-                <ShieldAlert className="h-4 w-4" />
-                View Dispute
-              </Link>
-            </Button>
-          ) : session.status === 'completed' && !session.dispute && (
-            <Button 
-              variant="outline" 
-              className="font-bold gap-2 hover:bg-rose-50 hover:text-rose-600 hover:border-rose-200" 
-              onClick={() => setIsDisputeModalOpen(true)}
-            >
-              <ShieldAlert className="h-4 w-4" />
-              Report Issue
-            </Button>
+          {/* Dispute Buttons */}
+          {session.status === 'completed' && (
+            <>
+              {session.dispute && (
+                <Button 
+                  variant="outline" 
+                  className="font-bold gap-2 hover:bg-muted hover:text-foreground" 
+                  onClick={() => setIsViewDisputeModalOpen(true)}
+                >
+                  <ShieldAlert className="h-4 w-4" />
+                  View Dispute
+                </Button>
+              )}
+              {(!session.dispute || session.dispute.status === 'cancelled') && (
+                <Button 
+                  variant="outline" 
+                  className="font-bold gap-2 hover:bg-rose-50 hover:text-rose-600 hover:border-rose-200" 
+                  onClick={() => setIsDisputeModalOpen(true)}
+                >
+                  <ShieldAlert className="h-4 w-4" />
+                  Report Issue
+                </Button>
+              )}
+            </>
           )}
 
           {/* Cancel Session Button */}
@@ -435,6 +439,12 @@ export function SessionDetailCard({ session }: SessionDetailCardProps) {
         open={isDisputeModalOpen}
         onOpenChange={setIsDisputeModalOpen}
         sessionId={session.sessionId || (session as any).id}
+      />
+
+      <DisputeDetailModal
+        open={isViewDisputeModalOpen}
+        onOpenChange={setIsViewDisputeModalOpen}
+        session={session}
       />
     </>
   );

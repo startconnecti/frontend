@@ -6,4 +6,8 @@ export const studentDisputesService = {
     const response = await api.post('/api/v1/disputes', data) as any;
     return response.data;
   },
+  cancelDispute: async (disputeId: string) => {
+    const response = await api.post(`/api/v1/disputes/${disputeId}/cancel`) as any;
+    return response.data;
+  },
 };
