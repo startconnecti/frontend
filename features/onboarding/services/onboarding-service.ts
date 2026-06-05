@@ -1,4 +1,5 @@
-import { StudentOnboardingRequest, StudentOnboardingResponse, TutorOnboardingRequest, TutorOnboardingResponse } from '../types';
+import { api } from '@/lib/api/client';
+import { StudentOnboardingRequest, StudentOnboardingResponse } from '../types';
 import { ONBOARDING_CONSTANTS } from '../constants';
 
 const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
@@ -17,17 +18,11 @@ export const onboardingService = {
     };
   },
 
-  async completeTutorOnboarding(request: TutorOnboardingRequest): Promise<TutorOnboardingResponse> {
-    const latency = Math.floor(
-      Math.random() * (ONBOARDING_CONSTANTS.MOCK_LATENCY.MAX - ONBOARDING_CONSTANTS.MOCK_LATENCY.MIN + 1)
-    ) + ONBOARDING_CONSTANTS.MOCK_LATENCY.MIN;
-
-    await sleep(latency);
-
-    return {
-      success: true,
-      message: 'Your tutor profile has been submitted for admin review.',
-      approvalStatus: 'pending',
-    };
+  async submitTutorOnboarding(formData: FormData): Promise<any> {
+    return api.post<any>('/api/v1/tutor/onboarding/submit', formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    });
   },
 };

@@ -7,6 +7,7 @@ import * as z from 'zod';
 import { Loader2, ArrowLeft, RefreshCw } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 
+import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import {
   Form,
@@ -55,12 +56,9 @@ export function RegisterOtpForm({ email, role, onBack }: RegisterOtpFormProps) {
         otp: values.otp,
       });
 
-      // Update global auth store
-      setAuth(response.user, response.accessToken, response.refreshToken);
-
-      // Redirect to correct onboarding based on role
-      const redirectPath = role === 'student' ? ROUTES.ONBOARDING_STUDENT : ROUTES.ONBOARDING_TUTOR;
-      router.push(redirectPath);
+      // Registration complete, user must now log in
+      toast.success('Verification successful! Please log in to continue.');
+      router.push(ROUTES.LOGIN);
     } catch (err) {
       setFormErrors(err, form.setError);
     }

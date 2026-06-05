@@ -13,8 +13,7 @@ import { ONBOARDING_CONSTANTS } from '../constants';
 
 import { TutorOnboardingStepper } from './tutor-onboarding-stepper';
 import { useAuthStore } from '@/stores/auth-store';
-import { useCreateTutorProfileChangeRequestMutation } from '@/features/tutor-profile/hooks/use-tutor-profile-change-requests';
-import { useCreateTutorAvailabilityMutation } from '@/features/tutor-availability/hooks/use-create-tutor-availability-mutation';
+import { useSubmitTutorOnboardingMutation } from '../hooks/use-submit-tutor-onboarding-mutation';
 import { toast } from 'sonner';
 
 import { TutorTeachingProfileStep } from './tutor-teaching-profile-step';
@@ -35,11 +34,8 @@ export function TutorOnboardingForm() {
   const router = useRouter();
   const [currentStep, setCurrentStep] = useState(0);
   const [errors, setErrors] = useState<Record<string, string>>({});
-  const [isSuccess, setIsSuccess] = useState(false);
-  const createProfileChangeRequest = useCreateTutorProfileChangeRequestMutation();
-  const createAvailability = useCreateTutorAvailabilityMutation();
-  
-  const isPending = createProfileChangeRequest.isPending || createAvailability.isPending;
+  const submitOnboarding = useSubmitTutorOnboardingMutation();
+  const isPending = submitOnboarding.isPending;
   
   const [formData, setFormData] = useState<TutorProfileSetupRequest>({
     bio: '',
@@ -119,42 +115,40 @@ export function TutorOnboardingForm() {
   const handleSubmit = async () => {
     if (validateStep(currentStep)) {
       try {
-        // 1. Submit Availability (Sequential or parallel promises for each slot)
-        if (formData.weeklyAvailability.length > 0) {
-          const availabilityPromises = formData.weeklyAvailability.map(slot => 
-            createAvailability.mutateAsync({
-              day_of_week: slot.dayOfWeek as any,
-              start_time: slot.startTime,
-              end_time: slot.endTime
-            })
-          );
-          await Promise.all(availabilityPromises);
-        }
-
-        // 2. Submit Profile Change Request
-        await createProfileChangeRequest.mutateAsync({
-          snapshot: {
-            profile: {
-              bio: formData.bio,
-              experience_text: formData.experienceText,
-              years_of_experience: formData.yearsOfExperience,
-              hourly_rate: formData.hourlyRate,
-            },
-            subject_ids: formData.subjects,
-            certifications: formData.certificates.map(cert => ({
-              name: cert.title || 'Untitled',
-              issuer: cert.issuer || 'Unknown',
-              issuedAt: cert.year.toString(),
-              tempFileKey: cert.tempFileKey,
-              file: cert.file,
-              // The backend ignores description but the UI asked for it in step 3
-            })),
+        const payloadJson = {
+          profile: {
+            bio: formData.bio,
+            experience_text: formData.experienceText,
+            years_of_experience: formData.yearsOfExperience,
+            hourly_rate: formData.hourlyRate,
           },
-          request_note: formData.requestNote || undefined,
+          subject_ids: formData.subjects,
+          certifications: formData.certificates.map(cert => ({
+            name: cert.title || 'Untitled',
+            issuer: cert.issuer || 'Unknown',
+            issuedAt: cert.year.toString(),
+            tempFileKey: cert.tempFileKey,
+          })),
+          weekly_availabilities: formData.weeklyAvailability.map(slot => ({
+            day_of_week: slot.dayOfWeek,
+            start_time: slot.startTime,
+            end_time: slot.endTime,
+          })),
+        };
+
+        const submitData = new FormData();
+        submitData.append('payloadJson', JSON.stringify(payloadJson));
+
+        formData.certificates.forEach(cert => {
+          if (cert.file && cert.tempFileKey) {
+            submitData.append(cert.tempFileKey, cert.file);
+          }
         });
 
+        await submitOnboarding.mutateAsync(submitData);
+
         updateUser({ onboardingCompleted: true });
-        setIsSuccess(true);
+        router.push(ROUTES.TUTOR_DASHBOARD);
       } catch (err) {
         toast.error('Failed to submit application. Please check your data and try again.');
       }
@@ -168,28 +162,7 @@ export function TutorOnboardingForm() {
     return false;
   }, [currentStep, formData]);
 
-  if (isSuccess) {
-    return (
-      <div className="text-center space-y-6 py-12">
-        <div className="flex justify-center">
-          <div className="h-20 w-20 bg-emerald-100 rounded-full flex items-center justify-center">
-            <CheckCircle2 className="h-12 w-12 text-emerald-600" />
-          </div>
-        </div>
-        <div className="space-y-2">
-          <h3 className="text-2xl font-bold text-brand-dark">Application Submitted!</h3>
-          <p className="text-muted-foreground max-w-md mx-auto">
-            Your tutor profile has been submitted for admin review. We'll notify you once your account is approved.
-          </p>
-        </div>
-        <Button size="lg" className="px-12 font-bold shadow-lg shadow-primary/20" asChild>
-          <Link href={ROUTES.TUTOR_DASHBOARD}>
-            Go to My Dashboard
-          </Link>
-        </Button>
-      </div>
-    );
-  }
+
 
   return (
     <div className="space-y-8">
