@@ -49,12 +49,12 @@ export function TutorSubjectsRateStep({ data, onChange, errors }: StepProps) {
       <div className="space-y-2">
         <label className="text-sm font-bold">Hourly Rate (VND)</label>
         <div className="relative">
-          <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input 
             type="number" 
-            value={data.hourlyRate} 
+            placeholder="200000"
+            value={data.hourlyRate || ''} 
             onChange={(e) => onChange({ hourlyRate: parseFloat(e.target.value) || 0 })} 
-            className={`pl-9 ${errors?.hourlyRate ? 'border-destructive' : ''}`}
+            className={`${errors?.hourlyRate ? 'border-destructive' : ''}`}
           />
         </div>
         {errors?.hourlyRate && <p className="text-xs text-destructive font-medium">{errors.hourlyRate}</p>}

@@ -16,3 +16,9 @@ export interface TutorAvailability {
 export interface UpdateAvailabilityRequest {
   slots: AvailabilitySlot[];
 }
+
+export interface CreateAvailabilityRequest {
+  day_of_week: DayOfWeek;
+  start_time: string;
+  end_time: string;
+}

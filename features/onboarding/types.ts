@@ -15,6 +15,9 @@ export interface TutorOnboardingCertificate {
   issuer: string;
   year: number;
   fileName?: string;
+  tempFileKey?: string;
+  file?: File;
+  description?: string;
 }
 
 export interface TutorOnboardingAvailability {

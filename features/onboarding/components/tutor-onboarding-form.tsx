@@ -13,7 +13,9 @@ import { ONBOARDING_CONSTANTS } from '../constants';
 
 import { TutorOnboardingStepper } from './tutor-onboarding-stepper';
 import { useAuthStore } from '@/stores/auth-store';
-import { useCompleteTutorOnboardingMutation } from '../hooks/use-complete-tutor-onboarding-mutation';
+import { useCreateTutorProfileChangeRequestMutation } from '@/features/tutor-profile/hooks/use-tutor-profile-change-requests';
+import { useCreateTutorAvailabilityMutation } from '@/features/tutor-availability/hooks/use-create-tutor-availability-mutation';
+import { toast } from 'sonner';
 
 import { TutorTeachingProfileStep } from './tutor-teaching-profile-step';
 import { TutorSubjectsRateStep } from './tutor-subjects-rate-step';
@@ -33,13 +35,17 @@ export function TutorOnboardingForm() {
   const router = useRouter();
   const [currentStep, setCurrentStep] = useState(0);
   const [errors, setErrors] = useState<Record<string, string>>({});
-  const onboardingMutation = useCompleteTutorOnboardingMutation();
+  const [isSuccess, setIsSuccess] = useState(false);
+  const createProfileChangeRequest = useCreateTutorProfileChangeRequestMutation();
+  const createAvailability = useCreateTutorAvailabilityMutation();
+  
+  const isPending = createProfileChangeRequest.isPending || createAvailability.isPending;
   
   const [formData, setFormData] = useState<TutorProfileSetupRequest>({
     bio: '',
     experienceText: '',
     yearsOfExperience: 0,
-    hourlyRate: 25,
+    hourlyRate: 200000,
     subjects: [],
     certificates: [],
     weeklyAvailability: [],
@@ -113,10 +119,44 @@ export function TutorOnboardingForm() {
   const handleSubmit = async () => {
     if (validateStep(currentStep)) {
       try {
-        await onboardingMutation.mutateAsync(formData);
+        // 1. Submit Availability (Sequential or parallel promises for each slot)
+        if (formData.weeklyAvailability.length > 0) {
+          const availabilityPromises = formData.weeklyAvailability.map(slot => 
+            createAvailability.mutateAsync({
+              day_of_week: slot.dayOfWeek as any,
+              start_time: slot.startTime,
+              end_time: slot.endTime
+            })
+          );
+          await Promise.all(availabilityPromises);
+        }
+
+        // 2. Submit Profile Change Request
+        await createProfileChangeRequest.mutateAsync({
+          snapshot: {
+            profile: {
+              bio: formData.bio,
+              experience_text: formData.experienceText,
+              years_of_experience: formData.yearsOfExperience,
+              hourly_rate: formData.hourlyRate,
+            },
+            subject_ids: formData.subjects,
+            certifications: formData.certificates.map(cert => ({
+              name: cert.title || 'Untitled',
+              issuer: cert.issuer || 'Unknown',
+              issuedAt: cert.year.toString(),
+              tempFileKey: cert.tempFileKey,
+              file: cert.file,
+              // The backend ignores description but the UI asked for it in step 3
+            })),
+          },
+          request_note: formData.requestNote || undefined,
+        });
+
         updateUser({ onboardingCompleted: true });
+        setIsSuccess(true);
       } catch (err) {
-        // Error handled by mutation
+        toast.error('Failed to submit application. Please check your data and try again.');
       }
     }
   };
@@ -128,7 +168,7 @@ export function TutorOnboardingForm() {
     return false;
   }, [currentStep, formData]);
 
-  if (onboardingMutation.isSuccess) {
+  if (isSuccess) {
     return (
       <div className="text-center space-y-6 py-12">
         <div className="flex justify-center">
@@ -155,8 +195,8 @@ export function TutorOnboardingForm() {
     <div className="space-y-8">
       <TutorOnboardingStepper steps={STEPS} currentStep={currentStep} />
 
-      <Card className="border-border/60 shadow-xl shadow-primary/5 rounded-3xl overflow-hidden min-h-[450px] flex flex-col">
-        <CardHeader className="bg-primary/5 border-b border-primary/10">
+      <Card className="border-border/60 shadow-xl shadow-primary/5 rounded-3xl overflow-hidden min-h-[450px] flex flex-col p-0 gap-0">
+        <CardHeader className="bg-primary/5 border-b border-primary/10 p-6">
           <div className="flex items-center gap-3">
             <div className="h-10 w-10 rounded-xl bg-primary/10 flex items-center justify-center text-primary">
               {(() => {
@@ -171,7 +211,7 @@ export function TutorOnboardingForm() {
           </div>
         </CardHeader>
         
-        <CardContent className="pt-8 flex-1">
+        <CardContent className="p-6 flex-1">
           {currentStep === 0 && <TutorTeachingProfileStep data={formData} onChange={updateFormData} errors={errors} />}
           {currentStep === 1 && <TutorSubjectsRateStep data={formData} onChange={updateFormData} errors={errors} />}
           {currentStep === 2 && <TutorCertificatesStep data={formData} onChange={updateFormData} errors={errors} />}
@@ -201,9 +241,9 @@ export function TutorOnboardingForm() {
             <Button 
               onClick={handleSubmit} 
               className="font-bold shadow-lg shadow-primary/20" 
-              disabled={onboardingMutation.isPending}
+              disabled={isPending}
             >
-              {onboardingMutation.isPending ? (
+              {isPending ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                   Submitting...

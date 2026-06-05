@@ -2,8 +2,10 @@
 
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { Plus, Trash2, Award } from 'lucide-react';
+import { Plus, Trash2, Award, Upload, Check } from 'lucide-react';
 import { TutorOnboardingRequest, TutorOnboardingCertificate } from '../types';
+import { useRef, useState } from 'react';
+import { toast } from 'sonner';
 
 interface StepProps {
   data: TutorOnboardingRequest;
@@ -12,12 +14,16 @@ interface StepProps {
 }
 
 export function TutorCertificatesStep({ data, onChange, errors }: StepProps) {
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [activeCertIndex, setActiveCertIndex] = useState<number | null>(null);
+
   const addCertificate = () => {
     const newCert: TutorOnboardingCertificate = {
       title: '',
       issuer: '',
       year: new Date().getFullYear(),
       fileName: '',
+      description: '',
     };
     onChange({ certificates: [...data.certificates, newCert] });
   };
@@ -32,8 +38,42 @@ export function TutorCertificatesStep({ data, onChange, errors }: StepProps) {
     onChange({ certificates: newCerts });
   };
 
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || activeCertIndex === null) return;
+
+    const newCerts = [...data.certificates];
+    newCerts[activeCertIndex] = {
+      ...newCerts[activeCertIndex],
+      file,
+      tempFileKey: `cert_${Date.now()}`,
+      fileName: file.name,
+    };
+    
+    onChange({ certificates: newCerts });
+    toast.success("Certificate file attached.");
+    
+    setActiveCertIndex(null);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+  };
+
+  const triggerFileInput = (index: number) => {
+    setActiveCertIndex(index);
+    fileInputRef.current?.click();
+  };
+
   return (
     <div className="space-y-6">
+      <input 
+        type="file" 
+        ref={fileInputRef} 
+        className="hidden" 
+        accept="image/*,.pdf" 
+        onChange={handleFileChange} 
+      />
+      
       <div className="flex items-center justify-between">
         <div className="space-y-1">
           <label className="text-sm font-bold">Certificates & Qualifications</label>
@@ -57,7 +97,7 @@ export function TutorCertificatesStep({ data, onChange, errors }: StepProps) {
               <Button 
                 variant="ghost" 
                 size="icon" 
-                className="absolute top-2 right-2 text-destructive hover:bg-destructive/10" 
+                className="absolute top-2 right-2 text-destructive hover:bg-destructive/10 z-10" 
                 onClick={() => removeCertificate(index)}
               >
                 <Trash2 className="h-4 w-4" />
@@ -94,12 +134,33 @@ export function TutorCertificatesStep({ data, onChange, errors }: StepProps) {
                   />
                 </div>
                 <div className="space-y-2">
-                  <label className="text-[10px] font-bold uppercase text-muted-foreground">File (Placeholder)</label>
+                  <label className="text-[10px] font-bold uppercase text-muted-foreground">Description</label>
                   <Input 
-                    value={cert.fileName} 
-                    onChange={(e) => updateCertificate(index, 'fileName', e.target.value)} 
-                    placeholder="certificate.pdf" 
+                    value={cert.description || ''} 
+                    onChange={(e) => updateCertificate(index, 'description', e.target.value)} 
+                    placeholder="Brief description (optional)" 
                   />
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-[10px] font-bold uppercase text-muted-foreground">Certificate File</label>
+                <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3">
+                  {cert.file ? (
+                    <div className="flex-1 h-9 flex items-center justify-between px-3 rounded-md bg-emerald-50 text-emerald-700 text-sm font-medium border border-emerald-100">
+                      <span className="flex items-center truncate mr-2">
+                        <Check className="h-4 w-4 mr-2 shrink-0" />
+                        <span className="truncate">File attached ({cert.file.name})</span>
+                      </span>
+                    </div>
+                  ) : (
+                    <div className="flex-1 h-9 flex items-center px-3 rounded-md bg-rose-50 text-rose-700 text-sm font-medium border border-rose-100">
+                      No file attached
+                    </div>
+                  )}
+                  <Button type="button" variant="outline" size="sm" onClick={() => triggerFileInput(index)} className="gap-2 shrink-0">
+                    <Upload className="h-4 w-4" /> {cert.file ? 'Replace File' : 'Upload File'}
+                  </Button>
                 </div>
               </div>
             </div>
