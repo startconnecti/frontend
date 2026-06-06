@@ -31,7 +31,7 @@ export interface TutorOnboardingRequest {
   experienceText: string;
   yearsOfExperience: number;
   hourlyRate: number;
-  subjects: string[];
+  subjects: Array<{id: string; name: string}>;
   certificates: TutorOnboardingCertificate[];
   weeklyAvailability: TutorOnboardingAvailability[];
   requestNote?: string;

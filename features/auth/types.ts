@@ -59,7 +59,7 @@ export interface TutorProfileSetupRequest {
   experienceText: string;
   yearsOfExperience: number;
   hourlyRate: number;
-  subjects: string[];
+  subjects: Array<{id: string; name: string}>;
   certificates: Array<{ title: string; issuer: string; year: number; description?: string; tempFileKey?: string; file?: File; fileName?: string }>;
   weeklyAvailability: Array<{ dayOfWeek: string; startTime: string; endTime: string }>;
   requestNote?: string;

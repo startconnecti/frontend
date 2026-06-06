@@ -29,6 +29,7 @@ import { TutorSubjectsRateStep } from './tutor-subjects-rate-step';
 import { TutorCertificatesStep } from './tutor-certificates-step';
 import { TutorAvailabilityStep } from './tutor-availability-step';
 import { TutorReviewSubmitStep } from './tutor-review-submit-step';
+import { validateWeeklyAvailability } from '../utils/validate-weekly-availability';
 
 const STEPS = [
   { title: 'Profile', icon: GraduationCap },
@@ -111,7 +112,13 @@ export function TutorOnboardingForm() {
           return;
         }
 
-        // Valid draft found, prompt user
+        // Valid draft found
+        
+        // Migration: If draft subjects are strings (old format), clear them so they can be re-selected
+        if (draft.formData.subjects && draft.formData.subjects.length > 0 && typeof draft.formData.subjects[0] === 'string') {
+          draft.formData.subjects = [];
+        }
+
         setPendingDraft(draft);
         setDraftState('prompt');
         return;
@@ -193,6 +200,13 @@ export function TutorOnboardingForm() {
           newErrors[`avail_${i}`] = 'Start time must be before end time';
         }
       });
+      
+      const overlapResult = validateWeeklyAvailability(formData.weeklyAvailability);
+      if (!overlapResult.valid) {
+        overlapResult.overlappingIndexes.forEach(index => {
+          newErrors[`overlap_${index}`] = 'This slot overlaps with another slot';
+        });
+      }
     }
 
     setErrors(newErrors);
@@ -200,6 +214,15 @@ export function TutorOnboardingForm() {
   };
 
   const handleNext = () => {
+    if (currentStep === 3) {
+      const overlapResult = validateWeeklyAvailability(formData.weeklyAvailability);
+      if (!overlapResult.valid) {
+        toast.error('Some availability slots overlap. Please fix them before continuing.');
+        validateStep(currentStep); // Update error state visually
+        return;
+      }
+    }
+
     if (validateStep(currentStep)) {
       setCurrentStep((prev) => Math.min(prev + 1, STEPS.length - 1));
     }
@@ -227,7 +250,7 @@ export function TutorOnboardingForm() {
             years_of_experience: formData.yearsOfExperience,
             hourly_rate: formData.hourlyRate,
           },
-          subject_ids: formData.subjects,
+          subject_ids: formData.subjects.map(s => s.id),
           certifications: formData.certificates.map(cert => ({
             name: cert.title || 'Untitled',
             issuer: cert.issuer || 'Unknown',
@@ -235,7 +258,7 @@ export function TutorOnboardingForm() {
             tempFileKey: cert.tempFileKey,
           })),
           weekly_availabilities: formData.weeklyAvailability.map(slot => ({
-            day_of_week: slot.dayOfWeek,
+            day_of_week: slot.dayOfWeek.toLowerCase(),
             start_time: slot.startTime,
             end_time: slot.endTime,
           })),

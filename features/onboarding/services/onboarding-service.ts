@@ -19,10 +19,6 @@ export const onboardingService = {
   },
 
   async submitTutorOnboarding(formData: FormData): Promise<any> {
-    return api.post<any>('/api/v1/tutor/onboarding/submit', formData, {
-      headers: {
-        'Content-Type': 'multipart/form-data',
-      },
-    });
+    return api.post<any>('/api/v1/tutor/onboarding/submit', formData);
   },
 };

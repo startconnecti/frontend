@@ -4,6 +4,7 @@ import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { TutorOnboardingRequest } from '../types';
 import { Calendar, Award, BookOpen, User, DollarSign, FileText } from 'lucide-react';
+import { DAYS_OF_WEEK } from '../constants';
 
 interface StepProps {
   data: TutorOnboardingRequest;
@@ -11,7 +12,6 @@ interface StepProps {
 }
 
 export function TutorReviewSubmitStep({ data }: StepProps) {
-  const daysOfWeek = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
   
   return (
     <div className="space-y-8">
@@ -67,8 +67,8 @@ export function TutorReviewSubmitStep({ data }: StepProps) {
           {data.subjects.length > 0 ? (
             <div className="flex flex-wrap gap-2">
               {data.subjects.map(subject => (
-                <Badge key={subject} variant="secondary" className="px-3 py-1.5 text-sm font-medium bg-muted/50">
-                  {subject}
+                <Badge key={subject.id} className="px-3 py-1.5 text-sm font-medium bg-red-600 text-white hover:bg-red-700">
+                  {subject.name}
                 </Badge>
               ))}
             </div>
@@ -124,7 +124,7 @@ export function TutorReviewSubmitStep({ data }: StepProps) {
         <CardContent className="p-6">
           {data.weeklyAvailability.length > 0 ? (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {daysOfWeek.map(day => {
+              {DAYS_OF_WEEK.map(day => {
                 const slots = data.weeklyAvailability.filter(a => a.dayOfWeek === day);
                 if (slots.length === 0) return null;
                 

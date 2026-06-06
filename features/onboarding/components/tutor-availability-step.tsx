@@ -53,15 +53,21 @@ export function TutorAvailabilityStep({ data, onChange, errors }: StepProps) {
             <p className="text-sm text-muted-foreground">No availability slots added yet.</p>
           </div>
         ) : (
-          data.weeklyAvailability.map((avail, index) => (
-            <div key={index} className="flex flex-wrap items-end gap-4 p-4 rounded-xl border border-border/60 bg-muted/5 relative pr-12">
+          data.weeklyAvailability.map((avail, index) => {
+            const hasOverlap = !!errors?.[`overlap_${index}`];
+            const hasTimeError = !!errors?.[`avail_${index}`];
+            
+            return (
+            <div key={index} className={`flex flex-wrap items-end gap-4 p-4 rounded-xl border relative pr-12 ${
+              hasOverlap ? 'border-destructive bg-destructive/5' : 'border-border/60 bg-muted/5'
+            }`}>
               <div className="w-full sm:w-auto flex-1 min-w-[150px] space-y-2">
                 <label className="text-[10px] font-bold uppercase text-muted-foreground">Day</label>
                 <Select 
                   value={avail.dayOfWeek} 
                   onValueChange={(val) => updateAvailability(index, 'dayOfWeek', val)}
                 >
-                  <SelectTrigger>
+                  <SelectTrigger className={hasOverlap ? 'border-destructive' : ''}>
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
@@ -78,7 +84,7 @@ export function TutorAvailabilityStep({ data, onChange, errors }: StepProps) {
                   type="time" 
                   value={avail.startTime} 
                   onChange={(e) => updateAvailability(index, 'startTime', e.target.value)} 
-                  className={errors?.[`avail_${index}`] ? 'border-destructive' : ''}
+                  className={hasTimeError || hasOverlap ? 'border-destructive' : ''}
                 />
               </div>
 
@@ -88,7 +94,7 @@ export function TutorAvailabilityStep({ data, onChange, errors }: StepProps) {
                   type="time" 
                   value={avail.endTime} 
                   onChange={(e) => updateAvailability(index, 'endTime', e.target.value)} 
-                  className={errors?.[`avail_${index}`] ? 'border-destructive' : ''}
+                  className={hasTimeError || hasOverlap ? 'border-destructive' : ''}
                 />
               </div>
 
@@ -101,11 +107,13 @@ export function TutorAvailabilityStep({ data, onChange, errors }: StepProps) {
                 <Trash2 className="h-4 w-4" />
               </Button>
               
-              {errors?.[`avail_${index}`] && (
-                <p className="w-full text-[10px] text-destructive font-medium mt-1">{errors[`avail_${index}`]}</p>
+              {(hasTimeError || hasOverlap) && (
+                <p className="w-full text-[10px] text-destructive font-medium mt-1">
+                  {errors?.[`avail_${index}`] || errors?.[`overlap_${index}`]}
+                </p>
               )}
             </div>
-          ))
+          )})
         )}
       </div>
     </div>
