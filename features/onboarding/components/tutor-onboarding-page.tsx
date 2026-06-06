@@ -13,7 +13,7 @@ export function TutorOnboardingPage() {
   const { user, logout, updateUser } = useAuthStore();
   const router = useRouter();
   
-  const isTutorReady = user?.role === 'tutor' && (user.onboardingCompleted || user.hasProfile || user.tutorProfileStatus);
+  const isTutorReady = user?.role === 'tutor' && user.onboardingCompleted === true;
 
   const handleLeave = () => {
     if (isTutorReady) {

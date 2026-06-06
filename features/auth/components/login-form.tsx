@@ -53,13 +53,13 @@ export function LoginForm() {
       setAuth(response.user, response.accessToken, response.refreshToken);
 
       // Redirect based on role and onboarding status
-      // Redirect based on role and profile status
-      const isReady = response.user.onboardingCompleted || response.user.hasProfile;
-      
+      const tutorNeedsOnboarding = response.user.role === 'tutor' && !response.user.onboardingCompleted;
+      const studentNeedsOnboarding = response.user.role === 'student' && !response.user.onboardingCompleted && !response.user.hasProfile && !response.user.onboardingSkipped;
+
       if (response.user.role === 'student') {
-        router.push(isReady ? ROUTES.STUDENT_DASHBOARD : ROUTES.ONBOARDING_STUDENT);
+        router.push(studentNeedsOnboarding ? ROUTES.ONBOARDING_STUDENT : ROUTES.STUDENT_DASHBOARD);
       } else {
-        router.push(isReady ? ROUTES.TUTOR_DASHBOARD : ROUTES.ONBOARDING_TUTOR);
+        router.push(tutorNeedsOnboarding ? ROUTES.ONBOARDING_TUTOR : ROUTES.TUTOR_DASHBOARD);
       }
     } catch (err) {
       setFormErrors(err, form.setError);

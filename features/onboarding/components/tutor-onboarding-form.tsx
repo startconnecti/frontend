@@ -58,7 +58,7 @@ export function TutorOnboardingForm() {
   const isPending = submitOnboarding.isPending;
   const TUTOR_ONBOARDING_DRAFT_KEY = 'tutor-onboarding-draft';
   const { user, updateUser, logout } = useAuthStore();
-  const isTutorReady = user?.role === 'tutor' && (user.onboardingCompleted || user.hasProfile || user.tutorProfileStatus);
+  const isTutorReady = user?.role === 'tutor' && user.onboardingCompleted === true;
   
   const [formData, setFormData] = useState<TutorProfileSetupRequest>({
     bio: '',
