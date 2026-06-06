@@ -2,7 +2,7 @@
 
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { Plus, Trash2, Award, Upload, Check } from 'lucide-react';
+import { Plus, Trash2, Award, Upload, Check, AlertTriangle } from 'lucide-react';
 import { TutorOnboardingRequest, TutorOnboardingCertificate } from '../types';
 import { useRef, useState } from 'react';
 import { toast } from 'sonner';
@@ -145,23 +145,38 @@ export function TutorCertificatesStep({ data, onChange, errors }: StepProps) {
 
               <div className="space-y-2">
                 <label className="text-[10px] font-bold uppercase text-muted-foreground">Certificate File</label>
-                <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3">
-                  {cert.file ? (
-                    <div className="flex-1 h-9 flex items-center justify-between px-3 rounded-md bg-emerald-50 text-emerald-700 text-sm font-medium border border-emerald-100">
-                      <span className="flex items-center truncate mr-2">
-                        <Check className="h-4 w-4 mr-2 shrink-0" />
-                        <span className="truncate">File attached ({cert.file.name})</span>
-                      </span>
+                {cert.fileName && !cert.file ? (
+                  <div className="flex flex-col gap-2 p-3 rounded-md bg-amber-50 text-amber-800 text-sm border border-amber-200">
+                    <div className="flex items-center gap-2 font-bold">
+                      <AlertTriangle className="h-4 w-4 shrink-0 text-amber-600" />
+                      <span>Certificate file needs to be uploaded again ({cert.fileName})</span>
                     </div>
-                  ) : (
-                    <div className="flex-1 h-9 flex items-center px-3 rounded-md bg-rose-50 text-rose-700 text-sm font-medium border border-rose-100">
-                      No file attached
-                    </div>
-                  )}
-                  <Button type="button" variant="outline" size="sm" onClick={() => triggerFileInput(index)} className="gap-2 shrink-0">
-                    <Upload className="h-4 w-4" /> {cert.file ? 'Replace File' : 'Upload File'}
-                  </Button>
-                </div>
+                    <p className="text-xs text-amber-700">
+                      Files cannot be restored after a browser refresh. Please upload this certificate file again before submitting your application.
+                    </p>
+                    <Button type="button" variant="outline" size="sm" onClick={() => triggerFileInput(index)} className="mt-1 self-start border-amber-300 text-amber-800 hover:bg-amber-100">
+                      <Upload className="h-3 w-3 mr-2" /> Upload File Again
+                    </Button>
+                  </div>
+                ) : (
+                  <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3">
+                    {cert.file ? (
+                      <div className="flex-1 h-9 flex items-center justify-between px-3 rounded-md bg-emerald-50 text-emerald-700 text-sm font-medium border border-emerald-100">
+                        <span className="flex items-center truncate mr-2">
+                          <Check className="h-4 w-4 mr-2 shrink-0" />
+                          <span className="truncate">File attached ({cert.file.name})</span>
+                        </span>
+                      </div>
+                    ) : (
+                      <div className="flex-1 h-9 flex items-center px-3 rounded-md bg-rose-50 text-rose-700 text-sm font-medium border border-rose-100">
+                        No file attached
+                      </div>
+                    )}
+                    <Button type="button" variant="outline" size="sm" onClick={() => triggerFileInput(index)} className="gap-2 shrink-0">
+                      <Upload className="h-4 w-4" /> {cert.file ? 'Replace File' : 'Upload File'}
+                    </Button>
+                  </div>
+                )}
               </div>
             </div>
           ))

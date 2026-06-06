@@ -1,9 +1,17 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
-import { Loader2, ArrowLeft, ArrowRight, CheckCircle2, User, GraduationCap, DollarSign, Award, Calendar, ShieldCheck } from 'lucide-react';
+import { Loader2, ArrowLeft, ArrowRight, CheckCircle2, User, GraduationCap, DollarSign, Award, Calendar, ShieldCheck, AlertTriangle } from 'lucide-react';
 import Link from 'next/link';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
@@ -30,12 +38,27 @@ const STEPS = [
   { title: 'Review', icon: ShieldCheck },
 ];
 
+const ONBOARDING_DRAFT_VERSION = 1;
+const ONBOARDING_DRAFT_MAX_AGE_DAYS = 7;
+
+interface TutorOnboardingDraft {
+  version: number;
+  savedAt: string;
+  currentStep: number;
+  formData: TutorProfileSetupRequest;
+}
+
 export function TutorOnboardingForm() {
   const router = useRouter();
   const [currentStep, setCurrentStep] = useState(0);
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [draftState, setDraftState] = useState<'loading' | 'prompt' | 'ready'>('loading');
+  const [pendingDraft, setPendingDraft] = useState<TutorOnboardingDraft | null>(null);
   const submitOnboarding = useSubmitTutorOnboardingMutation();
   const isPending = submitOnboarding.isPending;
+  const TUTOR_ONBOARDING_DRAFT_KEY = 'tutor-onboarding-draft';
+  const { user, updateUser, logout } = useAuthStore();
+  const isTutorReady = user?.role === 'tutor' && (user.onboardingCompleted || user.hasProfile || user.tutorProfileStatus);
   
   const [formData, setFormData] = useState<TutorProfileSetupRequest>({
     bio: '',
@@ -56,6 +79,91 @@ export function TutorOnboardingForm() {
       Object.keys(newData).forEach(key => delete newErrors[key]);
       setErrors(newErrors);
     }
+  };
+
+  // Restore Draft
+  useEffect(() => {
+    try {
+      if (user?.onboardingCompleted) {
+        localStorage.removeItem(TUTOR_ONBOARDING_DRAFT_KEY);
+        setDraftState('ready');
+        return;
+      }
+
+      const saved = localStorage.getItem(TUTOR_ONBOARDING_DRAFT_KEY);
+      if (saved) {
+        const draft = JSON.parse(saved) as TutorOnboardingDraft;
+        
+        // Validate Version
+        if (draft.version !== ONBOARDING_DRAFT_VERSION) {
+          localStorage.removeItem(TUTOR_ONBOARDING_DRAFT_KEY);
+          setDraftState('ready');
+          return;
+        }
+
+        // Validate TTL
+        const savedDate = new Date(draft.savedAt);
+        const ageInMs = Date.now() - savedDate.getTime();
+        const ageInDays = ageInMs / (1000 * 60 * 60 * 24);
+        if (ageInDays > ONBOARDING_DRAFT_MAX_AGE_DAYS) {
+          localStorage.removeItem(TUTOR_ONBOARDING_DRAFT_KEY);
+          setDraftState('ready');
+          return;
+        }
+
+        // Valid draft found, prompt user
+        setPendingDraft(draft);
+        setDraftState('prompt');
+        return;
+      }
+      
+      setDraftState('ready');
+    } catch (err) {
+      console.error('Failed to restore onboarding draft', err);
+      setDraftState('ready');
+    }
+  }, [user]);
+
+  const handleContinueDraft = () => {
+    if (pendingDraft) {
+      if (pendingDraft.formData) setFormData(pendingDraft.formData);
+      if (typeof pendingDraft.currentStep === 'number') setCurrentStep(pendingDraft.currentStep);
+    }
+    setDraftState('ready');
+    setPendingDraft(null);
+  };
+
+  const handleStartOver = () => {
+    localStorage.removeItem(TUTOR_ONBOARDING_DRAFT_KEY);
+    setDraftState('ready');
+    setPendingDraft(null);
+  };
+
+  // Save Draft (Debounced)
+  useEffect(() => {
+    if (draftState !== 'ready') return;
+
+    const handler = setTimeout(() => {
+      const safeFormData = {
+        ...formData,
+        certificates: formData.certificates.map(({ file, ...rest }) => rest), // Strip File objects
+      };
+      
+      const draft: TutorOnboardingDraft = {
+        version: ONBOARDING_DRAFT_VERSION,
+        savedAt: new Date().toISOString(),
+        currentStep,
+        formData: safeFormData
+      };
+      
+      localStorage.setItem(TUTOR_ONBOARDING_DRAFT_KEY, JSON.stringify(draft));
+    }, 1000);
+
+    return () => clearTimeout(handler);
+  }, [formData, currentStep, draftState]);
+
+  const clearDraft = () => {
+    localStorage.removeItem(TUTOR_ONBOARDING_DRAFT_KEY);
   };
 
   const validateStep = (step: number): boolean => {
@@ -101,9 +209,6 @@ export function TutorOnboardingForm() {
     setCurrentStep((prev) => Math.max(prev - 1, 0));
   };
 
-  const { user, updateUser, logout } = useAuthStore();
-  const isTutorReady = user?.role === 'tutor' && (user.onboardingCompleted || user.hasProfile || user.tutorProfileStatus);
-
   const handleSkipAndExit = () => {
     if (isTutorReady) {
       router.push(ROUTES.TUTOR_DASHBOARD);
@@ -147,6 +252,7 @@ export function TutorOnboardingForm() {
 
         await submitOnboarding.mutateAsync(submitData);
 
+        clearDraft();
         updateUser({ onboardingCompleted: true });
         router.push(ROUTES.TUTOR_DASHBOARD);
       } catch (err) {
@@ -164,8 +270,35 @@ export function TutorOnboardingForm() {
 
 
 
+  if (draftState === 'loading') {
+    return (
+      <div className="flex justify-center py-20">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-8">
+      <Dialog open={draftState === 'prompt'} onOpenChange={() => {}}>
+        <DialogContent showCloseButton={false}>
+          <DialogHeader>
+            <DialogTitle>Resume your onboarding application?</DialogTitle>
+            <DialogDescription>
+              We found an unfinished onboarding application saved on this device.<br/><br/>
+              Would you like to continue where you left off or start over?
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="mt-4 gap-2 sm:gap-0">
+            <Button variant="outline" onClick={handleStartOver}>
+              Start Over
+            </Button>
+            <Button onClick={handleContinueDraft}>
+              Continue Draft
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
       <TutorOnboardingStepper steps={STEPS} currentStep={currentStep} />
 
       <Card className="border-border/60 shadow-xl shadow-primary/5 rounded-3xl overflow-hidden min-h-[450px] flex flex-col p-0 gap-0">
