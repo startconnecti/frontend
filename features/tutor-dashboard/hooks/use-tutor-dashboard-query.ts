@@ -44,6 +44,7 @@ export function useTutorDashboardQuery() {
       return {
         tutorName: user?.fullName || 'Tutor',
         approvalStatus: (tutor?.approvalStatus === 'suspended' ? 'rejected' : tutor?.approvalStatus || 'pending') as any,
+        approvalNote: tutor?.approvalNote,
         isPublic: tutor?.isPublic || false,
         stats: {
           sessionsCompleted: dashboardRes?.sessionsCompleted ?? 0,

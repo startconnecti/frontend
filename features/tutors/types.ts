@@ -42,6 +42,7 @@ export interface Tutor {
   reviewCount: number;
   totalReviews: number;
   approvalStatus: TutorStatus;
+  approvalNote?: string;
   isPublic: boolean;
   certificates: Certificate[];
   certifications: Certificate[];

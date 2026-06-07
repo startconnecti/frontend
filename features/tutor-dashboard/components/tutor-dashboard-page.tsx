@@ -7,6 +7,8 @@ import {
   Settings,
   Calendar,
   DollarSign,
+  Clock,
+  AlertTriangle,
 } from 'lucide-react';
 import Link from 'next/link';
 
@@ -22,7 +24,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 export function TutorDashboardPage() {
   const { data: rawData, isLoading, isError } = useTutorDashboardQuery();
 
-  const data = rawData?.data || rawData;
+  const data = rawData;
 
   if (isLoading) {
     return (
@@ -61,6 +63,45 @@ export function TutorDashboardPage() {
 
   return (
     <PageContainer className="py-8 space-y-10">
+      {/* Status Banners */}
+      {data.approvalStatus === 'pending' && (
+        <div className="rounded-lg border border-amber-200 bg-amber-50 dark:bg-amber-950/30 dark:border-amber-900/50 p-4 md:p-6 flex flex-col sm:flex-row gap-4 items-start w-full text-amber-900 dark:text-amber-200 shadow-sm">
+          <div className="rounded-full bg-amber-100 dark:bg-amber-900/50 p-2 shrink-0">
+            <Clock className="h-6 w-6 text-amber-600 dark:text-amber-400" />
+          </div>
+          <div className="space-y-1">
+            <h3 className="font-bold text-lg leading-tight">Your tutor profile is under review</h3>
+            <div className="text-sm opacity-90 space-y-2">
+              <p>Your onboarding has been submitted successfully. Our team is currently reviewing your profile and certifications.</p>
+              <p className="font-medium">You cannot receive bookings until your profile is approved.</p>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {data.approvalStatus === 'rejected' && (
+        <div className="rounded-lg border border-destructive/20 bg-destructive/10 p-4 md:p-6 flex flex-col sm:flex-row gap-4 items-start w-full text-destructive shadow-sm">
+          <div className="rounded-full bg-destructive/20 p-2 shrink-0">
+            <AlertTriangle className="h-6 w-6 text-destructive" />
+          </div>
+          <div className="space-y-3 w-full">
+            <div>
+              <h3 className="font-bold text-lg leading-tight">Your tutor profile was rejected</h3>
+              <p className="text-sm opacity-90 mt-1">Your profile needs updates before it can be approved.</p>
+            </div>
+            
+            {data.approvalNote && (
+              <div className="bg-white/50 dark:bg-black/10 p-4 rounded-md border border-destructive/10 mt-2">
+                <p className="text-xs font-bold uppercase tracking-wider mb-1 opacity-80">Review note:</p>
+                <p className="text-sm italic font-medium">{data.approvalNote}</p>
+              </div>
+            )}
+            
+            <p className="text-sm font-medium mt-2">Please update your profile and resubmit for review.</p>
+          </div>
+        </div>
+      )}
+
       {/* Welcome Header */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
         <SectionHeader 
@@ -124,7 +165,7 @@ export function TutorDashboardPage() {
             </div>
             
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {(data?.recentReviews || []).map((review) => (
+              {(data?.recentReviews || []).map((review: any) => (
                 <Card key={review?.id} className="border-border/60 bg-muted/5 hover:bg-white transition-colors">
                   <CardContent className="p-6 space-y-4">
                     <div className="flex items-center justify-between">
@@ -158,7 +199,7 @@ export function TutorDashboardPage() {
                 <div className="p-8 text-center text-sm text-muted-foreground">No recent earnings</div>
               ) : (
                 <div className="divide-y divide-border/40">
-                  {data.recentEarnings.map((earning) => (
+                  {data.recentEarnings.map((earning: any) => (
                     <div key={earning?.id} className="p-4 hover:bg-muted/5 transition-colors group">
                       <div className="flex items-center justify-between mb-1">
                         <p className="text-sm font-bold truncate group-hover:text-primary transition-colors">{earning?.subject}</p>

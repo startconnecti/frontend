@@ -150,6 +150,7 @@ function normalizeTutor(tutor: Record<string, unknown>): Tutor {
     subjects,
     subjectObjects: subjectObjects.length > 0 ? subjectObjects : undefined,
     approvalStatus: (tutor.approvalStatus as Tutor['approvalStatus']) ?? 'approved',
+    approvalNote: (tutor.approvalNote as string | undefined) ?? undefined,
     isPublic: (tutor.isPublic as boolean | undefined) ?? true,
     certificates,
     certifications: certificates,

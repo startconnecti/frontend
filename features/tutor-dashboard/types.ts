@@ -38,6 +38,7 @@ export interface RecentEarning {
 export interface TutorDashboardData {
   tutorName: string;
   approvalStatus: TutorApprovalStatus;
+  approvalNote?: string;
   isPublic: boolean;
   stats: TutorDashboardStats;
   earnings: TutorEarnings;
