@@ -3,7 +3,8 @@
 import * as React from 'react'
 import * as AvatarPrimitive from '@radix-ui/react-avatar'
 
-import { cn, getAvatarUrl } from '@/lib/utils'
+import { cn } from '@/lib/utils'
+import { getMediaUrl } from '@/lib/media'
 
 function Avatar({
   className,
@@ -27,7 +28,7 @@ function AvatarImage({
   ...props
 }: React.ComponentProps<typeof AvatarPrimitive.Image>) {
   const resolvedSrc = React.useMemo(() => {
-    return getAvatarUrl(src);
+    return getMediaUrl(src) || undefined;
   }, [src]);
 
   return (

@@ -5,21 +5,15 @@ import { Badge } from '@/components/ui/badge';
 import { Info, GraduationCap, Clock, DollarSign, FileText, ImageIcon, ExternalLink } from 'lucide-react';
 import Link from 'next/link';
 import { TutorProfile, TutorCertificate } from '../types';
+import { getMediaUrl } from '@/lib/media';
 
 interface TutorProfileDisplayProps {
   profile: TutorProfile;
 }
 
-function resolveAbsoluteUrl(rawUrl: string | null | undefined): string | null {
-  if (!rawUrl) return null;
-  return rawUrl.startsWith('http')
-    ? rawUrl
-    : `${process.env.NEXT_PUBLIC_API_BASE_URL ?? ''}${rawUrl}`;
-}
-
 function CertificationCard({ cert }: { cert: TutorCertificate }) {
   const rawUrl = cert.fileUrl ?? cert.certificateUrl ?? null;
-  const absoluteUrl = resolveAbsoluteUrl(rawUrl);
+  const absoluteUrl = getMediaUrl(rawUrl) || null;
   const isPdf = absoluteUrl?.toLowerCase().endsWith('.pdf') ?? false;
 
   return (

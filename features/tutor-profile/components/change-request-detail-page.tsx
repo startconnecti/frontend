@@ -10,6 +10,7 @@ import { Clock, CheckCircle2, XCircle, Ban, AlertCircle, ArrowLeft, FileText, Ex
 import Link from 'next/link';
 import { toast } from 'sonner';
 import { useRouter } from 'next/navigation';
+import { getMediaUrl } from '@/lib/media';
 
 export function ChangeRequestDetailPage({ id }: { id: string }) {
   const router = useRouter();
@@ -248,12 +249,7 @@ export function ChangeRequestDetailPage({ id }: { id: string }) {
                   {certifications.map((cert: any, idx: number) => {
                     const rawCertUrl = cert.fileUrl ?? cert.certificateUrl ?? cert.url ?? null;
                     
-                    let absoluteUrl = null;
-                    if (rawCertUrl) {
-                      absoluteUrl = rawCertUrl.startsWith('http')
-                        ? rawCertUrl
-                        : `${process.env.NEXT_PUBLIC_API_BASE_URL || ''}${rawCertUrl}`;
-                    }
+                    const absoluteUrl = getMediaUrl(rawCertUrl) || null;
 
                     const isPdf = absoluteUrl?.toLowerCase().endsWith('.pdf');
 

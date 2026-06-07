@@ -39,10 +39,11 @@ export interface AdminTutorDetail extends AdminTutorListItem {
   approvalNote?: string | null;
   certifications: Array<{
     id?: string;
-    name?: string;
-    issuer?: string;
-    url?: string;
-    uploadedAt?: string;
+    certificateName?: string;
+    issuingOrganization?: string;
+    issueDate?: string;
+    fileUrl?: string;
+    status?: string;
   }>;
 }
 

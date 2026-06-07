@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
-import { ArrowLeft, Award, Calendar, Mail } from 'lucide-react';
+import { ArrowLeft, Award, Calendar, Mail, FileText, Image as ImageIcon } from 'lucide-react';
 import { AdminConfirmDialog } from '@/components/admin/admin-confirm-dialog';
 import { AdminRecordNotFound } from '@/components/admin/admin-record-not-found';
 import { AdminStatusBadge } from '@/components/admin/admin-status-badge';
@@ -12,6 +12,9 @@ import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Textarea } from '@/components/ui/textarea';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { Label } from '@/components/ui/label';
 import { ADMIN_ROUTES } from '@/constants/admin-routes';
 import { useToast } from '@/hooks/use-toast';
 import {
@@ -21,6 +24,7 @@ import {
   useSuspendTutorProfileMutation,
   useUnsuspendTutorProfileMutation,
 } from '@/features/admin-tutors';
+import { getMediaUrl } from '@/lib/media';
 
 function TutorDetailSkeleton() {
   return (
@@ -61,8 +65,10 @@ export default function TutorDetailPage() {
   const tutorProfileId = params.id as string;
   const { toast } = useToast();
 
-  const [approvalNote, setApprovalNote] = useState('');
-  const [rejectReason, setRejectReason] = useState('');
+  const [reviewDecision, setReviewDecision] = useState<'approve' | 'reject'>('approve');
+  const [reviewComment, setReviewComment] = useState('');
+  const [previewCert, setPreviewCert] = useState<any>(null);
+  
   const [suspendReason, setSuspendReason] = useState('');
   const [unsuspendNote, setUnsuspendNote] = useState('');
 
@@ -159,37 +165,37 @@ export default function TutorDetailPage() {
     }
   }, [unsuspendMutation.isError, toast]);
 
-  const handleApprove = () => {
-    approveMutation.mutate(
-      { note: approvalNote.trim() || undefined },
-      {
-        onSuccess: () => {
-          setApprovalNote('');
-        },
+  const handleReviewSubmit = () => {
+    const comment = reviewComment.trim();
+
+    if (reviewDecision === 'approve') {
+      approveMutation.mutate(
+        { note: comment || undefined },
+        {
+          onSuccess: () => {
+            setReviewComment('');
+          },
+        }
+      );
+    } else {
+      if (!comment || comment.length < 10) {
+        toast({
+          title: 'Validation Error',
+          description: 'Rejection reason must be at least 10 characters.',
+          variant: 'destructive',
+        });
+        return;
       }
-    );
-  };
 
-  const handleReject = () => {
-    const reason = rejectReason.trim();
-
-    if (!reason) {
-      toast({
-        title: 'Validation Error',
-        description: 'Rejection reason is required.',
-        variant: 'destructive',
-      });
-      return;
+      rejectMutation.mutate(
+        { reason: comment },
+        {
+          onSuccess: () => {
+            setReviewComment('');
+          },
+        }
+      );
     }
-
-    rejectMutation.mutate(
-      { reason },
-      {
-        onSuccess: () => {
-          setRejectReason('');
-        },
-      }
-    );
   };
 
   const handleSuspend = () => {
@@ -347,33 +353,77 @@ export default function TutorDetailPage() {
             <h3 className="mb-4 text-lg font-bold">Certificates</h3>
 
             {(tutor.certifications || []).length > 0 ? (
-              <div className="space-y-3">
-                {(tutor.certifications || []).map((certification, index) => (
+              <div className="grid gap-4 sm:grid-cols-2">
+                {(tutor.certifications || []).map((cert, index) => (
                   <div
-                    key={certification.id ?? `${certification.name}-${index}`}
-                    className="flex items-start gap-3 rounded-lg border border-border p-3"
+                    key={cert.id ?? `${cert.certificateName}-${index}`}
+                    className="flex flex-col gap-3 rounded-lg border border-border p-4"
                   >
-                    <Award className="mt-0.5 h-5 w-5 flex-shrink-0 text-primary" />
-                    <div className="flex-1">
-                      <p className="font-medium text-foreground">
-                        {certification.name || 'Untitled certificate'}
-                      </p>
-                      <p className="text-sm text-muted-foreground">
-                        {certification.issuer || 'Unknown issuer'}
-                      </p>
-                      {certification.uploadedAt && (
-                        <p className="mt-1 text-xs text-muted-foreground">
-                          Uploaded:{' '}
-                          {new Date(certification.uploadedAt).toLocaleDateString()}
-                        </p>
+                    <div className="flex items-start gap-3">
+                      {cert.fileUrl && cert.fileUrl.match(/\.(jpeg|jpg|gif|png|webp)$/i) ? (
+                        <div 
+                          className="relative h-16 w-16 overflow-hidden rounded-md border bg-muted cursor-pointer shrink-0" 
+                          onClick={() => setPreviewCert(cert)}
+                        >
+                          <img src={getMediaUrl(cert.fileUrl)} alt="Certificate thumbnail" className="h-full w-full object-cover" />
+                        </div>
+                      ) : cert.fileUrl ? (
+                        <div 
+                          className="flex h-16 w-16 items-center justify-center rounded-md border bg-muted cursor-pointer hover:bg-muted/80 shrink-0" 
+                          onClick={() => setPreviewCert(cert)}
+                        >
+                          <FileText className="h-8 w-8 text-muted-foreground" />
+                        </div>
+                      ) : (
+                        <Award className="mt-0.5 h-6 w-6 flex-shrink-0 text-primary" />
                       )}
+                      
+                      <div className="flex-1">
+                        <p className="font-bold text-foreground">
+                          {cert.certificateName || 'Untitled certificate'}
+                        </p>
+                        <p className="text-sm text-muted-foreground">
+                          Issuer: {cert.issuingOrganization || 'Unknown'}
+                        </p>
+                        {cert.issueDate && (
+                          <p className="text-sm text-muted-foreground">
+                            Issued At: {cert.issueDate}
+                          </p>
+                        )}
+                        {cert.status && (
+                          <div className="mt-1">
+                            <AdminStatusBadge status={cert.status as any} />
+                          </div>
+                        )}
+                      </div>
                     </div>
+
+                    {cert.fileUrl && (
+                      <div className="mt-2 flex items-center gap-2">
+                        <Button 
+                          variant="outline" 
+                          size="sm" 
+                          onClick={() => setPreviewCert(cert)}
+                        >
+                          Preview
+                        </Button>
+                        <Button 
+                          variant="secondary" 
+                          size="sm"
+                          asChild
+                        >
+                          <a href={getMediaUrl(cert.fileUrl)} target="_blank" rel="noreferrer">
+                            Open Full Size
+                          </a>
+                        </Button>
+                      </div>
+                    )}
                   </div>
                 ))}
               </div>
             ) : (
               <p className="text-sm text-muted-foreground">
-                No certificates uploaded.
+                No certificates uploaded
               </p>
             )}
           </Card>
@@ -382,70 +432,61 @@ export default function TutorDetailPage() {
         <div className="space-y-4">
           {tutor.profileStatus === 'pending' && (
             <>
-              <Card className="p-6">
-                <h3 className="mb-4 font-bold text-foreground">
-                  Approve Application
-                </h3>
-                <p className="mb-4 text-sm text-muted-foreground">
-                  Approving this profile makes the tutor available on the platform.
-                </p>
+            <Card className="p-6">
+              <h3 className="mb-4 font-bold text-foreground">
+                Review Tutor Profile
+              </h3>
+              <p className="mb-4 text-sm text-muted-foreground">
+                Decide whether to approve or reject this tutor application.
+              </p>
 
-                <Textarea
-                  placeholder="Optional approval note..."
-                  value={approvalNote}
-                  onChange={(event) => setApprovalNote(event.target.value)}
-                  rows={3}
+              <div className="space-y-6">
+                <RadioGroup
+                  value={reviewDecision}
+                  onValueChange={(val: 'approve' | 'reject') => setReviewDecision(val)}
+                  className="flex gap-6"
                   disabled={isMutating}
-                />
+                >
+                  <div className="flex items-center space-x-2">
+                    <RadioGroupItem value="approve" id="approve" />
+                    <Label htmlFor="approve" className="cursor-pointer font-medium">Approve</Label>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <RadioGroupItem value="reject" id="reject" />
+                    <Label htmlFor="reject" className="cursor-pointer font-medium">Reject</Label>
+                  </div>
+                </RadioGroup>
 
-                <div className="mt-4">
-                  <AdminConfirmDialog
-                    title="Approve Tutor?"
-                    description="This tutor will become visible and eligible to receive bookings."
-                    actionLabel={approveMutation.isPending ? 'Approving...' : 'Approve'}
-                    triggerLabel={approveMutation.isPending ? 'Approving...' : 'Approve Tutor'}
-                    triggerVariant="default"
-                    triggerDisabled={approveMutation.isPending}
-                    onConfirm={handleApprove}
+                <div className="space-y-2">
+                  <Label>
+                    Comment {reviewDecision === 'reject' && <span className="text-destructive">*</span>}
+                  </Label>
+                  <Textarea
+                    placeholder={reviewDecision === 'approve' ? "Optional approval note..." : "Required rejection reason (min 10 chars)..."}
+                    value={reviewComment}
+                    onChange={(e) => setReviewComment(e.target.value)}
+                    rows={4}
+                    disabled={isMutating}
+                    className={reviewDecision === 'reject' && reviewComment.trim().length > 0 && reviewComment.trim().length < 10 ? 'border-destructive' : ''}
                   />
-                </div>
-              </Card>
-
-              <Card className="p-6">
-                <h3 className="mb-4 font-bold text-foreground">
-                  Reject Application
-                </h3>
-                <p className="mb-4 text-sm text-muted-foreground">
-                  Provide a clear reason so the tutor can understand what to fix.
-                </p>
-
-                <Textarea
-                  placeholder="Required rejection reason..."
-                  value={rejectReason}
-                  onChange={(event) => setRejectReason(event.target.value)}
-                  rows={4}
-                  disabled={isMutating}
-                />
-
-                <div className="mt-4">
-                  <AdminConfirmDialog
-                    title="Reject Tutor?"
-                    description="This tutor profile will be rejected. The tutor may need to update and resubmit their profile."
-                    actionLabel={rejectMutation.isPending ? 'Rejecting...' : 'Reject'}
-                    actionVariant="destructive"
-                    triggerLabel={rejectMutation.isPending ? 'Rejecting...' : 'Reject Tutor'}
-                    triggerVariant="destructive"
-                    triggerDisabled={!rejectReason.trim() || rejectMutation.isPending}
-                    onConfirm={handleReject}
-                  />
+                  {reviewDecision === 'reject' && reviewComment.trim().length > 0 && reviewComment.trim().length < 10 && (
+                    <p className="text-xs text-destructive font-medium">Comment must be at least 10 characters.</p>
+                  )}
                 </div>
 
-                {!rejectReason.trim() && (
-                  <p className="mt-2 text-xs text-muted-foreground">
-                    Rejection reason is required.
-                  </p>
-                )}
-              </Card>
+                <Button
+                  className="w-full"
+                  variant={reviewDecision === 'approve' ? 'default' : 'destructive'}
+                  disabled={
+                    isMutating ||
+                    (reviewDecision === 'reject' && reviewComment.trim().length < 10)
+                  }
+                  onClick={handleReviewSubmit}
+                >
+                  {isMutating ? 'Submitting...' : 'Submit Review'}
+                </Button>
+              </div>
+            </Card>
             </>
           )}
 
@@ -549,6 +590,28 @@ export default function TutorDetailPage() {
           </Card>
         </div>
       </div>
+      <Dialog open={!!previewCert} onOpenChange={(open) => !open && setPreviewCert(null)}>
+        <DialogContent className="max-w-4xl max-h-[90vh] flex flex-col">
+          <DialogHeader>
+            <DialogTitle>{previewCert?.certificateName || 'Certificate Preview'}</DialogTitle>
+          </DialogHeader>
+          <div className="flex-1 overflow-auto flex flex-col items-center justify-center p-4 bg-muted/20 min-h-[50vh] rounded-md">
+            {previewCert?.fileUrl?.match(/\.(jpeg|jpg|gif|png|webp)$/i) ? (
+              <img src={getMediaUrl(previewCert.fileUrl)} alt="Certificate" className="max-h-[70vh] object-contain rounded-md" />
+            ) : previewCert?.fileUrl?.match(/\.pdf$/i) ? (
+              <iframe src={getMediaUrl(previewCert.fileUrl)} className="w-full h-[70vh] rounded-md border-0" />
+            ) : (
+              <div className="flex flex-col items-center gap-4">
+                <FileText className="h-16 w-16 text-muted-foreground" />
+                <p>Preview not available for this file type.</p>
+                <Button asChild>
+                  <a href={getMediaUrl(previewCert?.fileUrl)} target="_blank" rel="noreferrer">Open File</a>
+                </Button>
+              </div>
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
     </>
   );
 }

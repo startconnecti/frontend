@@ -12,8 +12,11 @@ import {
   ExternalLink,
   FileText,
   ShieldAlert,
-  Loader2
+  Loader2,
+  Copy,
+  Check
 } from 'lucide-react';
+import { getMediaUrl } from '@/lib/media';
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { PaymentDetail } from '../types';
@@ -228,7 +231,7 @@ export function PaymentDetailCard({ paymentDetail, onRefresh, isRefreshing }: Pa
           )}
           {payment.proofFileUrl && (
             <Button variant="outline" size="sm" className="gap-2 font-bold" asChild>
-              <a href={payment.proofFileUrl} target="_blank" rel="noopener noreferrer">
+              <a href={getMediaUrl(payment.proofFileUrl)} target="_blank" rel="noopener noreferrer">
                 <FileText className="h-4 w-4" />
                 View Proof
                 <ExternalLink className="h-3 w-3" />

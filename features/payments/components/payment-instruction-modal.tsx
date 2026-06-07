@@ -6,6 +6,7 @@ import { PaymentInstruction } from '../types/index';
 import { Copy, Check, Loader2 } from 'lucide-react';
 import { useState } from 'react';
 import { useMarkPaymentSuccessMutation } from '../hooks/use-mark-payment-success-mutation';
+import { getMediaUrl } from '@/lib/media';
 
 interface PaymentInstructionModalProps {
   isOpen: boolean;
@@ -51,7 +52,7 @@ export function PaymentInstructionModal({
           {instruction.qrImageUrl && (
             <div className="flex justify-center">
               <img
-                src={instruction.qrImageUrl}
+                src={getMediaUrl(instruction.qrImageUrl)}
                 alt="Payment QR Code"
                 className="w-48 h-48 border rounded-lg"
               />

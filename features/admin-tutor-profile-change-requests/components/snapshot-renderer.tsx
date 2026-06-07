@@ -2,6 +2,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { ExternalLink, FileText, ImageIcon } from 'lucide-react';
 import Link from 'next/link';
+import { getMediaUrl } from '@/lib/media';
 
 interface SnapshotRendererProps {
   payload: Record<string, unknown>;
@@ -24,11 +25,7 @@ function normalizeCert(raw: Record<string, unknown>): NormalizedCert {
     (raw.url as string | undefined) ??
     null;
 
-  const absoluteUrl = rawUrl
-    ? rawUrl.startsWith('http')
-      ? rawUrl
-      : `${process.env.NEXT_PUBLIC_API_BASE_URL ?? ''}${rawUrl}`
-    : null;
+  const absoluteUrl = getMediaUrl(rawUrl) || null;
 
   return {
     id: raw.id as string | undefined,
