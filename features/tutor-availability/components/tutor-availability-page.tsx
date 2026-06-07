@@ -5,7 +5,8 @@ import { Globe, Save } from 'lucide-react';
 import { PageContainer, SectionHeader, ListState } from '@/components/shared';
 import { Button } from '@/components/ui/button';
 import { useTutorAvailabilityQuery } from '../hooks/use-tutor-availability-query';
-import { useUpdateTutorAvailabilityMutation } from '../hooks/use-update-tutor-availability-mutation';
+import { useCreateTutorAvailabilityMutation } from '../hooks/use-create-tutor-availability-mutation';
+import { useDeleteTutorAvailabilityMutation } from '../hooks/use-delete-tutor-availability-mutation';
 import { AvailabilityDayTabs } from './availability-day-tabs';
 import { AvailabilitySlotList } from './availability-slot-list';
 import { AvailabilitySlotForm } from './availability-slot-form';
@@ -17,7 +18,8 @@ import { toast } from 'sonner';
 export function TutorAvailabilityPage() {
   const [activeDay, setActiveDay] = useState<DayOfWeek>('monday');
   const { data: availability, isLoading, isError, refetch } = useTutorAvailabilityQuery();
-  const updateMutation = useUpdateTutorAvailabilityMutation();
+  const createMutation = useCreateTutorAvailabilityMutation();
+  const deleteMutation = useDeleteTutorAvailabilityMutation();
 
   const handleAddSlot = (startTime: string, endTime: string) => {
     if (!availability) return;
@@ -41,25 +43,15 @@ export function TutorAvailabilityPage() {
       return;
     }
 
-    const newSlot: AvailabilitySlot = {
-      id: `slot-${Date.now()}`,
-      dayOfWeek: activeDay,
-      startTime,
-      endTime,
-      isActive: true,
-    };
-
-    updateMutation.mutate({
-      slots: [...slots, newSlot],
+    createMutation.mutate({
+      day_of_week: activeDay,
+      start_time: startTime,
+      end_time: endTime,
     });
   };
 
   const handleRemoveSlot = (id: string) => {
-    if (!availability) return;
-    const slots = availability?.slots ?? [];
-    updateMutation.mutate({
-      slots: slots.filter(s => s.id !== id),
-    });
+    deleteMutation.mutate(id);
   };
 
   if (isLoading) {
@@ -136,7 +128,7 @@ export function TutorAvailabilityPage() {
 
             <AvailabilitySlotForm 
               onAdd={handleAddSlot} 
-              disabled={updateMutation.isPending} 
+              disabled={createMutation.isPending} 
             />
           </div>
         </div>

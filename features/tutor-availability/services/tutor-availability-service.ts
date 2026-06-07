@@ -21,8 +21,7 @@ export const tutorAvailabilityService = {
     return api.post<any>('/api/v1/tutor/weekly-availability', request);
   },
 
-  async updateTutorAvailability(request: UpdateAvailabilityRequest): Promise<TutorAvailability> {
-    // Legacy method used by availability page (currently non-functional backend route)
-    return api.put<TutorAvailability>('/api/v1/tutors/availability', request);
+  async deleteTutorAvailability(id: string): Promise<any> {
+    return api.delete<any>(`/api/v1/tutor/weekly-availability/${id}`);
   }
 };
