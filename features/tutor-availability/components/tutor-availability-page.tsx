@@ -135,7 +135,7 @@ export function TutorAvailabilityPage() {
 
         {/* Sidebar Preview */}
         <div className="space-y-8">
-          <AvailabilityCalendarPreview slots={slots} />
+          <AvailabilityCalendarPreview slots={slots} timezone={availability?.timezone || ''} />
           
           <div className="p-6 rounded-3xl bg-primary/5 border border-primary/10 space-y-4">
             <h4 className="font-black text-sm uppercase tracking-widest text-brand-dark">Scheduling Tips</h4>
