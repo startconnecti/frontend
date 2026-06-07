@@ -1,4 +1,5 @@
-import { TutorProfileManagementPage } from '@/features/tutor-profile';
+import { TutorProfileSettings } from '@/features/settings';
+import { PageContainer } from '@/components/shared';
 import { Metadata } from 'next';
 
 export const metadata: Metadata = {
@@ -7,5 +8,9 @@ export const metadata: Metadata = {
 };
 
 export default function TutorProfileRoute() {
-  return <TutorProfileManagementPage />;
+  return (
+    <PageContainer className="py-8 space-y-10 max-w-5xl">
+      <TutorProfileSettings />
+    </PageContainer>
+  );
 }
