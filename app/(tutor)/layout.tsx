@@ -3,7 +3,8 @@
 import { ReactNode } from 'react';
 import { TutorSidebar } from '@/components/client/tutor-sidebar';
 import { DashboardHeader } from '@/components/client/dashboard-header';
-import { Sheet, SheetContent } from '@/components/ui/sheet';
+import { Sheet, SheetContent, SheetTitle } from '@/components/ui/sheet';
+import { VisuallyHidden } from '@radix-ui/react-visually-hidden';
 import { useUIStore } from '@/stores/ui-store';
 import { RouteGuard } from '@/components/shared/route-guard';
 
@@ -20,7 +21,10 @@ export default function TutorLayout({ children }: { children: ReactNode }) {
         {/* Mobile Sidebar (Sheet) */}
         <Sheet open={isMobileSidebarOpen} onOpenChange={(open) => !open && closeMobileSidebar()}>
           <SheetContent side="left" className="p-0 w-64 border-none">
-          <TutorSidebar isMobile />
+            <VisuallyHidden>
+              <SheetTitle>Tutor Sidebar Menu</SheetTitle>
+            </VisuallyHidden>
+            <TutorSidebar isMobile />
           </SheetContent>
         </Sheet>
 

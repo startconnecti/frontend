@@ -3,7 +3,8 @@
 import { ReactNode } from 'react';
 import { StudentSidebar } from '@/components/client/student-sidebar';
 import { DashboardHeader } from '@/components/client/dashboard-header';
-import { Sheet, SheetContent } from '@/components/ui/sheet';
+import { Sheet, SheetContent, SheetTitle } from '@/components/ui/sheet';
+import { VisuallyHidden } from '@radix-ui/react-visually-hidden';
 import { useUIStore } from '@/stores/ui-store';
 import { RouteGuard } from '@/components/shared/route-guard';
 
@@ -20,7 +21,10 @@ export default function StudentLayout({ children }: { children: ReactNode }) {
         {/* Mobile Sidebar (Sheet) */}
         <Sheet open={isMobileSidebarOpen} onOpenChange={(open) => !open && closeMobileSidebar()}>
           <SheetContent side="left" className="p-0 w-64 border-none">
-          <StudentSidebar isMobile />
+            <VisuallyHidden>
+              <SheetTitle>Student Sidebar Menu</SheetTitle>
+            </VisuallyHidden>
+            <StudentSidebar isMobile />
           </SheetContent>
         </Sheet>
 

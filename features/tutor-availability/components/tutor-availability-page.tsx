@@ -26,7 +26,9 @@ export function TutorAvailabilityPage() {
     const start = parseInt(startTime.replace(':', ''));
     const end = parseInt(endTime.replace(':', ''));
     
-    const isOverlapping = availability.slots
+    const slots = availability?.slots ?? [];
+    
+    const isOverlapping = slots
       .filter(s => s.dayOfWeek === activeDay)
       .some(s => {
         const sStart = parseInt(s.startTime.replace(':', ''));
@@ -48,14 +50,15 @@ export function TutorAvailabilityPage() {
     };
 
     updateMutation.mutate({
-      slots: [...availability.slots, newSlot],
+      slots: [...slots, newSlot],
     });
   };
 
   const handleRemoveSlot = (id: string) => {
     if (!availability) return;
+    const slots = availability?.slots ?? [];
     updateMutation.mutate({
-      slots: availability.slots.filter(s => s.id !== id),
+      slots: slots.filter(s => s.id !== id),
     });
   };
 
@@ -74,8 +77,24 @@ export function TutorAvailabilityPage() {
     );
   }
 
-  const activeDaySlots = availability?.slots.filter(s => s.dayOfWeek === activeDay) || [];
-  const slotsCountByDay = (availability?.slots || []).reduce((acc, slot) => {
+  if (isError) {
+    return (
+      <PageContainer className="py-8">
+        <div className="py-20 text-center flex flex-col items-center justify-center space-y-4">
+          <div className="h-16 w-16 bg-rose-100 rounded-full flex items-center justify-center">
+            <Globe className="h-8 w-8 text-rose-600" />
+          </div>
+          <h2 className="text-xl font-bold text-brand-dark">Failed to load availability</h2>
+          <p className="text-muted-foreground max-w-md">There was an error fetching your availability schedule. Please try again.</p>
+          <Button onClick={() => refetch()} variant="outline">Retry</Button>
+        </div>
+      </PageContainer>
+    );
+  }
+
+  const slots = availability?.slots ?? [];
+  const activeDaySlots = slots.filter(s => s.dayOfWeek === activeDay);
+  const slotsCountByDay = slots.reduce((acc, slot) => {
     acc[slot.dayOfWeek] = (acc[slot.dayOfWeek] || 0) + 1;
     return acc;
   }, {} as Record<DayOfWeek, number>);
@@ -124,7 +143,7 @@ export function TutorAvailabilityPage() {
 
         {/* Sidebar Preview */}
         <div className="space-y-8">
-          <AvailabilityCalendarPreview slots={availability?.slots || []} />
+          <AvailabilityCalendarPreview slots={slots} />
           
           <div className="p-6 rounded-3xl bg-primary/5 border border-primary/10 space-y-4">
             <h4 className="font-black text-sm uppercase tracking-widest text-brand-dark">Scheduling Tips</h4>

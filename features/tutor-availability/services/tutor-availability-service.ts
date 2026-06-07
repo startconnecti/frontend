@@ -3,8 +3,18 @@ import { TutorAvailability, UpdateAvailabilityRequest, CreateAvailabilityRequest
 
 export const tutorAvailabilityService = {
   async getTutorAvailability(): Promise<TutorAvailability> {
-    // Keep legacy path if mock exists, or adapt to real
-    return api.get<TutorAvailability>('/api/v1/tutor/weekly-availability');
+    const response = await api.get<{ items: any[] }>('/api/v1/tutor/weekly-availability');
+    const items = response.items || [];
+    return {
+      slots: items.map(item => ({
+        id: item.id,
+        dayOfWeek: item.dayOfWeek,
+        startTime: item.startTime,
+        endTime: item.endTime,
+        isActive: item.isActive,
+      })),
+      timezone: items.length > 0 ? items[0].timezone : Intl.DateTimeFormat().resolvedOptions().timeZone,
+    };
   },
 
   async createTutorAvailability(request: CreateAvailabilityRequest): Promise<any> {
