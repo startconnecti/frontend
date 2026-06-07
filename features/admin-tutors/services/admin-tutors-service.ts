@@ -27,6 +27,7 @@ interface RawTutorListItem {
   fullName?: string;
   email?: string;
   profileStatus?: string;
+  status?: string;
   hourlyRate?: number;
   subjects?: RawSubject[];
   createdAt?: string;
@@ -84,12 +85,14 @@ function normalizeTutor(item: RawTutorListItem | null | undefined): AdminTutorLi
     };
   }
 
+  const rawStatus = item.status ?? item.profileStatus;
+
   return {
     id: item.id ?? item.tutorProfileId ?? '',
     userId: item.userId ?? '',
     fullName: item.fullName ?? '-',
     email: item.email ?? '-',
-    profileStatus: isTutorStatus(item.profileStatus) ? item.profileStatus : 'pending',
+    profileStatus: isTutorStatus(rawStatus) ? rawStatus : 'pending',
     hourlyRate: item.hourlyRate ?? 0,
     subjects: normalizeSubjects(item.subjects),
     createdAt: item.createdAt ?? new Date(0).toISOString(),

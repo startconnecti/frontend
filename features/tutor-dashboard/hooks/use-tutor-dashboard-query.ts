@@ -2,6 +2,7 @@
 
 import { useQuery } from '@tanstack/react-query';
 import { useAuthStore } from '@/stores/auth-store';
+import { api } from '@/lib/api/client';
 import { tutorService } from '@/features/tutors/services/tutor-service';
 import { sessionService } from '@/features/sessions/services/session-service';
 import { feedbackService } from '@/features/feedbacks/services/feedback-service';
@@ -19,8 +20,8 @@ export function useTutorDashboardQuery() {
       const nextWeek = new Date();
       nextWeek.setDate(now.getDate() + 7);
 
-      const [tutor, dashboardRes, upcomingSessionsRes, reviewsRes, paymentsRes] = await Promise.all([
-        tutorService.getTutorById(user?.id || '').catch(() => null),
+      const [tutorRes, dashboardRes, upcomingSessionsRes, reviewsRes, paymentsRes] = await Promise.all([
+        api.get<any>('/api/v1/tutor-profiles/me').catch(() => null),
         tutorDashboardService.getTutorDashboard().catch(() => ({ sessionsCompleted: 0, totalEarnings: 0 })),
         sessionService.getTutorSessions({
           status: 'scheduled',
@@ -41,11 +42,13 @@ export function useTutorDashboardQuery() {
       const allReviews = reviewsRes?.items || [];
       const payments = paymentsRes?.items || [];
 
+      const tutor = tutorRes?.tutorProfile || null;
+
       return {
         tutorName: user?.fullName || 'Tutor',
-        approvalStatus: (tutor?.approvalStatus === 'suspended' ? 'rejected' : tutor?.approvalStatus || 'pending') as any,
+        approvalStatus: (tutor?.status === 'suspended' ? 'rejected' : tutor?.status || 'pending') as any,
         approvalNote: tutor?.approvalNote,
-        isPublic: tutor?.isPublic || false,
+        isPublic: true,
         stats: {
           sessionsCompleted: dashboardRes?.sessionsCompleted ?? 0,
           totalEarnings: dashboardRes?.totalEarnings ?? 0,
