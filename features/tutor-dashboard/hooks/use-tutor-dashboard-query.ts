@@ -21,7 +21,7 @@ export function useTutorDashboardQuery() {
       nextWeek.setDate(now.getDate() + 7);
 
       const [tutorRes, dashboardRes, upcomingSessionsRes, reviewsRes, paymentsRes] = await Promise.all([
-        api.get<any>('/api/v1/tutor-profiles/me').catch(() => null),
+        tutorDashboardService.getMyTutorProfile(),
         tutorDashboardService.getTutorDashboard().catch(() => ({ sessionsCompleted: 0, totalEarnings: 0 })),
         sessionService.getTutorSessions({
           status: 'scheduled',
@@ -42,11 +42,14 @@ export function useTutorDashboardQuery() {
       const allReviews = reviewsRes?.items || [];
       const payments = paymentsRes?.items || [];
 
-      const tutor = tutorRes?.tutorProfile || null;
+      const tutor = tutorRes?.tutorProfile;
+      if (!tutor) {
+        throw new Error('Tutor profile not found');
+      }
 
       return {
         tutorName: user?.fullName || 'Tutor',
-        approvalStatus: (tutor?.status === 'suspended' ? 'rejected' : tutor?.status || 'pending') as any,
+        status: tutor.status as any,
         approvalNote: tutor?.approvalNote,
         isPublic: true,
         stats: {

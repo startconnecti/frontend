@@ -1,4 +1,4 @@
-export type TutorApprovalStatus = 'approved' | 'pending' | 'rejected';
+export type TutorApprovalStatus = 'approved' | 'pending' | 'rejected' | 'suspended';
 
 export interface TutorDashboardStats {
   sessionsCompleted: number;
@@ -37,7 +37,7 @@ export interface RecentEarning {
 
 export interface TutorDashboardData {
   tutorName: string;
-  approvalStatus: TutorApprovalStatus;
+  status: TutorApprovalStatus;
   approvalNote?: string;
   isPublic: boolean;
   stats: TutorDashboardStats;

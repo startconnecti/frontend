@@ -64,7 +64,7 @@ export function TutorDashboardPage() {
   return (
     <PageContainer className="py-8 space-y-10">
       {/* Status Banners */}
-      {data.approvalStatus === 'pending' && (
+      {data.status === 'pending' && (
         <div className="rounded-lg border border-amber-200 bg-amber-50 dark:bg-amber-950/30 dark:border-amber-900/50 p-4 md:p-6 flex flex-col sm:flex-row gap-4 items-start w-full text-amber-900 dark:text-amber-200 shadow-sm">
           <div className="rounded-full bg-amber-100 dark:bg-amber-900/50 p-2 shrink-0">
             <Clock className="h-6 w-6 text-amber-600 dark:text-amber-400" />
@@ -72,14 +72,13 @@ export function TutorDashboardPage() {
           <div className="space-y-1">
             <h3 className="font-bold text-lg leading-tight">Your tutor profile is under review</h3>
             <div className="text-sm opacity-90 space-y-2">
-              <p>Your onboarding has been submitted successfully. Our team is currently reviewing your profile and certifications.</p>
-              <p className="font-medium">You cannot receive bookings until your profile is approved.</p>
+              <p>Your profile has been submitted and is currently being reviewed by our team. You will be able to start teaching once your profile is approved.</p>
             </div>
           </div>
         </div>
       )}
 
-      {data.approvalStatus === 'rejected' && (
+      {data.status === 'rejected' && (
         <div className="rounded-lg border border-destructive/20 bg-destructive/10 p-4 md:p-6 flex flex-col sm:flex-row gap-4 items-start w-full text-destructive shadow-sm">
           <div className="rounded-full bg-destructive/20 p-2 shrink-0">
             <AlertTriangle className="h-6 w-6 text-destructive" />
@@ -87,17 +86,30 @@ export function TutorDashboardPage() {
           <div className="space-y-3 w-full">
             <div>
               <h3 className="font-bold text-lg leading-tight">Your tutor profile was rejected</h3>
-              <p className="text-sm opacity-90 mt-1">Your profile needs updates before it can be approved.</p>
+            </div>
+            
+            {data.approvalNote ? (
+              <p className="text-sm font-medium">{data.approvalNote}</p>
+            ) : (
+              <p className="text-sm font-medium">Your profile was rejected. Please update your profile and submit it again.</p>
+            )}
+          </div>
+        </div>
+      )}
+
+      {data.status === 'suspended' && (
+        <div className="rounded-lg border border-destructive/20 bg-destructive/10 p-4 md:p-6 flex flex-col sm:flex-row gap-4 items-start w-full text-destructive shadow-sm">
+          <div className="rounded-full bg-destructive/20 p-2 shrink-0">
+            <AlertTriangle className="h-6 w-6 text-destructive" />
+          </div>
+          <div className="space-y-3 w-full">
+            <div>
+              <h3 className="font-bold text-lg leading-tight">Your tutor profile has been suspended</h3>
             </div>
             
             {data.approvalNote && (
-              <div className="bg-white/50 dark:bg-black/10 p-4 rounded-md border border-destructive/10 mt-2">
-                <p className="text-xs font-bold uppercase tracking-wider mb-1 opacity-80">Review note:</p>
-                <p className="text-sm italic font-medium">{data.approvalNote}</p>
-              </div>
+              <p className="text-sm font-medium">{data.approvalNote}</p>
             )}
-            
-            <p className="text-sm font-medium mt-2">Please update your profile and resubmit for review.</p>
           </div>
         </div>
       )}
