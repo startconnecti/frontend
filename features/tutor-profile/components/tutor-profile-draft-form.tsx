@@ -22,7 +22,7 @@ import { getMediaUrl } from '@/lib/media';
 const tutorProfileDraftSchema = z.object({
   bio: z.string().min(50, 'Bio must be at least 50 characters'),
   experienceText: z.string().min(100, 'Experience text must be at least 100 characters'),
-  yearsOfExperience: z.coerce.number().min(0),
+  yearsOfExperience: z.coerce.number().min(0, 'Years of experience must be 0 or greater'),
   hourlyRate: z.coerce.number().min(1),
   subjects: z.array(z.string()).min(1, 'At least one subject is required'),
   requestNote: z.string().optional(),

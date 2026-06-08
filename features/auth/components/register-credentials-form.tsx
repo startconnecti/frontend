@@ -37,7 +37,7 @@ const registerSchema = z.object({
   phoneNumber: z.string().optional(),
   dateOfBirth: z.string().min(1, 'Date of birth is required'),
   gender: z.enum(['male', 'female', 'other', 'undisclosed']),
-  avatar: z.any().optional(),
+
   password: z.string().min(AUTH_CONSTANTS.MIN_PASSWORD_LENGTH, `Password must be at least ${AUTH_CONSTANTS.MIN_PASSWORD_LENGTH} characters`),
   confirmPassword: z.string().min(1, 'Please confirm your password'),
 }).refine((data) => data.password === data.confirmPassword, {
@@ -63,7 +63,6 @@ export function RegisterCredentialsForm({ onSuccess }: RegisterCredentialsFormPr
       phoneNumber: '',
       dateOfBirth: '',
       gender: 'undisclosed',
-      avatar: undefined,
       password: '',
       confirmPassword: '',
     },
@@ -82,9 +81,6 @@ export function RegisterCredentialsForm({ onSuccess }: RegisterCredentialsFormPr
         gender: values.gender as Gender,
       });
 
-      // TODO: If values.avatar exists, upload it after OTP verification 
-      // where the access token becomes available.
-      
       onSuccess(values);
     } catch (err) {
       // Remap backend snake_case field names to camelCase form field names
@@ -222,24 +218,7 @@ export function RegisterCredentialsForm({ onSuccess }: RegisterCredentialsFormPr
             />
           </div>
 
-          <FormField
-            control={form.control}
-            name="avatar"
-            render={({ field: { value, onChange, ...field } }) => (
-              <FormItem>
-                <FormLabel>Avatar (Optional)</FormLabel>
-                <FormControl>
-                  <Input 
-                    type="file" 
-                    accept="image/*" 
-                    onChange={(e) => onChange(e.target.files?.[0])}
-                    {...field} 
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
+
 
           <FormField
             control={form.control}

@@ -29,6 +29,7 @@ export function TutorTeachingProfileStep({ data, onChange, errors }: StepProps) 
         <label className="text-sm font-bold">Years of Experience</label>
         <Input 
           type="number" 
+          min={0}
           value={data.yearsOfExperience} 
           onChange={(e) => onChange({ yearsOfExperience: parseInt(e.target.value) || 0 })} 
           className={errors?.yearsOfExperience ? 'border-destructive' : ''}

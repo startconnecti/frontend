@@ -180,7 +180,7 @@ export function TutorOnboardingForm() {
       if (formData.bio.length < ONBOARDING_CONSTANTS.BIO_MIN_LENGTH) {
         newErrors.bio = `Bio must be at least ${ONBOARDING_CONSTANTS.BIO_MIN_LENGTH} characters`;
       }
-      if (formData.yearsOfExperience < 0) newErrors.yearsOfExperience = 'Years of experience cannot be negative';
+      if (formData.yearsOfExperience < 0) newErrors.yearsOfExperience = 'Years of experience must be 0 or greater.';
     }
 
     if (step === 1) {
@@ -241,7 +241,18 @@ export function TutorOnboardingForm() {
     }
   };
   const handleSubmit = async () => {
-    if (validateStep(currentStep)) {
+    // Validate all steps before submission
+    let isValid = true;
+    for (let i = 0; i <= 4; i++) {
+      if (!validateStep(i)) {
+        isValid = false;
+        setCurrentStep(i);
+        toast.error('Please fix the errors in this step before submitting.');
+        break;
+      }
+    }
+
+    if (isValid) {
       try {
         const payloadJson = {
           profile: {
