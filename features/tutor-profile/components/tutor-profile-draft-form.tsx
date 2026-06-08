@@ -17,6 +17,7 @@ import { toast } from 'sonner';
 import { useSubjectsQuery } from '@/features/tutors/hooks/use-subjects-query';
 import { cn } from '@/lib/utils';
 import { useRef } from 'react';
+import { getMediaUrl } from '@/lib/media';
 
 const tutorProfileDraftSchema = z.object({
   bio: z.string().min(50, 'Bio must be at least 50 characters'),
@@ -403,7 +404,7 @@ export function TutorProfileDraftForm({ initialData, editRequestId, initialReque
                           </div>
                         ) : (cert.fileUrl || cert.certificateUrl) ? (
                           <div className="h-9 flex items-center justify-between px-3 rounded-md bg-blue-50 text-blue-700 text-sm font-medium border border-blue-100 transition-colors">
-                            <a href={cert.fileUrl ?? cert.certificateUrl} target="_blank" rel="noopener noreferrer" className="hover:underline truncate mr-2">
+                            <a href={getMediaUrl(cert.fileUrl ?? cert.certificateUrl)} target="_blank" rel="noopener noreferrer" className="hover:underline truncate mr-2">
                               View Existing Document
                             </a>
                             <Button type="button" variant="ghost" size="sm" className="h-6 text-xs px-2 shrink-0 hover:bg-blue-100" onClick={() => handleReplaceCertClick(index)}>

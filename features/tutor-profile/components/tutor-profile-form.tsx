@@ -28,6 +28,7 @@ import { useCreateTutorProfileMutation } from '../hooks/use-create-tutor-profile
 import { useSubjectsQuery } from '@/features/tutors/hooks/use-subjects-query';
 import { cn } from '@/lib/utils';
 import { Check } from 'lucide-react';
+import { getMediaUrl } from '@/lib/media';
 
 const tutorProfileSchema = z.object({
   bio: z.string().min(50, 'Bio must be at least 50 characters'),
@@ -236,14 +237,36 @@ export function TutorProfileForm({ initialData, isCreating = false }: TutorProfi
               </CardHeader>
               <CardContent className="p-10 space-y-6">
                 <div className="space-y-4">
-                  {initialData.certificates.map((cert) => (
-                    <div key={cert.id} className="flex items-center justify-between p-4 rounded-xl border border-border/40 bg-muted/5">
-                      <div>
-                        <p className="text-sm font-bold">{cert.title}</p>
-                        <p className="text-xs text-muted-foreground">{cert.organization} • {cert.year}</p>
+                  {initialData.certificates.map((cert) => {
+                    const rawUrl = cert.fileUrl ?? cert.certificateUrl ?? null;
+                    const absoluteUrl = getMediaUrl(rawUrl) || null;
+
+                    return (
+                      <div key={cert.id} className="flex items-center justify-between p-4 rounded-xl border border-border/40 bg-muted/5">
+                        <div className="flex items-start gap-4">
+                          {absoluteUrl && absoluteUrl.match(/\.(jpeg|jpg|gif|png|webp)$/i) ? (
+                            <div className="relative h-12 w-16 overflow-hidden rounded-md border bg-white shrink-0 flex items-center justify-center">
+                              {/* eslint-disable-next-line @next/next/no-img-element */}
+                              <img src={absoluteUrl} alt="Certificate" className="max-h-full max-w-full object-contain" />
+                            </div>
+                          ) : absoluteUrl ? (
+                            <div className="flex h-12 w-16 items-center justify-center rounded-md border bg-white shrink-0">
+                              <span className="text-xs font-bold text-muted-foreground">FILE</span>
+                            </div>
+                          ) : null}
+                          <div>
+                            <p className="text-sm font-bold">{cert.title}</p>
+                            <p className="text-xs text-muted-foreground">{cert.organization} • {cert.year}</p>
+                          </div>
+                        </div>
+                        {absoluteUrl && (
+                          <Button variant="outline" size="sm" asChild className="shrink-0">
+                            <a href={absoluteUrl} target="_blank" rel="noopener noreferrer">View</a>
+                          </Button>
+                        )}
                       </div>
-                    </div>
-                  ))}
+                    );
+                  })}
                   {initialData.certificates.length === 0 && (
                     <p className="text-sm text-muted-foreground">No certificates added.</p>
                   )}
