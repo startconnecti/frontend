@@ -8,17 +8,19 @@ import { TutorProfileEmptyState } from '@/features/tutor-profile/components/tuto
 import { TutorProfileDisplay } from '@/features/tutor-profile/components/tutor-profile-display';
 import { TutorProfileDraftForm } from '@/features/tutor-profile/components/tutor-profile-draft-form';
 import { Skeleton } from '@/components/ui/skeleton';
-import { BookOpen, History, Lock, Edit3 } from 'lucide-react';
+import { BookOpen, History, Lock, Edit3, Info } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useState } from 'react';
 import Link from 'next/link';
+import { useAuthStore } from '@/stores/auth-store';
 
 export function TutorProfileSettings() {
   const { data: profile, isLoading, isError, error } = useTutorProfileQuery();
   const isNotFound = isError && (error as any)?.response?.status === 404;
   const isNoProfile = isNotFound || (!isLoading && !profile) || profile?.status === 'incomplete';
   const isApprovedLike = profile?.approvalStatus === 'approved' || profile?.approvalStatus === 'suspended';
-  const canCreateDraft = profile?.onboardingCompleted === true;
+  const { user } = useAuthStore();
+  const canCreateDraft = user?.onboardingCompleted === true;
 
   const { data: changeRequestsData } = useTutorProfileChangeRequestsQuery(
     { status: 'pending', limit: 1 },
@@ -100,18 +102,26 @@ export function TutorProfileSettings() {
                 </div>
               </div>
             ) : (
-              <div className="bg-muted/10 border border-border/40 p-4 rounded-2xl flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
-                <div>
-                  <p className="font-bold text-brand-dark">Need to update your profile?</p>
-                  <p className="text-sm text-muted-foreground">Submit a Change Request for admin review.</p>
+              <div className="bg-blue-50 border border-blue-200 p-5 rounded-2xl flex flex-col sm:flex-row sm:items-center justify-between gap-6 mb-8">
+                <div className="flex gap-3 items-start">
+                  <Info className="h-5 w-5 text-blue-600 shrink-0 mt-0.5" />
+                  <div>
+                    <p className="font-bold text-blue-900 mb-1">Your tutor profile is currently read-only.</p>
+                    <p className="text-sm text-blue-800 leading-relaxed">
+                      To update your profile information, qualifications, hourly rate, subjects, or certificates, please submit a Change Request for admin review.
+                    </p>
+                  </div>
                 </div>
-                <Button size="lg" className="font-black gap-2 rounded-2xl shrink-0" onClick={() => setIsDraftMode(true)}>
-                  <Edit3 className="h-5 w-5" />
-                  Create Change Request
+                <Button size="lg" className="font-black gap-2 rounded-2xl shrink-0 shadow-sm" onClick={() => setIsDraftMode(true)}>
+                  <Edit3 className="h-4 w-4" />
+                  Request Profile Changes
                 </Button>
               </div>
             )}
-            <TutorProfileDisplay profile={profile} />
+            <TutorProfileDisplay 
+              profile={profile} 
+              onRequestChange={canCreateDraft && !hasPendingRequest ? () => setIsDraftMode(true) : undefined} 
+            />
           </div>
         )
       )}

@@ -4,11 +4,13 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Info, GraduationCap, Clock, DollarSign, FileText, ImageIcon, ExternalLink } from 'lucide-react';
 import Link from 'next/link';
+import { Button } from '@/components/ui/button';
 import { TutorProfile, TutorCertificate } from '../types';
 import { getMediaUrl } from '@/lib/media';
 
 interface TutorProfileDisplayProps {
   profile: TutorProfile;
+  onRequestChange?: () => void;
 }
 
 function CertificationCard({ cert }: { cert: TutorCertificate }) {
@@ -91,7 +93,7 @@ function CertificationCard({ cert }: { cert: TutorCertificate }) {
   );
 }
 
-export function TutorProfileDisplay({ profile }: TutorProfileDisplayProps) {
+export function TutorProfileDisplay({ profile, onRequestChange }: TutorProfileDisplayProps) {
   const subjects = Array.isArray(profile.subjects) ? profile.subjects : [];
   const certificates = Array.isArray(profile.certificates) ? profile.certificates : [];
 
@@ -111,9 +113,14 @@ export function TutorProfileDisplay({ profile }: TutorProfileDisplayProps) {
               <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-1">
                 <DollarSign className="h-3 w-3" /> Hourly Rate
               </p>
-              <p className="text-xl font-black text-brand-dark">
-                {profile.hourlyRate > 0 ? `${profile.hourlyRate.toLocaleString()} VND / hr` : 'Not specified'}
-              </p>
+              <div>
+                <p className="text-xl font-black text-brand-dark">
+                  {profile.hourlyRate > 0 ? `${profile.hourlyRate.toLocaleString()} VND / hr` : 'Not specified'}
+                </p>
+                <p className="text-[10px] text-muted-foreground mt-1 italic">
+                  Hourly rate changes require admin review through a Change Request.
+                </p>
+              </div>
             </div>
             <div className="space-y-2">
               <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-1">
@@ -127,7 +134,10 @@ export function TutorProfileDisplay({ profile }: TutorProfileDisplayProps) {
 
           {/* Subjects — inside Professional Overview */}
           <div className="space-y-3">
-            <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Subjects</p>
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1">
+              <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Subjects</p>
+              <p className="text-[10px] text-muted-foreground italic">To update subjects, submit a Change Request.</p>
+            </div>
             {subjects.length > 0 ? (
               <div className="flex flex-wrap gap-2">
                 {subjects.map((subject: unknown, idx: number) => {
@@ -170,13 +180,22 @@ export function TutorProfileDisplay({ profile }: TutorProfileDisplayProps) {
 
       {/* Certifications & Qualifications */}
       <Card className="border-border/60 shadow-sm rounded-3xl overflow-hidden bg-white">
-        <CardHeader className="bg-muted/10 border-b border-border/40 p-6">
+        <CardHeader className="bg-muted/10 border-b border-border/40 p-6 flex flex-row items-center justify-between space-y-0">
           <CardTitle className="text-lg font-black uppercase tracking-widest flex items-center gap-2" style={{ color: '#2C1208' }}>
             <GraduationCap className="h-5 w-5 text-primary" />
             Certifications &amp; Qualifications
           </CardTitle>
+          {onRequestChange && (
+            <Button variant="outline" size="sm" className="gap-2 shadow-sm font-bold rounded-xl" onClick={onRequestChange}>
+              Create Change Request
+            </Button>
+          )}
         </CardHeader>
-        <CardContent className="p-8">
+        <CardContent className="p-8 space-y-6">
+          <div className="flex items-center gap-3 p-4 rounded-xl bg-blue-50/50 border border-blue-100 text-blue-800 text-sm font-medium">
+            <Info className="h-4 w-4 shrink-0 text-blue-500" />
+            Certificates can only be updated through a Change Request.
+          </div>
           {certificates.length > 0 ? (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {certificates.map((cert) => (
