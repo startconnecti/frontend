@@ -47,9 +47,10 @@ export function buildTutorProfileSnapshotPayload(
     // When a new file is being uploaded (tempFileKey set), omit the old URL fields
     // so the backend doesn't accidentally read a stale URL.
     // When no new file, preserve both URL fields for backward compat.
-    const { file, ...certBase } = cert;
+    // Strip `fileUrl` to conform to backend validation.
+    const { file, fileUrl, ...certBase } = cert;
     const cleanCert = certBase.tempFileKey
-      ? { ...certBase, fileUrl: undefined, certificateUrl: undefined }
+      ? { ...certBase, certificateUrl: undefined }
       : certBase;
 
     // Append file to FormData if valid
