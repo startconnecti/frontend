@@ -16,7 +16,7 @@ import Link from 'next/link';
 export function TutorProfileSettings() {
   const { data: profile, isLoading, isError, error } = useTutorProfileQuery();
   const isNotFound = isError && (error as any)?.response?.status === 404;
-  const isNoProfile = isNotFound || (!isLoading && !profile);
+  const isNoProfile = isNotFound || (!isLoading && !profile) || profile?.status === 'incomplete';
   const isApprovedLike = profile?.approvalStatus === 'approved' || profile?.approvalStatus === 'suspended';
   const canCreateDraft = isApprovedLike;
 

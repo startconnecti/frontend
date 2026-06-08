@@ -40,15 +40,15 @@ export function RouteGuard({
 
     // 3. Onboarding Check — block access to protected pages if onboarding incomplete
     if (requireOnboarding && user) {
-      // For tutors: sole source of truth is onboardingCompleted
-      const isTutorIncomplete = user.role === 'tutor' && !user.onboardingCompleted;
+      // Tutors are now allowed to access the dashboard and continue onboarding later
+      const isTutorIncomplete = false;
+      
       // For students: onboardingCompleted or hasProfile or skipped counts as complete
       const isStudentIncomplete = user.role === 'student' && !user.onboardingCompleted && !user.hasProfile && !user.onboardingSkipped;
 
-      if (isTutorIncomplete || isStudentIncomplete) {
-        const onboardingPath = user.role === 'tutor' ? ROUTES.ONBOARDING_TUTOR : ROUTES.ONBOARDING_STUDENT;
-        if (pathname !== onboardingPath) {
-          router.replace(onboardingPath);
+      if (isStudentIncomplete) {
+        if (pathname !== ROUTES.ONBOARDING_STUDENT) {
+          router.replace(ROUTES.ONBOARDING_STUDENT);
         }
         return;
       }
@@ -56,15 +56,11 @@ export function RouteGuard({
 
     // 4. Prevent Re-onboarding — redirect away from onboarding if already completed
     if (user) {
-      const isTutorComplete = user.role === 'tutor' && user.onboardingCompleted;
       const isStudentComplete = user.role === 'student' && (user.onboardingCompleted || user.hasProfile);
 
-      if (isTutorComplete || isStudentComplete) {
-        const onboardingPathStudent = ROUTES.ONBOARDING_STUDENT;
-        const onboardingPathTutor = ROUTES.ONBOARDING_TUTOR;
-        if (pathname === onboardingPathStudent || pathname === onboardingPathTutor) {
-          const dashboard = user.role === 'tutor' ? ROUTES.TUTOR_DASHBOARD : ROUTES.STUDENT_DASHBOARD;
-          router.replace(dashboard);
+      if (isStudentComplete) {
+        if (pathname === ROUTES.ONBOARDING_STUDENT) {
+          router.replace(ROUTES.STUDENT_DASHBOARD);
         }
       }
     }
@@ -82,10 +78,9 @@ export function RouteGuard({
   if (allowedRole && user?.role !== allowedRole) return null;
 
   if (requireOnboarding && user) {
-    const isTutorIncomplete = user.role === 'tutor' && !user.onboardingCompleted;
     const isStudentIncomplete = user.role === 'student' && !user.onboardingCompleted && !user.hasProfile && !user.onboardingSkipped;
-    if (isTutorIncomplete || isStudentIncomplete) {
-      if (pathname !== (user.role === 'tutor' ? ROUTES.ONBOARDING_TUTOR : ROUTES.ONBOARDING_STUDENT)) {
+    if (isStudentIncomplete) {
+      if (pathname !== ROUTES.ONBOARDING_STUDENT) {
         return null;
       }
     }

@@ -7,9 +7,38 @@ import { ReviewList } from './review-list';
 import { Card, CardContent } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 
+import { useTutorProfileQuery } from '@/features/tutor-profile/hooks/use-tutor-profile-query';
+import { ROUTES } from '@/constants/routes';
+import Link from 'next/link';
+import { Button } from '@/components/ui/button';
+
 export function TutorReviewsPage() {
+  const { data: tutorProfile } = useTutorProfileQuery();
   const { data: reviewsData, isLoading: reviewsLoading, isError: reviewsError, error: reviewsErrorObj, refetch: refetchReviews } = useTutorReviewsQuery();
   const { data: statistics } = useTutorReviewStatisticsQuery();
+
+  if (tutorProfile?.status === 'incomplete') {
+    return (
+      <PageContainer className="py-8 space-y-10">
+        <SectionHeader 
+          title="Student Reviews"
+          description="Monitor your teaching performance and student feedback."
+        />
+        <div className="py-20 text-center flex flex-col items-center justify-center space-y-4">
+          <div className="h-16 w-16 bg-amber-100 rounded-full flex items-center justify-center">
+            <Users className="h-8 w-8 text-amber-600" />
+          </div>
+          <h2 className="text-xl font-bold text-brand-dark">Complete Your Profile First</h2>
+          <p className="text-muted-foreground max-w-md">No students can review tutors that have not submitted profiles.</p>
+          <Button asChild className="font-bold">
+            <Link href={ROUTES.TUTOR.PROFILE}>
+              Complete Profile
+            </Link>
+          </Button>
+        </div>
+      </PageContainer>
+    );
+  }
 
   return (
     <PageContainer className="py-8 space-y-10">

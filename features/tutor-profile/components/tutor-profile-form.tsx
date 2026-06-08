@@ -286,7 +286,7 @@ export function TutorProfileForm({ initialData, isCreating = false }: TutorProfi
               className="font-black px-12 shadow-2xl shadow-primary/40 h-14 text-lg rounded-2xl transition-all active:scale-95" 
               disabled={isPending || (!form.formState.isDirty && !isCreating)}
             >
-              {isPending ? 'Submitting...' : isCreating ? 'Create Profile' : 'Update Profile'}
+              {isPending ? 'Submitting...' : isCreating ? 'Save & Continue Later' : 'Update Profile'}
             </Button>
           </div>
         </form>

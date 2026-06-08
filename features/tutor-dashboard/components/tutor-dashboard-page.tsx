@@ -64,6 +64,25 @@ export function TutorDashboardPage() {
   return (
     <PageContainer className="py-8 space-y-10">
       {/* Status Banners */}
+      {data.status === 'incomplete' && (
+        <div className="rounded-lg border border-rose-200 bg-rose-50 dark:bg-rose-950/30 dark:border-rose-900/50 p-4 md:p-6 flex flex-col sm:flex-row gap-4 items-start w-full text-rose-900 dark:text-rose-200 shadow-sm">
+          <div className="rounded-full bg-rose-100 dark:bg-rose-900/50 p-2 shrink-0">
+            <AlertTriangle className="h-6 w-6 text-rose-600 dark:text-rose-400" />
+          </div>
+          <div className="space-y-3 w-full flex flex-col sm:flex-row justify-between items-start sm:items-center">
+            <div className="space-y-1">
+              <h3 className="font-bold text-lg leading-tight">Complete Your Tutor Profile</h3>
+              <p className="text-sm opacity-90">You need to complete your tutor profile before you can start teaching and receive bookings.</p>
+            </div>
+            <Button className="shrink-0" asChild>
+              <Link href={ROUTES.TUTOR.PROFILE}>
+                Complete Profile
+              </Link>
+            </Button>
+          </div>
+        </div>
+      )}
+
       {data.status === 'pending' && (
         <div className="rounded-lg border border-amber-200 bg-amber-50 dark:bg-amber-950/30 dark:border-amber-900/50 p-4 md:p-6 flex flex-col sm:flex-row gap-4 items-start w-full text-amber-900 dark:text-amber-200 shadow-sm">
           <div className="rounded-full bg-amber-100 dark:bg-amber-900/50 p-2 shrink-0">

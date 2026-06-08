@@ -5,8 +5,11 @@ import { Globe, Save } from 'lucide-react';
 import { PageContainer, SectionHeader, ListState } from '@/components/shared';
 import { Button } from '@/components/ui/button';
 import { useTutorAvailabilityQuery } from '../hooks/use-tutor-availability-query';
+import { useTutorProfileQuery } from '@/features/tutor-profile/hooks/use-tutor-profile-query';
 import { useCreateTutorAvailabilityMutation } from '../hooks/use-create-tutor-availability-mutation';
 import { useDeleteTutorAvailabilityMutation } from '../hooks/use-delete-tutor-availability-mutation';
+import { ROUTES } from '@/constants/routes';
+import Link from 'next/link';
 import { AvailabilityDayTabs } from './availability-day-tabs';
 import { AvailabilitySlotList } from './availability-slot-list';
 import { AvailabilitySlotForm } from './availability-slot-form';
@@ -18,6 +21,7 @@ import { toast } from 'sonner';
 export function TutorAvailabilityPage() {
   const [activeDay, setActiveDay] = useState<DayOfWeek>('monday');
   const { data: availability, isLoading, isError, refetch } = useTutorAvailabilityQuery();
+  const { data: tutorProfile, isLoading: isProfileLoading } = useTutorProfileQuery();
   const createMutation = useCreateTutorAvailabilityMutation();
   const deleteMutation = useDeleteTutorAvailabilityMutation();
 
@@ -54,7 +58,7 @@ export function TutorAvailabilityPage() {
     deleteMutation.mutate(id);
   };
 
-  if (isLoading) {
+  if (isProfileLoading || isLoading) {
     return (
       <PageContainer className="py-8 space-y-10">
         <Skeleton className="h-20 w-full rounded-2xl" />
@@ -64,6 +68,29 @@ export function TutorAvailabilityPage() {
             <Skeleton className="h-[400px] w-full rounded-3xl" />
           </div>
           <Skeleton className="h-64 w-full rounded-3xl" />
+        </div>
+      </PageContainer>
+    );
+  }
+
+  if (tutorProfile?.status === 'incomplete') {
+    return (
+      <PageContainer className="py-8 space-y-10">
+        <SectionHeader 
+          title="Availability Management"
+          description="Define your weekly teaching schedule so students can book sessions with you."
+        />
+        <div className="py-20 text-center flex flex-col items-center justify-center space-y-4">
+          <div className="h-16 w-16 bg-amber-100 rounded-full flex items-center justify-center">
+            <Globe className="h-8 w-8 text-amber-600" />
+          </div>
+          <h2 className="text-xl font-bold text-brand-dark">Complete Your Profile First</h2>
+          <p className="text-muted-foreground max-w-md">You must complete your tutor profile before setting availability.</p>
+          <Button asChild className="font-bold">
+            <Link href={ROUTES.TUTOR.PROFILE}>
+              Complete Profile
+            </Link>
+          </Button>
         </div>
       </PageContainer>
     );

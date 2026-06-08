@@ -77,8 +77,15 @@ function normalizeTutorProfile(profile: Record<string, unknown>): TutorProfile {
 
 export const tutorProfileService = {
   async getTutorProfile(): Promise<TutorProfile> {
-    const response = await api.get<any>('/api/v1/tutor/profile');
-    return normalizeTutorProfile(response);
+    try {
+      const response = await api.get<any>('/api/v1/tutor/profile');
+      return normalizeTutorProfile(response);
+    } catch (err: any) {
+      if (err?.response?.status === 404 || err?.status === 404 || err?.message?.includes('404')) {
+        return normalizeTutorProfile({ status: 'incomplete' });
+      }
+      throw err;
+    }
   },
 
   async createTutorProfile(request: Record<string, any>): Promise<TutorProfile> {

@@ -35,6 +35,8 @@ const tutorNavItems = [
   { label: 'Settings', href: ROUTES.SETTINGS_PROFILE, icon: Settings },
 ];
 
+import { useTutorProfileQuery } from '@/features/tutor-profile/hooks/use-tutor-profile-query';
+
 export function TutorSidebar({ isMobile = false }: { isMobile?: boolean }) {
   const pathname = usePathname();
   const router = useRouter();
@@ -50,6 +52,7 @@ export function TutorSidebar({ isMobile = false }: { isMobile?: boolean }) {
 
   const { data: notificationData } = useNotificationUnreadCountQuery();
   const { data: messageData } = useMessageUnreadCountQuery();
+  const { data: tutorProfile } = useTutorProfileQuery();
 
   const unreadNotificationCount = notificationData?.count ?? 0;
   const unreadMessageCount = messageData?.count ?? 0;
@@ -107,7 +110,22 @@ export function TutorSidebar({ isMobile = false }: { isMobile?: boolean }) {
         })}
       </nav>
 
-      <div className="p-4 border-t mt-auto">
+      <div className="px-4 py-4 mt-auto">
+        {tutorProfile?.status === 'incomplete' && (
+          <div className="mb-4 bg-amber-50 border border-amber-200 text-amber-800 p-3 rounded-xl flex items-start gap-2 shadow-sm">
+            <User className="h-4 w-4 shrink-0 mt-0.5 text-amber-600" />
+            <div className="space-y-1">
+              <p className="text-xs font-bold leading-tight">Profile Incomplete</p>
+              <p className="text-[10px] leading-tight opacity-90">Please complete your profile to start teaching.</p>
+              <Link href={ROUTES.TUTOR.PROFILE} className="text-[10px] font-black underline mt-1 block">
+                Complete Now
+              </Link>
+            </div>
+          </div>
+        )}
+      </div>
+
+      <div className="p-4 border-t">
         <button 
           onClick={handleLogout}
           className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-destructive hover:bg-destructive/10 transition-colors"
