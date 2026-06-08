@@ -22,10 +22,7 @@ export const feedbackService = {
     return api.get('/api/v1/feedbacks', { params });
   },
 
-  async getTutorReviewSummary(tutorId?: string): Promise<{ averageRating: number; totalReviews: number }> {
-    return {
-      averageRating: 0,
-      totalReviews: 0
-    };
+  async getTutorReviewStatistics(tutorId: string): Promise<{ statistics: { averageRating: number; totalReviews: number; ratingDistribution: Record<string, number> } }> {
+    return api.get(`/api/v1/tutor-reviews/statistics/${tutorId}`);
   }
 };

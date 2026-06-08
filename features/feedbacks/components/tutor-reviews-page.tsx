@@ -2,13 +2,14 @@
 
 import { Star, BarChart3, TrendingUp, Users } from 'lucide-react';
 import { PageContainer, SectionHeader, ListState } from '@/components/shared';
-import { useTutorReviewsQuery } from '../hooks/use-tutor-reviews-query';
+import { useTutorReviewsQuery, useTutorReviewStatisticsQuery } from '../hooks/use-tutor-reviews-query';
 import { ReviewList } from './review-list';
 import { Card, CardContent } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 
 export function TutorReviewsPage() {
-  const { data, isLoading, isError, error, refetch } = useTutorReviewsQuery();
+  const { data: reviewsData, isLoading: reviewsLoading, isError: reviewsError, error: reviewsErrorObj, refetch: refetchReviews } = useTutorReviewsQuery();
+  const { data: statistics } = useTutorReviewStatisticsQuery();
 
   return (
     <PageContainer className="py-8 space-y-10">
@@ -17,19 +18,19 @@ export function TutorReviewsPage() {
         description="Monitor your teaching performance and student feedback."
       />
 
-      {data?.summary && (
+      {statistics && (
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <Card className="border-border/60 shadow-lg bg-white rounded-3xl overflow-hidden">
             <CardContent className="p-8 flex flex-col items-center justify-center text-center space-y-2">
               <div className="h-12 w-12 bg-primary/10 rounded-full flex items-center justify-center mb-2">
                 <TrendingUp className="h-6 w-6 text-primary" />
               </div>
-              <p className="text-4xl font-black text-primary">{data?.summary?.averageRating ?? 0}</p>
+              <p className="text-4xl font-black text-primary">{statistics.averageRating?.toFixed(1) ?? '0.0'}</p>
               <div className="flex gap-1">
                 {[1, 2, 3, 4, 5].map((star) => (
                   <Star 
                     key={star} 
-                    className={`h-4 w-4 ${star <= Math.round(data?.summary?.averageRating || 0) ? "fill-primary text-primary" : "text-muted-foreground/20"}`} 
+                    className={`h-4 w-4 ${star <= Math.round(statistics.averageRating || 0) ? "fill-primary text-primary" : "text-muted-foreground/20"}`} 
                   />
                 ))}
               </div>
@@ -45,8 +46,8 @@ export function TutorReviewsPage() {
               </h4>
               <div className="space-y-2">
                 {[5, 4, 3, 2, 1].map((rating) => {
-                  const count = data?.summary?.distribution?.[rating] || 0;
-                  const totalReviews = data?.summary?.totalReviews || 0;
+                  const count = statistics.ratingDistribution?.[rating] || 0;
+                  const totalReviews = statistics.totalReviews || 0;
                   const percentage = totalReviews > 0 ? (count / totalReviews) * 100 : 0;
                   
                   return (
@@ -72,20 +73,20 @@ export function TutorReviewsPage() {
           <div className="flex items-center gap-2 px-3 py-1 bg-muted/50 rounded-full">
             <Users className="h-3.5 w-3.5 text-muted-foreground" />
             <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">
-              {data?.summary?.totalReviews || 0} Total Reviews
+              {statistics?.totalReviews || 0} Total Reviews
             </span>
           </div>
         </div>
 
         <ListState
-          isLoading={isLoading}
-          error={error as Error}
-          isEmpty={!data?.reviews || !data?.reviews?.items || data.reviews.items.length === 0}
+          isLoading={reviewsLoading}
+          error={reviewsErrorObj as Error}
+          isEmpty={!reviewsData?.reviews || !reviewsData?.reviews?.items || reviewsData.reviews.items.length === 0}
           emptyTitle="No reviews yet"
-          emptyDescription="You haven't received any reviews from students yet. Complete sessions to start gathering feedback."
-          onRetry={() => refetch()}
+          emptyDescription="Students will be able to leave reviews after completed sessions."
+          onRetry={() => refetchReviews()}
         >
-          <ReviewList reviews={data?.reviews.items || []} />
+          <ReviewList reviews={reviewsData?.reviews.items || []} />
         </ListState>
       </div>
     </PageContainer>
