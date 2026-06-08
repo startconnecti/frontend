@@ -3,7 +3,7 @@
 import { useTutorProfileQuery } from '@/features/tutor-profile/hooks/use-tutor-profile-query';
 import { useTutorProfileChangeRequestsQuery } from '@/features/tutor-profile/hooks/use-tutor-profile-change-requests';
 import { TutorProfileApprovalBanner } from '@/features/tutor-profile/components/tutor-profile-approval-banner';
-import { TutorProfileForm } from '@/features/tutor-profile/components/tutor-profile-form';
+
 import { TutorProfileEmptyState } from '@/features/tutor-profile/components/tutor-profile-empty-state';
 import { TutorProfileDisplay } from '@/features/tutor-profile/components/tutor-profile-display';
 import { TutorProfileDraftForm } from '@/features/tutor-profile/components/tutor-profile-draft-form';
@@ -18,7 +18,7 @@ export function TutorProfileSettings() {
   const isNotFound = isError && (error as any)?.response?.status === 404;
   const isNoProfile = isNotFound || (!isLoading && !profile) || profile?.status === 'incomplete';
   const isApprovedLike = profile?.approvalStatus === 'approved' || profile?.approvalStatus === 'suspended';
-  const canCreateDraft = isApprovedLike;
+  const canCreateDraft = profile?.onboardingCompleted === true;
 
   const { data: changeRequestsData } = useTutorProfileChangeRequestsQuery(
     { status: 'pending', limit: 1 },
@@ -83,7 +83,7 @@ export function TutorProfileSettings() {
         reviewNote={profile.reviewNote}
       />
 
-      {canCreateDraft ? (
+      {canCreateDraft && (
         isDraftMode ? (
           <TutorProfileDraftForm 
             initialData={profile} 
@@ -100,8 +100,12 @@ export function TutorProfileSettings() {
                 </div>
               </div>
             ) : (
-              <div className="flex justify-end">
-                <Button size="lg" className="font-black gap-2 rounded-2xl" onClick={() => setIsDraftMode(true)}>
+              <div className="bg-muted/10 border border-border/40 p-4 rounded-2xl flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+                <div>
+                  <p className="font-bold text-brand-dark">Need to update your profile?</p>
+                  <p className="text-sm text-muted-foreground">Submit a Change Request for admin review.</p>
+                </div>
+                <Button size="lg" className="font-black gap-2 rounded-2xl shrink-0" onClick={() => setIsDraftMode(true)}>
                   <Edit3 className="h-5 w-5" />
                   Create Change Request
                 </Button>
@@ -110,8 +114,10 @@ export function TutorProfileSettings() {
             <TutorProfileDisplay profile={profile} />
           </div>
         )
-      ) : (
-        <TutorProfileForm initialData={profile} />
+      )}
+      
+      {!canCreateDraft && (
+        <TutorProfileDisplay profile={profile} />
       )}
     </div>
   );

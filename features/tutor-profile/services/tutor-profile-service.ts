@@ -101,16 +101,5 @@ export const tutorProfileService = {
     return normalizeTutorProfile(response);
   },
 
-  async updateTutorProfile(request: Record<string, any>): Promise<TutorProfile> {
-    const payload = {
-      bio: request.bio,
-      experience_text: request.experienceText,
-      hourly_rate: Number(request.hourlyRate),
-      subject_ids: Array.isArray(request.subjects)
-        ? request.subjects.map((s: string | { id?: string }) => typeof s === 'string' ? s : s.id || s)
-        : [],
-    };
-    const response = await api.put<Record<string, any>>('/api/v1/tutor/profile', payload);
-    return normalizeTutorProfile(response);
-  }
+
 };

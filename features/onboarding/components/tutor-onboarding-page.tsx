@@ -15,14 +15,7 @@ export function TutorOnboardingPage() {
   
   const isTutorReady = user?.role === 'tutor' && user.onboardingCompleted === true;
 
-  const handleLeave = () => {
-    if (isTutorReady) {
-      router.push(ROUTES.TUTOR_DASHBOARD);
-    } else {
-      updateUser({ onboardingSkipped: true });
-      router.push(ROUTES.TUTOR_DASHBOARD);
-    }
-  };
+
 
   return (
     <PageContainer className="py-12">
@@ -34,21 +27,14 @@ export function TutorOnboardingPage() {
 
         <TutorOnboardingForm />
 
-        <div className="text-center">
-          <Button variant="ghost" size="sm" className="gap-2 text-muted-foreground" onClick={handleLeave}>
-            {isTutorReady ? (
-              <>
-                <LayoutDashboard className="h-4 w-4" />
-                Go to Dashboard
-              </>
-            ) : (
-              <>
-                <ArrowLeft className="h-4 w-4" />
-                Skip for now
-              </>
-            )}
-          </Button>
-        </div>
+        {isTutorReady && (
+          <div className="text-center">
+            <Button variant="ghost" size="sm" className="gap-2 text-muted-foreground" onClick={() => router.push(ROUTES.TUTOR_DASHBOARD)}>
+              <LayoutDashboard className="h-4 w-4" />
+              Go to Dashboard
+            </Button>
+          </div>
+        )}
       </div>
     </PageContainer>
   );

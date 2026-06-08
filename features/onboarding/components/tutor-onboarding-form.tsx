@@ -232,14 +232,7 @@ export function TutorOnboardingForm() {
     setCurrentStep((prev) => Math.max(prev - 1, 0));
   };
 
-  const handleSkipAndExit = () => {
-    if (isTutorReady) {
-      router.push(ROUTES.TUTOR_DASHBOARD);
-    } else {
-      updateUser({ onboardingSkipped: true });
-      router.push(ROUTES.TUTOR_DASHBOARD);
-    }
-  };
+
   const handleSubmit = async () => {
     // Validate all steps before submission
     let isValid = true;
@@ -361,9 +354,7 @@ export function TutorOnboardingForm() {
 
         <CardFooter className="border-t bg-muted/10 p-6 flex items-center justify-between">
           <div className="flex gap-2">
-            <Button variant="ghost" onClick={handleSkipAndExit}>
-              {isTutorReady ? 'Go to Dashboard' : 'Skip for now'}
-            </Button>
+
             {currentStep > 0 && (
               <Button variant="outline" onClick={handleBack}>
                 <ArrowLeft className="mr-2 h-4 w-4" />

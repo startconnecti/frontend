@@ -4,26 +4,7 @@ import { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { GraduationCap, Sparkles, BookOpen, Clock, ArrowRight } from 'lucide-react';
-import { TutorProfileForm } from './tutor-profile-form';
-
 export function TutorProfileEmptyState() {
-  const [isCreating, setIsCreating] = useState(false);
-
-  if (isCreating) {
-    return (
-      <div className="space-y-6">
-        <div className="flex items-center justify-between">
-          <div>
-            <h2 className="text-2xl font-black text-brand-dark">Create Your Tutor Profile</h2>
-            <p className="text-muted-foreground">Fill out the information below to start teaching.</p>
-          </div>
-          <Button variant="outline" onClick={() => setIsCreating(false)}>Cancel</Button>
-        </div>
-        {/* We pass an empty initialData to TutorProfileForm and it will handle create vs update based on missing id */}
-        <TutorProfileForm initialData={null} isCreating={true} />
-      </div>
-    );
-  }
 
   return (
     <div className="max-w-3xl mx-auto space-y-8">
@@ -80,9 +61,9 @@ export function TutorProfileEmptyState() {
         <Button 
           size="lg" 
           className="font-black px-12 shadow-xl shadow-primary/30 h-14 text-lg rounded-2xl gap-2 transition-transform hover:scale-[1.02]"
-          onClick={() => setIsCreating(true)}
+          asChild
         >
-          Create Tutor Profile <ArrowRight className="h-5 w-5" />
+          <a href="/onboarding/tutor">Complete Onboarding <ArrowRight className="h-5 w-5" /></a>
         </Button>
       </div>
     </div>
