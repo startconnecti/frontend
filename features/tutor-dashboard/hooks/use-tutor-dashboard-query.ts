@@ -69,13 +69,17 @@ export function useTutorDashboardQuery() {
           endTime: upcomingSession.endTime,
           meetingLink: upcomingSession.meetingUrl || upcomingSession.meetingLink,
         } : null,
-        recentReviews: allReviews.map((r: any) => ({
-          id: r.id,
-          studentName: r.studentName || r.student?.fullName || 'Student',
-          rating: r.rating || 5,
-          comment: r.comment || '',
-          date: r.createdAt || r.date || new Date().toISOString(),
-        })),
+        recentReviews: allReviews.map((r: any, index: number) => {
+          const stableId = r.feedbackId || r.id || `review-fallback-${index}`;
+          return {
+            id: stableId,
+            feedbackId: stableId,
+            studentName: r.studentName || r.student?.fullName || 'Student',
+            rating: r.rating || 5,
+            comment: r.comment || '',
+            date: r.createdAt || r.date || new Date().toISOString(),
+          };
+        }),
         recentEarnings: payments.map((p: any) => ({
           id: p.id || p.paymentId,
           subject: p.subject || 'Tutoring Session',
