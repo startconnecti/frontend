@@ -54,7 +54,7 @@ export function LoginForm() {
 
       // Redirect based on role and onboarding status
       const tutorNeedsOnboarding = response.user.role === 'tutor' && !response.user.onboardingCompleted;
-      const studentNeedsOnboarding = response.user.role === 'student' && !response.user.onboardingCompleted && !response.user.hasProfile && !response.user.onboardingSkipped;
+      const studentNeedsOnboarding = response.user.role === 'student' && !response.user.hasProfile && !response.user.onboardingSkipped;
 
       if (response.user.role === 'student') {
         router.push(studentNeedsOnboarding ? ROUTES.ONBOARDING_STUDENT : ROUTES.STUDENT_DASHBOARD);

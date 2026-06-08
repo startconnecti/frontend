@@ -43,8 +43,8 @@ export function RouteGuard({
       // Tutors are now allowed to access the dashboard and continue onboarding later
       const isTutorIncomplete = false;
       
-      // For students: onboardingCompleted or hasProfile or skipped counts as complete
-      const isStudentIncomplete = user.role === 'student' && !user.onboardingCompleted && !user.hasProfile && !user.onboardingSkipped;
+      // For students: hasProfile or skipped counts as complete
+      const isStudentIncomplete = user.role === 'student' && !user.hasProfile && !user.onboardingSkipped;
 
       if (isStudentIncomplete) {
         if (pathname !== ROUTES.ONBOARDING_STUDENT) {
@@ -56,7 +56,7 @@ export function RouteGuard({
 
     // 4. Prevent Re-onboarding — redirect away from onboarding if already completed
     if (user) {
-      const isStudentComplete = user.role === 'student' && (user.onboardingCompleted || user.hasProfile);
+      const isStudentComplete = user.role === 'student' && user.hasProfile;
 
       if (isStudentComplete) {
         if (pathname === ROUTES.ONBOARDING_STUDENT) {
@@ -78,7 +78,7 @@ export function RouteGuard({
   if (allowedRole && user?.role !== allowedRole) return null;
 
   if (requireOnboarding && user) {
-    const isStudentIncomplete = user.role === 'student' && !user.onboardingCompleted && !user.hasProfile && !user.onboardingSkipped;
+    const isStudentIncomplete = user.role === 'student' && !user.hasProfile && !user.onboardingSkipped;
     if (isStudentIncomplete) {
       if (pathname !== ROUTES.ONBOARDING_STUDENT) {
         return null;
