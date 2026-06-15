@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import { Calendar, CheckCircle2, ShieldCheck, Loader2, AlertTriangle } from 'lucide-react';
+import { Calendar, ShieldCheck, Loader2 } from 'lucide-react';
 import { useQueryClient } from '@tanstack/react-query';
 import { Card, CardContent, CardFooter, CardHeader } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -29,6 +29,8 @@ import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
 import { useRouter } from 'next/navigation';
+import { generateHourlySlots } from '../utils';
+import { paymentService } from '@/features/payments/services/payment-service';
 
 interface TutorBookingSummaryCardProps {
   tutor: Tutor;
@@ -44,120 +46,97 @@ const DAY_MAP: Record<string, number> = {
   saturday: 6,
 };
 
-function getNextSlotOccurrence(dayOfWeekStr: string, startTimeStr: string, endTimeStr: string) {
-  const targetDay = DAY_MAP[dayOfWeekStr.toLowerCase()];
-  if (targetDay === undefined) {
-    throw new Error(`Invalid day of week: ${dayOfWeekStr}`);
+/**
+ * Represents a single 1-hour bookable slot derived from a raw AvailabilitySlot window.
+ */
+interface HourlySlotOption {
+  /** Composite key used as the <Select> value — unique per option */
+  key: string;
+  /** The parent AvailabilitySlot (holds the id for the booking payload) */
+  parentSlot: AvailabilitySlot;
+  /** Day label e.g. "Monday" */
+  dayLabel: string;
+  /** HH:mm of the 1-hour slot start */
+  hourlyStart: string;
+  /** HH:mm of the 1-hour slot end */
+  hourlyEnd: string;
+}
+
+/** Expand all raw availability windows into 1-hour bookable slot options. */
+function buildHourlyOptions(availabilitySlots: AvailabilitySlot[]): HourlySlotOption[] {
+  const options: HourlySlotOption[] = [];
+
+  for (const slot of availabilitySlots) {
+    const dayLabel = slot.dayOfWeek || slot.day || '';
+    const hourStrings = generateHourlySlots(slot.startTime, slot.endTime);
+
+    for (const hourStr of hourStrings) {
+      const [hourlyStart, hourlyEnd] = hourStr.split('-');
+      options.push({
+        key: `${slot.id}-${hourlyStart}`,
+        parentSlot: slot,
+        dayLabel,
+        hourlyStart,
+        hourlyEnd,
+      });
+    }
   }
 
-  const now = new Date();
-  
-  // Parse HH:mm
-  const [startHour, startMinute] = startTimeStr.split(':').map(Number);
-  const [endHour, endMinute] = endTimeStr.split(':').map(Number);
-
-  // We construct a Date object for the next occurrence in local timezone
-  // Start from today at the exact start time
-  const targetDate = new Date(now.getFullYear(), now.getMonth(), now.getDate(), startHour, startMinute, 0, 0);
-  
-  // Calculate how many days to add to reach the target day of the week
-  let daysToAdd = (targetDay - now.getDay() + 7) % 7;
-  
-  // Apply days addition
-  targetDate.setDate(targetDate.getDate() + daysToAdd);
-  
-  // If the calculated time is less than 24 hours from now, push it to next week
-  const msIn24Hours = 24 * 60 * 60 * 1000;
-  if (targetDate.getTime() - now.getTime() < msIn24Hours) {
-    targetDate.setDate(targetDate.getDate() + 7);
-  }
-
-  // The backend strictly enforces SLOT_DURATION_MINUTES = 60.
-  // We book the first 60 minutes of the selected availability window.
-  const endDate = new Date(targetDate.getTime() + 60 * 60 * 1000);
-
-  return {
-    start_time: targetDate.toISOString(),
-    end_time: endDate.toISOString(),
-  };
+  return options;
 }
 
 export function TutorBookingSummaryCard({ tutor }: TutorBookingSummaryCardProps) {
   const router = useRouter();
   const queryClient = useQueryClient();
   const { isAuthenticated, user } = useAuthStore();
-  // selectedSubjectId stores the UUID from the subjects master list
+
   const [selectedSubjectId, setSelectedSubjectId] = useState<string>('');
-  const [selectedSlotIndex, setSelectedSlotIndex] = useState<string>('');
+  const [selectedOptionKey, setSelectedOptionKey] = useState<string>('');
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
-  
+  const [activePaymentData, setActivePaymentData] = useState<{ instruction: PaymentInstruction; paymentId: string } | null>(null);
+
   const bookingMutation = useCreateBookingMutation();
+  const { mutate: createPayment, isPending: isCreatingPayment } = useCreatePaymentMutation();
 
   // Fetch the master subjects list (used as fallback if tutor.subjectObjects is absent)
   const { data: allSubjects = [] } = useSubjectsQuery();
 
-  // Resolve subject list with UUIDs:
-  // Path A (preferred): backend returned {id, name} objects in tutor.subjects → stored in subjectObjects
-  // Path B (fallback):  cross-reference the master subjects list by name (case-insensitive)
+  // Resolve subject list with UUIDs
   const tutorSubjects: { id: string; name: string }[] = (() => {
     if (tutor.subjectObjects && tutor.subjectObjects.length > 0) {
       return tutor.subjectObjects;
     }
-    // fallback: match names case-insensitively against the master list
     return allSubjects.filter((s) =>
       tutor.subjects.some((name) => name.toLowerCase() === s.name.toLowerCase())
     );
   })();
 
-  // Initialize selectedSubjectId once subjects are loaded
   const firstSubjectId = tutorSubjects[0]?.id ?? '';
 
+  // Expand all availability windows into 1-hour selectable options
+  const hourlyOptions = buildHourlyOptions(tutor.availabilitySlots || []);
+
+  // Resolve the currently selected option object
+  const selectedOption = hourlyOptions.find((o) => o.key === selectedOptionKey) ?? null;
 
   const handleBook = () => {
-    // ── DEBUG: dump all relevant state ──────────────────────────────────────
-    console.log('[handleBook] clicked', {
-      isAuthenticated,
-      userRole: user?.role,
-      selectedSubjectId,
-      firstSubjectId,
-      selectedSlotIndex,
-      tutorId: tutor.id,
-      tutorSubjectsNames: tutor.subjects,
-      subjectObjects: tutor.subjectObjects,
-      tutorSubjectsResolved: tutorSubjects,
-      allSubjectsCount: allSubjects.length,
-      availabilitySlots: tutor.availabilitySlots,
-    });
-    // ─────────────────────────────────────────────────────────────────────────
-
     if (!isAuthenticated) {
-      console.error('[handleBook] blocked: not authenticated');
       toast.error('Please log in to book a session.');
       return;
     }
 
     if (user?.role === 'tutor') {
-      console.error('[handleBook] blocked: user is a tutor');
       toast.error('Tutors cannot book sessions.');
       return;
     }
 
-    if (!selectedSlotIndex) {
-      console.error('[handleBook] blocked: no time slot selected');
+    if (!selectedOption) {
       toast.error('Please select a time slot before booking.');
       return;
     }
 
-    // Resolve subject_id: prefer explicit selection, fall back to first available
     const effectiveSubjectId = selectedSubjectId || firstSubjectId;
-    console.log('[handleBook] effectiveSubjectId:', effectiveSubjectId);
-
     if (!effectiveSubjectId) {
-      console.error('[handleBook] blocked: cannot resolve subject UUID.', {
-        tutorSubjects,
-        allSubjectsCount: allSubjects.length,
-        subjectObjects: tutor.subjectObjects,
-      });
       toast.error(
         allSubjects.length === 0
           ? 'Subject list is still loading — please wait a moment and try again.'
@@ -166,18 +145,9 @@ export function TutorBookingSummaryCard({ tutor }: TutorBookingSummaryCardProps)
       return;
     }
 
-    const slotIdx = parseInt(selectedSlotIndex, 10);
-    const slot = tutor.availabilitySlots[slotIdx];
-    console.log('[handleBook] resolved slot (index=' + slotIdx + '):', slot);
+    const { parentSlot, hourlyStart } = selectedOption;
 
-    if (!slot) {
-      console.error('[handleBook] blocked: slot not found at index', slotIdx);
-      toast.error('Selected time slot is invalid. Please refresh the page and choose again.');
-      return;
-    }
-
-    if (!slot.id) {
-      console.error('[handleBook] blocked: slot.id is missing (backend did not return ID):', slot);
+    if (!parentSlot.id) {
       toast.error('This time slot is missing its ID — the page may need a refresh.');
       return;
     }
@@ -187,37 +157,54 @@ export function TutorBookingSummaryCard({ tutor }: TutorBookingSummaryCardProps)
       return;
     }
 
-    // Safe ISO datetime construction from selected calendar date
-    const [startHour, startMinute] = slot.startTime.split(':').map(Number);
+    const [startHour, startMinute] = hourlyStart.split(':').map(Number);
     const startTarget = new Date(selectedDate);
     startTarget.setHours(startHour, startMinute, 0, 0);
-
-    // The backend strictly enforces SLOT_DURATION_MINUTES = 60.
     const endTarget = new Date(startTarget.getTime() + 60 * 60 * 1000);
 
     const payload = {
       tutor_id: tutor.id,
       subject_id: effectiveSubjectId,
-      weekly_availability_id: slot.id,
+      weekly_availability_id: parentSlot.id,
       start_time: startTarget.toISOString(),
       end_time: endTarget.toISOString(),
     };
-    console.log('Exact payload being sent:', payload);
 
     bookingMutation.mutate(payload, {
       onSuccess: (data) => {
-        console.log('[handleBook] booking success:', data);
         const booking = (data as any)?.booking || (data as any)?.data?.booking || data;
-        const bookingCode = booking?.bookingCode || booking?.id?.slice(-6)?.toUpperCase() || 'PENDING';
-        toast.success(`Booking created successfully! Reference: #${bookingCode}`);
-        
+        const bookingId: string | undefined = booking?.bookingId || booking?.id;
+        const bookingCode = booking?.bookingCode || bookingId?.slice(-6)?.toUpperCase() || 'PENDING';
+
+        toast.success(`Booking created! Reference: #${bookingCode}. Opening payment...`);
+
         // Reset selections
-        setSelectedSlotIndex('');
+        setSelectedOptionKey('');
         setSelectedDate(undefined);
-        
+
         // Invalidate queries
         queryClient.invalidateQueries({ queryKey: ['student-bookings'] });
         queryClient.invalidateQueries({ queryKey: ['student-dashboard'] });
+
+        // Automatically open the payment flow
+        if (bookingId) {
+          createPayment(bookingId, {
+            onSuccess: (response) => {
+              const payload = (response as any)?.data || response;
+              if (!payload?.paymentInstruction) {
+                toast.error('Missing payment instruction from server.');
+                return;
+              }
+              setActivePaymentData({
+                instruction: payload.paymentInstruction,
+                paymentId: payload.payment?.id || payload.payment?.paymentId,
+              });
+            },
+            onError: () => {
+              toast.error('Booking created, but could not initialize payment. Please use Pay Now from your bookings.');
+            },
+          });
+        }
       },
       onError: (error: any) => {
         const backendErrorMessage = error?.response?.data?.error?.message || error?.error?.message || error?.message;
@@ -227,7 +214,12 @@ export function TutorBookingSummaryCard({ tutor }: TutorBookingSummaryCardProps)
   };
 
   const isTutorSelf = user?.id === tutor.id;
-  const isBookingDisabled = bookingMutation.isPending || !selectedSlotIndex || isTutorSelf;
+  const isBookingDisabled = bookingMutation.isPending || isCreatingPayment || !selectedOptionKey || isTutorSelf;
+
+  // Determine the day number to restrict the calendar picker
+  const selectedDayNum = selectedOption
+    ? DAY_MAP[(selectedOption.dayLabel).toLowerCase()]
+    : undefined;
 
   return (
     <Card className="sticky top-24 border-primary/20 shadow-xl shadow-primary/5 bg-background overflow-hidden">
@@ -238,7 +230,7 @@ export function TutorBookingSummaryCard({ tutor }: TutorBookingSummaryCardProps)
         </div>
       </CardHeader>
       
-      <CardContent className="p-6 space-y-6 ">
+      <CardContent className="p-6 space-y-6">
         {/* Selectors */}
         <div className="flex flex-col space-y-4">
           <div className="space-y-1.5">
@@ -258,7 +250,6 @@ export function TutorBookingSummaryCard({ tutor }: TutorBookingSummaryCardProps)
                 </SelectContent>
               </Select>
             ) : (
-              // Fallback: subject names only (UUIDs unavailable — booking will fail validation)
               <Select value={selectedSubjectId} onValueChange={setSelectedSubjectId}>
                 <SelectTrigger className="rounded-xl border-border/40 font-medium">
                   <SelectValue placeholder="Select subject" />
@@ -273,24 +264,25 @@ export function TutorBookingSummaryCard({ tutor }: TutorBookingSummaryCardProps)
           </div>
 
           <div className="space-y-1.5">
-            <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">Availability</label>
+            <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">Time Slot</label>
             <Select 
-              value={selectedSlotIndex} 
+              value={selectedOptionKey} 
               onValueChange={(val) => {
-                setSelectedSlotIndex(val);
+                setSelectedOptionKey(val);
                 setSelectedDate(undefined); // Reset date when slot changes
               }}
             >
               <SelectTrigger className="rounded-xl border-border/40 font-medium">
-                <SelectValue placeholder="Select a slot" />
+                <SelectValue placeholder="Select a 1-hour slot" />
               </SelectTrigger>
-              <SelectContent className="rounded-xl">
-                {(tutor.availabilitySlots || []).map((slot, i) => (
-                  <SelectItem key={i} value={i.toString()}>
-                    <span className="capitalize">{slot.dayOfWeek || slot.day}</span>: {slot.startTime} - {slot.endTime}
-                  </SelectItem>
-                ))}
-                {(!tutor.availabilitySlots || tutor.availabilitySlots.length === 0) && (
+              <SelectContent className="rounded-xl max-h-60">
+                {hourlyOptions.length > 0 ? (
+                  hourlyOptions.map((opt) => (
+                    <SelectItem key={opt.key} value={opt.key}>
+                      <span className="capitalize">{opt.dayLabel}</span>: {opt.hourlyStart} – {opt.hourlyEnd}
+                    </SelectItem>
+                  ))
+                ) : (
                   <SelectItem value="none" disabled>No availability listed</SelectItem>
                 )}
               </SelectContent>
@@ -320,17 +312,9 @@ export function TutorBookingSummaryCard({ tutor }: TutorBookingSummaryCardProps)
                   disabled={(date) => {
                     const today = new Date();
                     today.setHours(0, 0, 0, 0);
-                    if (date < today) return true; // prevent past dates
-                    
-                    if (selectedSlotIndex) {
-                      const slot = tutor.availabilitySlots[parseInt(selectedSlotIndex, 10)];
-                      if (slot) {
-                        const dayName = slot.dayOfWeek || slot.day;
-                        const targetDayNum = DAY_MAP[dayName.toLowerCase()];
-                        if (targetDayNum !== undefined && date.getDay() !== targetDayNum) {
-                          return true;
-                        }
-                      }
+                    if (date < today) return true;
+                    if (selectedDayNum !== undefined && date.getDay() !== selectedDayNum) {
+                      return true;
                     }
                     return false;
                   }}
@@ -369,7 +353,7 @@ export function TutorBookingSummaryCard({ tutor }: TutorBookingSummaryCardProps)
               You cannot book yourself
             </p>
           ) : user?.role === 'tutor' ? (
-             <p className="text-xs text-center text-amber-600 font-bold px-4 bg-amber-50 py-2 rounded-lg border border-amber-100">
+            <p className="text-xs text-center text-amber-600 font-bold px-4 bg-amber-50 py-2 rounded-lg border border-amber-100">
               Tutors cannot book sessions
             </p>
           ) : (
@@ -382,6 +366,11 @@ export function TutorBookingSummaryCard({ tutor }: TutorBookingSummaryCardProps)
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                   Booking...
+                </>
+              ) : isCreatingPayment ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Preparing Payment...
                 </>
               ) : (
                 'Book a Lesson'
@@ -396,6 +385,15 @@ export function TutorBookingSummaryCard({ tutor }: TutorBookingSummaryCardProps)
           By booking, you agree to our <span className="underline cursor-pointer">Refund Policy</span>
         </p>
       </CardFooter>
+
+      {activePaymentData && (
+        <PaymentInstructionModal
+          isOpen={!!activePaymentData}
+          onClose={() => setActivePaymentData(null)}
+          instruction={activePaymentData.instruction}
+          paymentId={activePaymentData.paymentId}
+        />
+      )}
     </Card>
   );
 }

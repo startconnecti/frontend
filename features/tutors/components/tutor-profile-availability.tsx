@@ -33,23 +33,32 @@ export function TutorProfileAvailability({ slots }: TutorProfileAvailabilityProp
           const daySlots = groupedSlots[day];
           if (!daySlots) return null;
 
+          // Expand all windows for this day into 1-hour display blocks
+          const hourlyBlocks: { start: string; end: string }[] = [];
+          for (const slot of daySlots) {
+            let h = parseInt(slot.startTime.split(':')[0], 10);
+            const endH = parseInt(slot.endTime.split(':')[0], 10);
+            while (h < endH) {
+              const from = `${String(h).padStart(2, '0')}:00`;
+              const to = `${String(h + 1).padStart(2, '0')}:00`;
+              hourlyBlocks.push({ start: from, end: to });
+              h++;
+            }
+          }
+
           return (
             <div key={day} className="p-4 rounded-xl border border-border/40 bg-muted/5 space-y-3">
               <div className="flex items-center gap-2">
                 <CalendarDays className="h-4 w-4 text-primary" />
                 <h4 className="font-bold text-sm capitalize">{day}</h4>
               </div>
-              <div className="space-y-2">
-                {daySlots.map((slot, index) => (
-                  <button key={index} className="w-full flex items-center justify-between gap-2 text-xs px-2 py-1.5 bg-background rounded-lg border border-border/20 hover:border-primary/30 transition-colors text-left">
-                    <span className="flex items-center gap-2 text-muted-foreground">
-                    <Clock className="h-3 w-3" />
-                    <span>{slot.startTime} - {slot.endTime}</span>
-                    </span>
-                    <span className={`font-bold capitalize ${slot.status === 'blocked' ? 'text-red-600' : 'text-emerald-600'}`}>
-                      {slot.status ?? 'available'}
-                    </span>
-                  </button>
+              <div className="space-y-1.5">
+                {hourlyBlocks.map((block, index) => (
+                  <div key={index} className="flex items-center gap-2 text-xs px-2 py-1.5 bg-background rounded-lg border border-border/20">
+                    <Clock className="h-3 w-3 text-muted-foreground shrink-0" />
+                    <span className="text-muted-foreground">{block.start} – {block.end}</span>
+                    <span className="ml-auto font-bold text-emerald-600">available</span>
+                  </div>
                 ))}
               </div>
             </div>
